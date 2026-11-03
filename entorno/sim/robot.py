@@ -343,21 +343,40 @@ class Robot:
         time.sleep(0.15)
         return self.verificar_estado()
     
-    def ejecutar_secuencia_senas(self, secuencia: list[dict], duracion_step: float = 0.5) -> EstadoRobot:
-        """Envia secuencias de posiciones articulares para los brazos/manos al simulador o robot."""
+    def ejecutar_secuencia_poses(
+        self,
+        secuencia: list[dict],
+        duracion_step: float = 0.6,
+        interpolar: bool = True,
+    ) -> EstadoRobot:
+        """Envía secuencias de poses articulares con interpolación cosenoidal suave al simulador o robot."""
         self._exigir_conexion()
-        
-        # Si el cliente local tiene un metodo para enviar poses articulares
         enviar_pose = getattr(self._cliente, "MoverArticulaciones", None)
-        
-        for pose in secuencia:
-            if enviar_pose is not None:
-                enviar_pose(pose, duracion_step)
-            time.sleep(duracion_step)
-            
+        if not secuencia:
+            return self.verificar_estado()
+
+        pose_previa: dict[str, float] = {}
+        pasos_interp = 8 if interpolar and duracion_step >= 0.16 else 1
+        dt_sub = max(0.02, duracion_step / pasos_interp)
+
+        for pose_destino in secuencia:
+            claves = set(pose_previa.keys()) | set(pose_destino.keys())
+            for k in range(1, pasos_interp + 1):
+                alpha = 0.5 * (1.0 - math.cos(math.pi * (k / pasos_interp)))
+                cuadro = {
+                    art: pose_previa.get(art, 0.0)
+                    + alpha * (float(pose_destino.get(art, 0.0)) - pose_previa.get(art, 0.0))
+                    for art in claves
+                }
+                if enviar_pose is not None:
+                    enviar_pose(cuadro, dt_sub + 0.05)
+                time.sleep(dt_sub)
+            pose_previa = {k: float(v) for k, v in pose_destino.items()}
+
         return self.verificar_estado()
 
-
+    def ejecutar_secuencia_senas(self, secuencia: list[dict], duracion_step: float = 0.5) -> EstadoRobot:
+        return self.ejecutar_secuencia_poses(secuencia, duracion_step=duracion_step)
 
     # ---------- alias tolerantes a errores de tipeo ----------
     def movmineto(self, *a, **k):

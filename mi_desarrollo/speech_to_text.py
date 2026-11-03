@@ -1,63 +1,85 @@
-"""Entrada de voz en espanol para el TP07.
+"""Entrada de voz multimodal en español rioplatense (Transcripción + Prosodia DSP).
 
-El modulo importa SpeechRecognition/PyAudio solo cuando se crea el
-reconocedor. De esa forma el modo --sin-robot sigue funcionando sin audio.
+Además de convertir el habla a texto (STT), captura la onda PCM cruda del
+micrófono para medir Tonalidad (F0 Hz), Rapidez (WPM), Volumen (dB) y Pausas
+mediante AnalizadorAcusticoVoz.
 """
 
+from __future__ import annotations
 
-class ReconocedorVoz:
-    """Convierte lo dicho por el usuario en texto usando Google Speech API."""
+from percepcion_multimodal import AnalizadorAcusticoVoz, MetricasAcusticasVoz
 
-    def __init__(self, idioma="es-AR", pausa_silencio=0.8):
+
+class ReconocedorVozMultimodal:
+    """Captura audio del micrófono y devuelve (texto, MetricasAcusticasVoz)."""
+
+    def __init__(self, idioma: str = "es-AR", pausa_silencio: float = 0.85):
         try:
             import speech_recognition as sr
         except ImportError as exc:
             raise RuntimeError(
-                "Falta SpeechRecognition. Ejecuta: "
-                "python -m pip install -r requirements-voz.txt"
+                "Falta SpeechRecognition. Ejecutá: pip install SpeechRecognition PyAudio"
             ) from exc
 
         self._sr = sr
         self._reconocedor = sr.Recognizer()
         self._reconocedor.pause_threshold = pausa_silencio
+        self._analizador_acustico = AnalizadorAcusticoVoz()
         try:
             self._microfono = sr.Microphone()
         except (AttributeError, OSError) as exc:
             raise RuntimeError(
-                "No se pudo abrir el microfono. Verifica PyAudio, el "
-                "microfono predeterminado y los permisos de Windows."
+                "No se pudo abrir el micrófono. Verificá PyAudio y los permisos de micrófono en Windows."
             ) from exc
         self.idioma = idioma
 
-    def calibrar(self, duracion=1):
-        """Ajusta el umbral al ruido ambiente durante unos segundos."""
-        print("  Ajustando el microfono al ruido ambiente...")
+    def calibrar(self, duracion: float = 1.0) -> None:
+        print("  [MIC] Calibrando umbral de ruido ambiente...")
         with self._microfono as fuente:
             self._reconocedor.adjust_for_ambient_noise(fuente, duration=duracion)
-        print("  Microfono listo.")
+        print("  [MIC] Micrófono calibrado y listo.")
 
-    def escuchar(self):
-        """Escucha una frase y devuelve su transcripcion, o una cadena vacia."""
-        print("\n  Habla ahora (o deci 'salir' para terminar)...")
+    def escuchar_multimodal(self) -> tuple[str, MetricasAcusticasVoz]:
+        """Escucha una intervención y retorna el texto junto con su análisis acústico."""
+        print("\n  Hablá ahora con Ottoman (o decí 'salir' para terminar)...")
         try:
             with self._microfono as fuente:
-                audio = self._reconocedor.listen(fuente, timeout=5, phrase_time_limit=12)
+                audio = self._reconocedor.listen(fuente, timeout=6, phrase_time_limit=14)
         except self._sr.WaitTimeoutError:
-            print("  No detecte voz a tiempo.")
-            return ""
-        except self._sr.RequestError as exc:
-            print(f"  No se pudo acceder al servicio de voz: {exc}")
-            return ""
+            print("  [MIC] No se detectó voz a tiempo.")
+            return "", MetricasAcusticasVoz(audio_analizado=False)
 
+        texto = ""
         try:
-            texto = self._reconocedor.recognize_google(audio, language=self.idioma)
+            texto = self._reconocedor.recognize_google(audio, language=self.idioma).strip()
         except self._sr.UnknownValueError:
-            print("  No pude entender lo que dijiste.")
-            return ""
+            print("  [MIC] Se detectó audio pero no se distinguieron palabras claras.")
         except self._sr.RequestError as exc:
-            print(f"  Error del servicio de reconocimiento: {exc}")
-            return ""
+            print(f"  [MIC] Servicio STT no disponible ({exc}); se analizará solo la prosodia vocal.")
 
-        texto = texto.strip()
-        print(f"  Texto reconocido: {texto}")
+        raw_bytes = audio.get_raw_data(convert_rate=16000, convert_width=2)
+        metricas = self._analizador_acustico.analizar_pcm(
+            muestras=raw_bytes,
+            sample_rate=16000,
+            sample_width=2,
+            texto_transcrito=texto,
+        )
+        if texto:
+            print(f"  [VOZ -> TEXTO] \"{texto}\"")
+        if metricas.audio_analizado:
+            print(
+                f"  [VOZ -> DSP]   Tono={metricas.tono_f0_hz:.0f} Hz | "
+                f"Rapidez={metricas.rapidez_wpm:.0f} ppm | "
+                f"Volumen={metricas.volumen_db:.1f} dB | "
+                f"Emoción Vocal={metricas.emocion_vocal}"
+            )
+        return texto, metricas
+
+    def escuchar(self) -> str:
+        """Compatibilidad simple: devuelve únicamente el texto reconocido."""
+        texto, _ = self.escuchar_multimodal()
         return texto
+
+
+# Alias compatible con plantillas previas
+ReconocedorVoz = ReconocedorVozMultimodal

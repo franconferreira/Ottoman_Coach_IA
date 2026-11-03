@@ -1,0 +1,9 @@
+numpy>=1.24.0
+scikit-learn>=1.4.0
+opencv-python>=4.8.0
+pyttsx3>=2.90
+edge-tts>=6.1.0
+SpeechRecognition>=3.10.0
+mujoco>=3.1.0
+# Opcional en Windows si se utiliza micrófono en vivo:
+# PyAudio>=0.2.14

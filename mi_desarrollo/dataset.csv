@@ -1,6 +1,141 @@
 texto,intencion
-dale para adelante,MOVER
-date media vuelta,GIRAR
-frená ahí,DETENERSE
-hacele hola a la clase,SALUDO
-qué hora es,DESCONOCIDO
+"avanzá 2 metros",MOVER
+"caminá hacia adelante despacio",MOVER
+"movete 1 metro para adelante",MOVER
+"retrocedé medio metro",MOVER
+"andá para atrás 2 metros",MOVER
+"avanza tres metros lento",MOVER
+"acercate un poco hacia acá",MOVER
+"alejate 1.5 metros despacio",MOVER
+"caminá 4 metros en línea recta",MOVER
+"adelante 0.5 metros a 0.2 m/s",MOVER
+"movete suave hacia el frente",MOVER
+"retrocedé un pasito",MOVER
+"avanzá bastante hacia la puerta",MOVER
+"caminá ligero dos metros",MOVER
+"andá hacia adelante un metro",MOVER
+"retrocede 3 metros por favor",MOVER
+"desplazate 1 metro hacia adelante",MOVER
+"avanzá 2.5 metros tranquilo",MOVER
+"movete un poco para atrás",MOVER
+"caminá medio metro hacia mí",MOVER
+"girá 90 grados a la derecha",GIRAR
+"rotá 45 grados a la izquierda",GIRAR
+"dale media vuelta ahora",GIRAR
+"doblá hacia la derecha",GIRAR
+"girá 120 grados para la izquierda",GIRAR
+"pegá media vuelta en el lugar",GIRAR
+"rotá 30 grados en sentido horario",GIRAR
+"girá un poco a la derecha",GIRAR
+"girate 60 grados a la izquierda",GIRAR
+"hacé un giro de 90 grados",GIRAR
+"doblá 45 grados hacia la izquierda",GIRAR
+"rotá 180 grados despacio",GIRAR
+"girá hacia tu derecha 75 grados",GIRAR
+"cambiá de orientación 90 grados",GIRAR
+"date media vuelta por favor",GIRAR
+"girá 15 grados a la izquierda",GIRAR
+"rotá hacia la derecha un cuarto de vuelta",GIRAR
+"doblá para el lado izquierdo",GIRAR
+"girá 135 grados a la derecha",GIRAR
+"rotá 60 grados suave",GIRAR
+"detente ya mismo",DETENERSE
+"pará todo por favor",DETENERSE
+"frená inmediatamente",DETENERSE
+"quedate quieto ahí",DETENERSE
+"no avances más",DETENERSE
+"no te muevas",DETENERSE
+"stop ahora",DETENERSE
+"detenete en el lugar",DETENERSE
+"basta de caminar",DETENERSE
+"no sigas avanzando",DETENERSE
+"parate ahí mismo",DETENERSE
+"frenate por completo",DETENERSE
+"no gires más",DETENERSE
+"quieto ottoman",DETENERSE
+"cortá el movimiento ya",DETENERSE
+"detenerse de inmediato",DETENERSE
+"no camines hacia allá",DETENERSE
+"frená seco ahora",DETENERSE
+"pará la marcha",DETENERSE
+"quedate inmóvil",DETENERSE
+"saluda a los estudiantes",SALUDO
+"hacé un saludo con la mano",SALUDO
+"saludá al profesor",SALUDO
+"hola ottoman",SALUDO
+"saludame por favor",SALUDO
+"dale un saludo a la clase",SALUDO
+"hola robot",SALUDO
+"saludá a todos los presentes",SALUDO
+"levantá la mano para saludar",SALUDO
+"hacé el gesto de saludo",SALUDO
+"saludá amablemente al grupo",SALUDO
+"mandá un saludo con el brazo",SALUDO
+"hola",SALUDO
+"saludá a los invitados del laboratorio",SALUDO
+"hacé un wave con la mano",SALUDO
+"saludarlos ahora",SALUDO
+"dale un saludo amistoso",SALUDO
+"saludá mirando al frente",SALUDO
+"haceme un saludo",SALUDO
+"saludá a la cámara",SALUDO
+"¿cuánta batería tenés?",CONSULTAR_ESTADO
+"decime el nivel de batería",CONSULTAR_ESTADO
+"¿cómo estás de batería hoy?",CONSULTAR_ESTADO
+"mostrame tu estado actual",CONSULTAR_ESTADO
+"¿cuál es el diagnóstico del sistema?",CONSULTAR_ESTADO
+"consultá la carga restante",CONSULTAR_ESTADO
+"¿qué porcentaje de batería te queda?",CONSULTAR_ESTADO
+"reportá el estado de tus sensores",CONSULTAR_ESTADO
+"¿tenés suficiente carga para seguir?",CONSULTAR_ESTADO
+"verificá el estado del robot",CONSULTAR_ESTADO
+"pasame el status de energía",CONSULTAR_ESTADO
+"¿en qué estado te encontrás?",CONSULTAR_ESTADO
+"chequeá cuánta batería queda",CONSULTAR_ESTADO
+"informame el estado general",CONSULTAR_ESTADO
+"¿cómo viene el nivel de carga?",CONSULTAR_ESTADO
+"dame el reporte de estado",CONSULTAR_ESTADO
+"¿cuánta energía disponible tenés?",CONSULTAR_ESTADO
+"revisá el status interno",CONSULTAR_ESTADO
+"mostrá telemetría y batería",CONSULTAR_ESTADO
+"¿estás bien de carga?",CONSULTAR_ESTADO
+"estoy colapsando de ansiedad por los parciales y no llego",COACH_EMOCIONAL
+"me siento muy triste y sin fuerzas para seguir estudiando",COACH_EMOCIONAL
+"estoy harto y con mucha bronca porque nada me sale",COACH_EMOCIONAL
+"no sé qué decisión tomar con mi trabajo, tengo miedo a fallar",COACH_EMOCIONAL
+"¡aprobé la materia, estoy súper feliz y orgulloso!",COACH_EMOCIONAL
+"siento pánico y me falta el aire de tantas entregas juntas",COACH_EMOCIONAL
+"hoy tuve un bajón enorme y tengo ganas de abandonar todo",COACH_EMOCIONAL
+"me da mucha rabia e impotencia cuando el equipo no responde",COACH_EMOCIONAL
+"estoy re inseguro y confundido con mi futuro profesional",COACH_EMOCIONAL
+"me salió increíble la exposición, estoy re motivado",COACH_EMOCIONAL
+"estoy desbordado de estrés y nervios antes de rendir",COACH_EMOCIONAL
+"me siento solo y agotado mentalmente esta semana",COACH_EMOCIONAL
+"estoy furioso e irritado por lo injusto que fue el resultado",COACH_EMOCIONAL
+"tengo síndrome del impostor y dudo de todo lo que hago",COACH_EMOCIONAL
+"logré destrabar el proyecto y estoy re contento",COACH_EMOCIONAL
+"tengo una angustia tremenda y mil cosas en la cabeza",COACH_EMOCIONAL
+"me siento fracasado y decepcionado conmigo mismo",COACH_EMOCIONAL
+"necesito un coach que me ayude a calmarme un segundo",COACH_EMOCIONAL
+"estoy bloqueado por la presión y la ansiedad",COACH_EMOCIONAL
+"estoy entusiasmado porque pude resolver el problema",COACH_EMOCIONAL
+"¿cuál es la capital de Francia?",DESCONOCIDO
+"hola, ¿cómo te llamás?",DESCONOCIDO
+"qué onda",DESCONOCIDO
+"preparame un café con leche",DESCONOCIDO
+"¿va a llover mañana en Buenos Aires?",DESCONOCIDO
+"contame un chiste de loros",DESCONOCIDO
+"¿cuánto salió el partido de ayer?",DESCONOCIDO
+"abrí el navegador de internet",DESCONOCIDO
+"¿quién ganó el mundial de 1986?",DESCONOCIDO
+"calculá la raíz cuadrada de 144",DESCONOCIDO
+"mandale un correo al decano",DESCONOCIDO
+"¿qué hora es en Tokio?",DESCONOCIDO
+"recomendame una película de ciencia ficción",DESCONOCIDO
+"¿cómo se hace una torta de chocolate?",DESCONOCIDO
+"encendé el aire acondicionado del aula",DESCONOCIDO
+"¿cuántos habitantes tiene Argentina?",DESCONOCIDO
+"poné música clásica de fondo",DESCONOCIDO
+"¿qué día cae navidad este año?",DESCONOCIDO
+"traducí esta palabra al alemán",DESCONOCIDO
+"¿cuál es el precio del dólar hoy?",DESCONOCIDO

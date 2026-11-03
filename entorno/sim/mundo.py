@@ -164,7 +164,7 @@ class Mundo:
                 for nombre, valor in articulaciones.items()
             }
             self._pose_hasta = time.monotonic() + max(0.0, duracion)
-            self.accion = "señas"
+            self.accion = "expresando"
 
     # ---------- lo llama el bucle del simulador ----------
     # Paso maximo de integracion. Con velocidades de 0.25 m/s, 20 ms son 5 mm:

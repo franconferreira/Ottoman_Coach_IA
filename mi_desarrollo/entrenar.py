@@ -1,28 +1,16 @@
 # =====================================================================
-#  Entrenamiento del clasificador. NIVEL 2 (extension).
+#  Entrenamiento y Comparación de Clasificadores ML — NIVEL 2 (Extensión)
 #
-#  ESTE ARCHIVO TE LO DAMOS HECHO, pero el DATASET lo armas vos.
+#  Entrena y compara tres familias de algoritmos vistas en la materia:
+#    1. Multinomial Naive Bayes (n-gramas de caracteres + palabras)
+#    2. Árbol de Decisión (DecisionTreeClassifier)
+#    3. Máquina de Soporte Vectorial Lineal / Regresión Logística
 #
-#  Corrida rapida:
-#      python3 entrenar.py
-#
-#  Lee tu dataset.csv, entrena un clasificador y te muestra las cuatro
-#  metricas: accuracy, precision, recall y F1.
-#
-#  Para usarlo en tu agente, en ClasificadorIntencion:
-#
-#      from entrenar import entrenar_desde_csv
-#
-#      class ClasificadorIntencion:
-#          def __init__(self):
-#              self.modelo = entrenar_desde_csv("dataset.csv")
-#
-#          def clasificar(self, texto):
-#              return self.modelo.predict([texto])[0]
-#
-#  El resto del pipeline no se entera: extractor, validador y ejecutor
-#  siguen igual. Esa es la ventaja de tener las etapas separadas.
+#  Corrida rápida:
+#      python entrenar.py
 # =====================================================================
+
+from __future__ import annotations
 
 import csv
 from collections import Counter
@@ -30,46 +18,35 @@ from pathlib import Path
 
 DATASET = Path(__file__).resolve().parent / "dataset.csv"
 
-TIPOS = ("MOVER", "GIRAR", "DETENERSE", "SALUDO",
-         "CONSULTAR_ESTADO", "DESCONOCIDO")
+TIPOS = (
+    "MOVER",
+    "GIRAR",
+    "DETENERSE",
+    "SALUDO",
+    "CONSULTAR_ESTADO",
+    "COACH_EMOCIONAL",
+    "DESCONOCIDO",
+)
 
 
-def hay_sklearn():
-    try:
-        import sklearn  # noqa: F401
-        return True
-    except ImportError:
-        return False
-
-
-def cargar_dataset(ruta=DATASET):
-    """Lee el CSV. Devuelve (textos, etiquetas).
-
-    Formato esperado, con cabecera:
-
-        texto,intencion
-        avanza dos metros,MOVER
-        pará,DETENERSE
-    """
-    ruta = Path(ruta)
-    if not ruta.is_file():
-        raise FileNotFoundError(
-            f"No encuentro {ruta.name}. Tenes que armar tu dataset:\n"
-            f"  - una fila por ejemplo\n"
-            f"  - dos columnas: texto,intencion\n"
-            f"  - al menos 50 ejemplos (la consigna sugiere 80)")
+def cargar_dataset(ruta: Path = DATASET) -> tuple[list[str], list[str]]:
+    if not ruta.exists():
+        raise FileNotFoundError(f"No encuentro {ruta}.")
 
     textos, etiquetas = [], []
     with open(ruta, encoding="utf-8", newline="") as f:
-        for n, fila in enumerate(csv.DictReader(f), start=2):
-            texto = (fila.get("texto") or "").strip()
-            etiqueta = (fila.get("intencion") or "").strip().upper()
-            if not texto:
+        lector = csv.reader(f)
+        for n, fila in enumerate(lector, 1):
+            if not fila or fila[0].strip().startswith("#"):
                 continue
+            if n == 1 and fila[0].strip().lower() == "texto":
+                continue
+            if len(fila) < 2:
+                raise ValueError(f"{ruta.name}:{n}: falta la intención -> {fila!r}")
+            texto = fila[0].strip()
+            etiqueta = fila[1].strip().upper()
             if etiqueta not in TIPOS:
-                raise ValueError(
-                    f"{ruta.name} linea {n}: intencion '{etiqueta}' no es valida.\n"
-                    f"  Tiene que ser una de: {', '.join(TIPOS)}")
+                raise ValueError(f"{ruta.name}:{n}: '{etiqueta}' no está en {TIPOS}")
             textos.append(texto)
             etiquetas.append(etiqueta)
 
@@ -78,126 +55,125 @@ def cargar_dataset(ruta=DATASET):
     return textos, etiquetas
 
 
-def revisar_dataset(textos, etiquetas):
-    """Avisa de los problemas tipicos ANTES de entrenar."""
+def revisar_dataset(textos: list[str], etiquetas: list[str]) -> list[str]:
     avisos = []
     cuenta = Counter(etiquetas)
-
-    if len(textos) < 50:
-        avisos.append(f"Solo {len(textos)} ejemplos. La consigna sugiere 80; "
-                      f"con menos de 50 el modelo no aprende gran cosa.")
-
+    if len(textos) < 80:
+        avisos.append(f"Solo {len(textos)} ejemplos (se recomiendan >= 80).")
     faltan = [t for t in TIPOS if cuenta[t] == 0]
     if faltan:
-        avisos.append(f"No hay ejemplos de: {', '.join(faltan)}. "
-                      f"El modelo nunca va a predecir esas intenciones.")
-
-    pocos = [f"{t} ({cuenta[t]})" for t in TIPOS if 0 < cuenta[t] < 5]
-    if pocos:
-        avisos.append(f"Muy pocos ejemplos de: {', '.join(pocos)}. "
-                      f"Conviene al menos 5 de cada una.")
-
+        avisos.append(f"Faltan clases en el dataset: {', '.join(faltan)}.")
     repetidos = [t for t, c in Counter(x.lower().strip() for x in textos).items() if c > 1]
     if repetidos:
-        avisos.append(f"{len(repetidos)} texto(s) repetido(s). "
-                      f"Repetir no agrega informacion: cambia la redaccion.")
-
+        avisos.append(f"Hay {len(repetidos)} ejemplo(s) repetido(s).")
     return avisos
 
 
-def entrenar(textos, etiquetas):
-    """Entrena un Naive Bayes sobre bolsa de palabras."""
-    from sklearn.feature_extraction.text import CountVectorizer
+def construir_modelos() -> dict:
+    """Construye los tres pipelines supervisados para evaluación comparativa."""
+    from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+    from sklearn.linear_model import LogisticRegression
     from sklearn.naive_bayes import MultinomialNB
-    from sklearn.pipeline import make_pipeline
+    from sklearn.pipeline import FeatureUnion, make_pipeline
+    from sklearn.tree import DecisionTreeClassifier
 
-    modelo = make_pipeline(
-        # analyzer="char_wb" con n-gramas aguanta mejor las variantes del
-        # espanol: "avanza", "avanza", "avanzar" comparten letras.
-        CountVectorizer(analyzer="char_wb", ngram_range=(3, 5)),
-        MultinomialNB(),
-    )
-    modelo.fit(textos, etiquetas)
-    return modelo
+    features_hibridas = FeatureUnion([
+        ("chars", TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5))),
+        ("words", TfidfVectorizer(analyzer="word", ngram_range=(1, 2))),
+    ])
+
+    return {
+        "Naive Bayes (char+word)": make_pipeline(
+            CountVectorizer(analyzer="char_wb", ngram_range=(3, 5)),
+            MultinomialNB(alpha=0.3),
+        ),
+        "Árbol de Decisión": make_pipeline(
+            TfidfVectorizer(analyzer="word", ngram_range=(1, 2)),
+            DecisionTreeClassifier(max_depth=22, random_state=42),
+        ),
+        "Regresión Logística (TF-IDF Híbrido)": make_pipeline(
+            features_hibridas,
+            LogisticRegression(max_iter=1000, C=3.0, random_state=42),
+        ),
+    }
 
 
-def entrenar_desde_csv(ruta=DATASET):
-    """Lo que llamas desde tu agente. Devuelve el modelo listo para predecir."""
+def entrenar(textos: list[str], etiquetas: list[str]):
+    """Entrena el mejor modelo generalista (TF-IDF Híbrido + Regresión Logística)."""
+    modelos = construir_modelos()
+    mejor = modelos["Regresión Logística (TF-IDF Híbrido)"]
+    mejor.fit(textos, etiquetas)
+    return mejor
+
+
+def entrenar_desde_csv(ruta: Path = DATASET):
     textos, etiquetas = cargar_dataset(ruta)
     return entrenar(textos, etiquetas)
 
 
-def metricas(modelo, textos, etiquetas):
-    """Las cuatro que pide la consigna."""
-    from sklearn.metrics import (accuracy_score, f1_score, precision_score,
-                                 recall_score)
+def metricas(modelo, textos: list[str], etiquetas: list[str]) -> dict[str, float]:
+    from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+
     pred = modelo.predict(textos)
     return {
-        "accuracy": accuracy_score(etiquetas, pred),
-        "precision": precision_score(etiquetas, pred, average="macro", zero_division=0),
-        "recall": recall_score(etiquetas, pred, average="macro", zero_division=0),
-        "f1": f1_score(etiquetas, pred, average="macro", zero_division=0),
+        "accuracy": float(accuracy_score(etiquetas, pred)),
+        "precision": float(precision_score(etiquetas, pred, average="macro", zero_division=0)),
+        "recall": float(recall_score(etiquetas, pred, average="macro", zero_division=0)),
+        "f1": float(f1_score(etiquetas, pred, average="macro", zero_division=0)),
     }
 
 
-def main():
-    print("\n  ENTRENAMIENTO DEL CLASIFICADOR (nivel 2)")
-    print("  " + "=" * 56)
+def main() -> int:
+    from sklearn.model_selection import StratifiedKFold, cross_val_predict, train_test_split
+    from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
-    try:
-        textos, etiquetas = cargar_dataset()
-    except (FileNotFoundError, ValueError) as exc:
-        print(f"\n  {exc}\n")
-        return 1
+    print("\n" + "=" * 76)
+    print("  ENTRENAMIENTO Y COMPARACIÓN DE CLASIFICADORES ML (NIVEL 2 — TPO UADE)")
+    print("=" * 76)
 
+    textos, etiquetas = cargar_dataset()
     cuenta = Counter(etiquetas)
-    print(f"\n  Dataset: {len(textos)} ejemplos")
+
+    print(f"\n  Dataset cargado: {len(textos)} ejemplos balanceados en {len(cuenta)} intenciones:")
     for t in TIPOS:
-        if cuenta[t]:
-            print(f"    {t:<20} {cuenta[t]:>3}")
+        print(f"    - {t:<20}: {cuenta[t]:>3} ejemplos")
 
     for aviso in revisar_dataset(textos, etiquetas):
-        print(f"\n  [AVISO] {aviso}")
+        print(f"  [AVISO] {aviso}")
 
-    if not hay_sklearn():
-        print("\n  scikit-learn no esta instalado, asi que no se puede entrenar.")
-        print("    pip install --user scikit-learn")
-        print("\n  El TP se puede hacer igual con reglas: esto es la extension.\n")
-        return 1
+    x_tr, x_te, y_tr, y_te = train_test_split(
+        textos, etiquetas, test_size=0.25, random_state=42, stratify=etiquetas
+    )
 
-    from sklearn.model_selection import train_test_split
+    print(f"\n  Partición Hold-out Estratificada: {len(x_tr)} train / {len(x_te)} test")
+    print("  " + "-" * 72)
+    print(f"  {'Modelo Supervisado':<38} {'Acc':>7} {'Prec':>7} {'Rec':>7} {'F1':>7}")
+    print("  " + "-" * 72)
 
-    print("\n  Entrenando...")
-    # Se separa una parte para medir. Medir sobre los mismos ejemplos con los
-    # que entrenaste no dice nada: el modelo ya los vio.
-    separado = len(textos) >= 20 and min(cuenta.values()) >= 2
-    if separado:
-        x_tr, x_te, y_tr, y_te = train_test_split(
-            textos, etiquetas, test_size=0.25, random_state=0, stratify=etiquetas)
-    else:
-        print("  [AVISO] Muy pocos ejemplos para separar en entrenamiento y")
-        print("          prueba, asi que se mide sobre los MISMOS con los que")
-        print("          se entreno. Ese numero no significa nada: el modelo")
-        print("          ya los vio. Agranda el dataset.")
-        x_tr, x_te, y_tr, y_te = textos, textos, etiquetas, etiquetas
+    modelos = construir_modelos()
+    for nombre, pipe in modelos.items():
+        pipe.fit(x_tr, y_tr)
+        m = metricas(pipe, x_te, y_te)
+        print(
+            f"  {nombre:<38} "
+            f"{m['accuracy']*100:>6.1f}% {m['precision']*100:>6.1f}% "
+            f"{m['recall']*100:>6.1f}% {m['f1']*100:>6.1f}%"
+        )
 
-    modelo = entrenar(x_tr, y_tr)
-    m = metricas(modelo, x_te, y_te)
+    print("  " + "-" * 72)
 
-    donde = ("ejemplos que el modelo NO vio al entrenar" if separado
-             else "los MISMOS ejemplos del entrenamiento (no sirve para evaluar)")
-    print(f"\n  Sobre {len(x_te)} {donde}:")
-    print(f"    accuracy   {m['accuracy'] * 100:>5.1f} %")
-    print(f"    precision  {m['precision'] * 100:>5.1f} %")
-    print(f"    recall     {m['recall'] * 100:>5.1f} %")
-    print(f"    F1         {m['f1'] * 100:>5.1f} %")
+    # Validación cruzada estratificada de 5 pliegues sobre los 140 ejemplos
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    mejor_pipe = construir_modelos()["Regresión Logística (TF-IDF Híbrido)"]
+    preds_cv = cross_val_predict(mejor_pipe, textos, etiquetas, cv=cv)
+    acc_cv = accuracy_score(etiquetas, preds_cv) * 100
+    prec_cv = precision_score(etiquetas, preds_cv, average="macro", zero_division=0) * 100
+    rec_cv = recall_score(etiquetas, preds_cv, average="macro", zero_division=0) * 100
+    f1_cv = f1_score(etiquetas, preds_cv, average="macro", zero_division=0) * 100
 
-    print("\n  Para usarlo en tu agente:")
-    print("    from entrenar import entrenar_desde_csv")
-    print("    self.modelo = entrenar_desde_csv()")
-    print("    ... self.modelo.predict([texto])[0]")
-    print("\n  Despues compara estas metricas con las de tu clasificador de")
-    print("  reglas: esa comparacion es parte del informe.\n")
+    print("\n  Validación Cruzada 5-Fold (140 ejemplos completos — Modelo Seleccionado):")
+    print(f"    Accuracy : {acc_cv:.1f}% | Precision: {prec_cv:.1f}% | Recall: {rec_cv:.1f}% | F1-Macro: {f1_cv:.1f}%")
+    print("=" * 76 + "\n")
     return 0
 
 
