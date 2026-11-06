@@ -690,11 +690,79 @@ class AnalizadorLexicoAfectivo:
 #  4. FUSIONADOR MULTIMODAL Y DETECTOR DE INCONGRUENCIA AFECTIVA
 # =====================================================================
 
+@dataclass
+class ConfiguracionPesosFusion:
+    """Cromosoma de pesos y umbrales del FusionadorMultimodal (optimizable por AG)."""
+    # Pesos con 3 canales activos (se normalizan a suma 1)
+    w3_lexico: float = 0.42
+    w3_voz: float = 0.30
+    w3_cara: float = 0.28
+    # Pesos con 2 canales activos (léxico + voz / léxico + cara)
+    w2v_lexico: float = 0.55
+    w2c_lexico: float = 0.58
+    # Pesos en régimen de Incongruencia / Enmascaramiento Afectivo (3 canales)
+    inc_lexico: float = 0.12
+    inc_voz: float = 0.46
+    inc_cara: float = 0.42
+    # Umbrales biométricos de detección de enmascaramiento no verbal
+    umbral_cara_neg: float = -0.22
+    umbral_voz_neg: float = -0.32
+    umbral_voz_arousal: float = 0.46
+
+    def normalizado(self) -> "ConfiguracionPesosFusion":
+        s3 = max(1e-6, self.w3_lexico + self.w3_voz + self.w3_cara)
+        si = max(1e-6, self.inc_lexico + self.inc_voz + self.inc_cara)
+        return ConfiguracionPesosFusion(
+            w3_lexico=round(float(np.clip(self.w3_lexico / s3, 0.02, 0.96)), 4),
+            w3_voz=round(float(np.clip(self.w3_voz / s3, 0.02, 0.96)), 4),
+            w3_cara=round(float(np.clip(self.w3_cara / s3, 0.02, 0.96)), 4),
+            w2v_lexico=round(float(np.clip(self.w2v_lexico, 0.05, 0.95)), 4),
+            w2c_lexico=round(float(np.clip(self.w2c_lexico, 0.05, 0.95)), 4),
+            inc_lexico=round(float(np.clip(self.inc_lexico / si, 0.0, 0.80)), 4),
+            inc_voz=round(float(np.clip(self.inc_voz / si, 0.05, 0.95)), 4),
+            inc_cara=round(float(np.clip(self.inc_cara / si, 0.05, 0.95)), 4),
+            umbral_cara_neg=round(float(np.clip(self.umbral_cara_neg, -0.75, -0.08)), 4),
+            umbral_voz_neg=round(float(np.clip(self.umbral_voz_neg, -0.75, -0.08)), 4),
+            umbral_voz_arousal=round(float(np.clip(self.umbral_voz_arousal, 0.20, 0.85)), 4),
+        )
+
+
 class FusionadorMultimodal:
     """Integra Cara + Voz + Léxico en un EstadoAfectivoUsuario unificado."""
 
-    def __init__(self):
+    def __init__(
+        self,
+        config_pesos: Optional[ConfiguracionPesosFusion] = None,
+        cargar_ga: bool = True,
+    ):
         self.lexico = AnalizadorLexicoAfectivo()
+        if config_pesos is not None:
+            self.config = config_pesos.normalizado()
+        elif cargar_ga:
+            self.config = self._cargar_pesos_ga_o_default()
+        else:
+            self.config = ConfiguracionPesosFusion().normalizado()
+
+    @staticmethod
+    def _cargar_pesos_ga_o_default() -> ConfiguracionPesosFusion:
+        import json
+        from pathlib import Path
+
+        ruta = Path(__file__).resolve().parent / "pesos_fusion_ga.json"
+        if ruta.exists():
+            try:
+                datos = json.loads(ruta.read_text(encoding="utf-8"))
+                campos = datos.get("pesos_optimizados", datos)
+                filtrados = {
+                    k: float(v)
+                    for k, v in campos.items()
+                    if k in ConfiguracionPesosFusion.__dataclass_fields__
+                }
+                if filtrados:
+                    return ConfiguracionPesosFusion(**filtrados).normalizado()
+            except Exception:
+                pass
+        return ConfiguracionPesosFusion().normalizado()
 
     def fusionar(
         self,
@@ -705,6 +773,7 @@ class FusionadorMultimodal:
         res_lex = self.lexico.analizar(texto)
         fac = facial or MetricasFaciales(rostro_detectado=False)
         acu = acustica or MetricasAcusticasVoz(audio_analizado=False)
+        cfg = self.config
 
         if res_lex.es_crisis_etica:
             return EstadoAfectivoUsuario(
@@ -725,13 +794,18 @@ class FusionadorMultimodal:
         canales = ["lexico"]
 
         if acu.audio_analizado and fac.rostro_detectado:
-            pesos = {"lexico": 0.42, "voz": 0.30, "cara": 0.28}
+            s3 = max(1e-6, cfg.w3_lexico + cfg.w3_voz + cfg.w3_cara)
+            pesos = {
+                "lexico": cfg.w3_lexico / s3,
+                "voz": cfg.w3_voz / s3,
+                "cara": cfg.w3_cara / s3,
+            }
             canales = ["lexico", "voz", "cara"]
         elif acu.audio_analizado:
-            pesos = {"lexico": 0.55, "voz": 0.45, "cara": 0.0}
+            pesos = {"lexico": cfg.w2v_lexico, "voz": 1.0 - cfg.w2v_lexico, "cara": 0.0}
             canales = ["lexico", "voz"]
         elif fac.rostro_detectado:
-            pesos = {"lexico": 0.58, "voz": 0.0, "cara": 0.42}
+            pesos = {"lexico": cfg.w2c_lexico, "voz": 0.0, "cara": 1.0 - cfg.w2c_lexico}
             canales = ["lexico", "cara"]
 
         # Detección de Incongruencia Emocional ("Enmascaramiento")
@@ -739,27 +813,37 @@ class FusionadorMultimodal:
         incongruencia = False
         detalle_inc = ""
         señales_no_verbales_neg = []
-        if fac.rostro_detectado and fac.valencia_facial <= -0.22:
+        if fac.rostro_detectado and fac.valencia_facial <= cfg.umbral_cara_neg:
             señales_no_verbales_neg.append(f"rostro ({fac.emocion_facial.lower()})")
-        if acu.audio_analizado and (acu.valencia_vocal <= -0.35 or abs(acu.arousal_vocal) >= 0.48):
+        if acu.audio_analizado and (
+            acu.valencia_vocal <= cfg.umbral_voz_neg
+            or abs(acu.arousal_vocal) >= cfg.umbral_voz_arousal
+        ):
             señales_no_verbales_neg.append(
                 f"voz ({acu.rapidez_wpm:.0f} ppm, {acu.volumen_db:.1f} dB, {acu.tono_f0_hz:.0f} Hz)"
             )
 
         if res_lex.valencia_lexica >= -0.05 and señales_no_verbales_neg:
-            # Si las palabras son neutras/positivas pero el cuerpo/voz grita malestar,
-            # priorizamos la señal biométrica no verbal (Literatura HRI / Picard).
+            # Si las palabras son neutras/positivas pero el cuerpo/voz transmite malestar,
+            # aplicamos el vector de pesos de incongruencia (optimizado por Algoritmo Genético).
             incongruencia = True
             detalle_inc = (
                 "Tus palabras suenan tranquilas, pero percibo tensión o desánimo en tu "
                 + " y ".join(señales_no_verbales_neg)
             )
             if fac.rostro_detectado and acu.audio_analizado:
-                pesos = {"lexico": 0.15, "voz": 0.45, "cara": 0.40}
+                si = max(1e-6, cfg.inc_lexico + cfg.inc_voz + cfg.inc_cara)
+                pesos = {
+                    "lexico": cfg.inc_lexico / si,
+                    "voz": cfg.inc_voz / si,
+                    "cara": cfg.inc_cara / si,
+                }
             elif acu.audio_analizado:
-                pesos = {"lexico": 0.20, "voz": 0.80, "cara": 0.0}
+                w_lex_2 = min(0.65, cfg.inc_lexico)
+                pesos = {"lexico": w_lex_2, "voz": 1.0 - w_lex_2, "cara": 0.0}
             else:
-                pesos = {"lexico": 0.20, "voz": 0.0, "cara": 0.80}
+                w_lex_2 = min(0.65, cfg.inc_lexico)
+                pesos = {"lexico": w_lex_2, "voz": 0.0, "cara": 1.0 - w_lex_2}
 
         valencia = (
             pesos["lexico"] * res_lex.valencia_lexica
@@ -778,7 +862,7 @@ class FusionadorMultimodal:
 
         # Determinación de la emoción dominante fusionada
         emocion = self._resolver_emocion_circumpleja(
-            valencia, arousal, res_lex, fac, acu, incongruencia
+            valencia, arousal, res_lex, fac, acu, incongruencia, pesos
         )
 
         confianza = float(
@@ -812,37 +896,57 @@ class FusionadorMultimodal:
         fac: MetricasFaciales,
         acu: MetricasAcusticasVoz,
         incongruencia: bool,
+        pesos: Optional[dict[str, float]] = None,
     ) -> str:
-        # Si el léxico es explícito y no hay incongruencia, respetamos su matiz semántico
-        if lex.es_expresion_emocional and not incongruencia:
-            return lex.emocion_lexica
+        pesos = pesos or {"lexico": 0.42, "voz": 0.30, "cara": 0.28}
 
-        # Si hay incongruencia o predomina la biometría no verbal, usamos votación + cuadrante Russell
-        votos = [
-            e for e in (
-                fac.emocion_facial if fac.rostro_detectado else "NEUTRO",
-                acu.emocion_vocal if acu.audio_analizado else "NEUTRO",
-                lex.emocion_lexica,
-            )
-            if e != "NEUTRO"
-        ]
-        if votos:
-            # Si hay coincidencia o señal no verbal clara
-            for e in ("ENOJO_FRUSTRACION", "ANSIEDAD_ESTRES", "TRISTEZA_DESANIMO", "DUDA_INSEGURIDAD", "MOTIVACION_ALEGRIA"):
-                if e in votos:
-                    return e
+        # Modo solo texto (sin sensores biométricos conectados)
+        if not fac.rostro_detectado and not acu.audio_analizado:
+            return lex.emocion_lexica if lex.es_expresion_emocional else "NEUTRO"
 
-        # Cuadrantes continuos del Modelo Circumplejo de Russell
-        if valencia >= 0.25 and arousal >= 0.15:
+        radio = math.hypot(valencia, arousal)
+        if radio < 0.20 and not lex.es_expresion_emocional:
+            return "NEUTRO"
+
+        # Cuadrantes continuos del Modelo Circumplejo de Russell ponderados por canales
+        if valencia >= 0.22 and arousal >= 0.08:
             return "MOTIVACION_ALEGRIA"
-        if valencia <= -0.20 and arousal >= 0.35:
-            if acu.audio_analizado and acu.volumen_db > -13.0:
-                return "ENOJO_FRUSTRACION"
-            if fac.rostro_detectado and fac.tension_cejas > 0.60:
+
+        if valencia <= -0.18 and arousal >= 0.22:
+            evidencia_ira = (
+                (pesos["lexico"] if lex.emocion_lexica == "ENOJO_FRUSTRACION" else 0.0)
+                + (
+                    pesos["voz"]
+                    if (acu.audio_analizado and (acu.volumen_db > -13.5 or acu.emocion_vocal == "ENOJO_FRUSTRACION"))
+                    else 0.0
+                )
+                + (
+                    pesos["cara"]
+                    if (fac.rostro_detectado and (fac.tension_cejas > 0.60 or fac.emocion_facial == "ENOJO_FRUSTRACION"))
+                    else 0.0
+                )
+            )
+            if evidencia_ira >= 0.40:
                 return "ENOJO_FRUSTRACION"
             return "ANSIEDAD_ESTRES"
-        if valencia <= -0.22 and arousal < 0.05:
+
+        if valencia <= -0.20 and arousal <= -0.06:
             return "TRISTEZA_DESANIMO"
-        if -0.35 <= valencia < 0.15 and abs(arousal) <= 0.35 and (lex.es_expresion_emocional or incongruencia):
-            return "DUDA_INSEGURIDAD"
+
+        if -0.45 <= valencia < 0.16 and -0.18 < arousal < 0.28:
+            if lex.emocion_lexica == "TRISTEZA_DESANIMO" and arousal < 0.0:
+                return "TRISTEZA_DESANIMO"
+            evidencia_duda = (
+                (pesos["lexico"] if lex.emocion_lexica == "DUDA_INSEGURIDAD" else 0.0)
+                + (pesos["voz"] if (acu.audio_analizado and acu.emocion_vocal == "DUDA_INSEGURIDAD") else 0.0)
+                + (pesos["cara"] if (fac.rostro_detectado and fac.emocion_facial == "DUDA_INSEGURIDAD") else 0.0)
+            )
+            if evidencia_duda >= 0.30 or (lex.emocion_lexica == "DUDA_INSEGURIDAD" and not incongruencia):
+                return "DUDA_INSEGURIDAD"
+            if incongruencia and valencia <= -0.18:
+                return "TRISTEZA_DESANIMO"
+
+        if lex.es_expresion_emocional and not incongruencia and radio >= 0.18:
+            return lex.emocion_lexica
+
         return "NEUTRO"

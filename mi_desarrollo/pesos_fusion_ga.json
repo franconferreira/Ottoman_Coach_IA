@@ -1,0 +1,38 @@
+{
+  "algoritmo": "Algoritmo Genético de Codificación Real (BLX-alpha + Torneo k=3 + Elitismo)",
+  "poblacion": 60,
+  "generaciones": 50,
+  "benchmark_casos": 180,
+  "pesos_optimizados": {
+    "w3_lexico": 0.3578,
+    "w3_voz": 0.275,
+    "w3_cara": 0.3672,
+    "w2v_lexico": 0.7224,
+    "w2c_lexico": 0.5173,
+    "inc_lexico": 0.0141,
+    "inc_voz": 0.3986,
+    "inc_cara": 0.5873,
+    "umbral_cara_neg": -0.1233,
+    "umbral_voz_neg": -0.1148,
+    "umbral_voz_arousal": 0.4702
+  },
+  "metricas_ga": {
+    "fitness": 0.9228,
+    "accuracy": 0.9444,
+    "f1_macro": 0.9407,
+    "recall_incongruencia": 0.9074,
+    "rmse_valencia_arousal": 0.1915
+  },
+  "metricas_baseline_ingenuo": {
+    "fitness": 0.5202,
+    "accuracy": 0.5944,
+    "f1_macro": 0.6554,
+    "recall_incongruencia": 0.0
+  },
+  "metricas_heuristica_manual": {
+    "fitness": 0.8579,
+    "accuracy": 0.8778,
+    "f1_macro": 0.8729,
+    "recall_incongruencia": 0.8333
+  }
+}

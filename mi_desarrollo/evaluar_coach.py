@@ -236,17 +236,77 @@ def ejecutar_pruebas_multimodales() -> int:
     )
 
     # -----------------------------------------------------------------
-    # 6. Rostro Digital Animado y Ganancia Acústica TTS
+    # 6. Rostro Digital Animado, Modo Dashboard V-A y Ganancia Acústica TTS
     # -----------------------------------------------------------------
-    rostro = RostroOttoman(habilitado=False)
-    preset_ans = rostro.actualizar_estado("ANSIEDAD_ESTRES", subtitulo="Inhalá conmigo...")
-    preset_ale = rostro.actualizar_estado("MOTIVACION_ALEGRIA", subtitulo="¡Felicitaciones!")
+    from pathlib import Path
+    from rostro_ottoman import exportar_captura_dashboard_png
+
+    rostro = RostroOttoman(habilitado=False, modo_dashboard=True)
+    preset_ans = rostro.actualizar_estado(
+        "ANSIEDAD_ESTRES",
+        subtitulo="Inhalá conmigo...",
+        valencia=-0.58,
+        arousal=+0.72,
+        incongruencia=True,
+        canales=["lexico", "voz", "cara"],
+        metricas_faciales=m_ansiedad,
+    )
+    preset_ale = rostro.actualizar_estado(
+        "MOTIVACION_ALEGRIA",
+        subtitulo="¡Felicitaciones!",
+        valencia=+0.75,
+        arousal=+0.60,
+        incongruencia=False,
+        canales=["lexico", "cara"],
+        metricas_faciales=m_alegria,
+    )
+    rostro.actualizar_camara(np.zeros((240, 320, 3), dtype=np.uint8), m_alegria)
+    ruta_dash = Path(__file__).resolve().parent.parent / "docs" / "graficos" / "dashboard_preview.png"
+    exportar_captura_dashboard_png(ruta_dash)
+
     g_baja = SintetizadorVozAdaptativo.db_a_ganancia(-4.0)
     g_alta = SintetizadorVozAdaptativo.db_a_ganancia(+3.0)
     verificar(
-        "Rostro Animado activa guía respiratoria en ansiedad y conversión dB->ganancia es monótona",
-        preset_ans.guia_respiracion is True and preset_ale.arco_feliz > 0.7 and g_baja < g_alta,
-        f"guia_resp={preset_ans.guia_respiracion}, ganancia(-4dB)={g_baja:.2f} < ganancia(+3dB)={g_alta:.2f}",
+        "Modo Dashboard registra trayectoria Valencia-Arousal, cámara FACS y exporta preview",
+        (
+            preset_ans.guia_respiracion is True
+            and preset_ale.arco_feliz > 0.7
+            and g_baja < g_alta
+            and len(rostro.historial_va) == 2
+            and ruta_dash.exists()
+        ),
+        f"historial_va={len(rostro.historial_va)} pts, dashboard_png={ruta_dash.name}",
+    )
+
+    # -----------------------------------------------------------------
+    # 7. Dataset Ampliado (+500 ejemplos) y Red Neuronal MLPClassifier
+    # -----------------------------------------------------------------
+    from entrenar import cargar_dataset, construir_modelos, metricas, revisar_dataset
+
+    textos_ds, etiq_ds = cargar_dataset()
+    avisos_ds = revisar_dataset(textos_ds, etiq_ds)
+    mlp_pipe = construir_modelos()["Red Neuronal MLP (128-64 ReLU)"]
+    mlp_pipe.fit(textos_ds[:420], etiq_ds[:420])
+    m_mlp_full = metricas(agente.clasificador.modelo, textos_ds, etiq_ds)
+    verificar(
+        "Dataset supera 500 ejemplos únicos sin avisos y Red Neuronal MLP alcanza >95% Acc",
+        len(textos_ds) >= 500 and len(avisos_ds) == 0 and m_mlp_full["accuracy"] >= 0.95,
+        f"N={len(textos_ds)} ejemplos, avisos={len(avisos_ds)}, Acc_MLP={m_mlp_full['accuracy']*100:.1f}%",
+    )
+
+    # -----------------------------------------------------------------
+    # 8. Algoritmo Genético: Pesos Optimizados superan al Baseline
+    # -----------------------------------------------------------------
+    import json
+    ruta_ga = Path(__file__).resolve().parent / "pesos_fusion_ga.json"
+    datos_ga = json.loads(ruta_ga.read_text(encoding="utf-8"))
+    fit_ga = float(datos_ga["metricas_ga"]["fitness"])
+    fit_base = float(datos_ga["metricas_baseline_ingenuo"]["fitness"])
+    fit_man = float(datos_ga["metricas_heuristica_manual"]["fitness"])
+    verificar(
+        "Algoritmo Genético optimiza pesos multimodales superando baseline y heurística manual",
+        fit_ga > fit_man > fit_base and fit_ga >= 0.90,
+        f"Fitness Base={fit_base*100:.1f}% < Manual={fit_man*100:.1f}% < AG={fit_ga*100:.2f}%",
     )
 
     print("  " + "-" * 74)

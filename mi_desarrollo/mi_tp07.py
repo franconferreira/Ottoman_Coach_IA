@@ -394,6 +394,8 @@ class AgenteRobot:
         usar_ml: bool = False,
         habilitar_audio_tts: bool = False,
         habilitar_rostro_gui: bool = False,
+        modo_dashboard: bool = False,
+        captura_camara_dashboard: bool = False,
     ):
         self.robot = robot
         self.mostrar = mostrar
@@ -402,7 +404,11 @@ class AgenteRobot:
         self.extractor = ExtractorParametros(motor_coach=self.motor_coach)
         self.validador = ValidadorSeguridad()
 
-        self.rostro = RostroOttoman(habilitado=habilitar_rostro_gui)
+        self.rostro = RostroOttoman(
+            habilitado=habilitar_rostro_gui,
+            modo_dashboard=modo_dashboard,
+            captura_camara_autonoma=captura_camara_dashboard,
+        )
         if habilitar_rostro_gui:
             self.rostro.iniciar()
 
@@ -614,7 +620,8 @@ def main() -> int:
     parser.add_argument("--camara", action="store_true", help="Activa análisis facial en vivo mediante cámara web (OpenCV)")
     parser.add_argument("--sin-tts", action="store_true", help="Desactiva la síntesis de voz hablada por parlantes")
     parser.add_argument("--sin-rostro", action="store_true", help="No abre la ventana gráfica del rostro animado de Ottoman")
-    parser.add_argument("--ml", action="store_true", help="Activa el clasificador supervisado scikit-learn (Nivel 2)")
+    parser.add_argument("--dashboard", action="store_true", help="Abre el Dashboard de Exposición (Rostro + Cámara FACS + Plano Valencia-Arousal)")
+    parser.add_argument("--ml", action="store_true", help="Activa el clasificador supervisado Red Neuronal MLP / scikit-learn (Nivel 2)")
     args = parser.parse_args()
 
     if args.sin_robot:
@@ -650,13 +657,15 @@ def main() -> int:
     )
     evaluar(agente_test, mostrar=True)
 
-    # Ahora levantamos el Agente Multimodal completo (Rostro 60 FPS + TTS + Simulador)
+    # Ahora levantamos el Agente Multimodal completo (Rostro/Dashboard + TTS + Simulador)
     agente = AgenteRobot(
         robot_inst,
         mostrar=True,
         usar_ml=args.ml,
         habilitar_audio_tts=not args.sin_tts,
         habilitar_rostro_gui=not args.sin_rostro,
+        modo_dashboard=args.dashboard,
+        captura_camara_dashboard=(args.dashboard and not args.camara and not args.demo_coach),
     )
 
     if args.demo_coach:
@@ -688,7 +697,15 @@ def main() -> int:
 
     try:
         while True:
-            lectura_facial = analizador_facial.capturar_rafaga(4) if analizador_facial else None
+            lectura_facial = None
+            if analizador_facial is not None:
+                ok_f, frame_f = analizador_facial._cap.read() if analizador_facial._cap else (False, None)
+                if ok_f and frame_f is not None:
+                    lectura_facial, hud_f = analizador_facial.analizar_frame(frame_f, dibujar_hud=True)
+                    if args.dashboard and agente.rostro:
+                        agente.rostro.actualizar_camara(hud_f, lectura_facial)
+                else:
+                    lectura_facial = analizador_facial.capturar_rafaga(3)
             if lectura_facial and lectura_facial.rostro_detectado:
                 print(
                     f"  [CAM -> FACS] Expresión={lectura_facial.emocion_facial} "

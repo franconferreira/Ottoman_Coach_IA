@@ -30,14 +30,14 @@ python -m sim --robot g1 --materia tp07
 En una segunda terminal (o haciendo doble clic en **`EJECUTAR_COACH_COMPLETO.bat`**):
 
 ```bash
-# Modo interactivo completo (Teclado + Rostro Animado + Voz TTS + Simulador G1 + ML)
-python mi_desarrollo/mi_tp07.py --ml
+# Modo Dashboard de Exposición (1240x700: Rostro 60FPS + Cámara FACS + Plano Russell V-A)
+python mi_desarrollo/mi_tp07.py --ml --dashboard
 
-# Modo Multimodal en Vivo con Cámara Facial (OpenCV) + Micrófono (DSP Voz)
-python mi_desarrollo/mi_tp07.py --ml --camara --voz
+# Modo Multimodal en Vivo con Dashboard + Cámara Facial (OpenCV) + Micrófono (DSP Voz)
+python mi_desarrollo/mi_tp07.py --ml --dashboard --camara --voz
 
 # Demostración automática guiada de los 6 escenarios emocionales e incongruencia
-python mi_desarrollo/mi_tp07.py --ml --demo-coach
+python mi_desarrollo/mi_tp07.py --ml --dashboard --demo-coach
 ```
 
 ---
@@ -45,21 +45,28 @@ python mi_desarrollo/mi_tp07.py --ml --demo-coach
 ## 🧪 Verificación y Pruebas Automatizadas
 
 ```bash
-# 1. Evaluación oficial de cátedra (25 casos de casos_prueba.json)
+# 1. Evaluación oficial de cátedra (25/25 = 100% sobre casos_prueba.json)
 python mi_desarrollo/mi_tp07.py --sin-robot --ml
 
-# 2. Entrenamiento y comparación de clasificadores Machine Learning (140 ejemplos)
+# 2. Entrenamiento de 4 modelos ML + Red Neuronal MLP sobre 560 ejemplos (96.25% 5-Fold CV)
 python mi_desarrollo/entrenar.py
 
-# 3. Suite de 13 pruebas multimodales (OpenCV + DSP Voz Hz/WPM/dB + Incongruencia + Seguridad G1)
+# 3. Optimización Evolutiva con Algoritmos Genéticos del FusionadorMultimodal (92.28% Fitness)
+python mi_desarrollo/algoritmo_genetico.py
+
+# 4. Suite de 15 pruebas integrales (OpenCV + DSP Voz + Incongruencia + Dashboard + MLP + AG)
 python mi_desarrollo/evaluar_coach.py
 ```
 
 ---
 
-## 📂 Estructura del Proyecto
+## 📂 Estructura del Proyecto y Entregables TPO
 
+* `Informe_TPO_Ottoman_Coach.docx`: Informe académico final formateado en Word con todos los gráficos embebidos.
+* `Presentacion_TPO_Ottoman_Coach.pptx`: Presentación 16:9 con notas del orador para la defensa oral.
 * `mi_desarrollo/mi_tp07.py`: Pipeline modular de 4 etapas (`ClasificadorIntencion`, `ExtractorParametros`, `ValidadorSeguridad`, `Ejecutor`) + `AgenteRobot` con memoria episódica de 5 turnos.
+* `mi_desarrollo/algoritmo_genetico.py`: Optimización evolutiva (Torneo $k=3$, Cruza BLX-$\alpha$, Mutación Gaussiana y Elitismo) de los pesos y umbrales multimodales.
+* `mi_desarrollo/entrenar.py` y `mi_desarrollo/dataset.csv`: Corpus de 560 ejemplos únicos balanceados y entrenamiento de `MLPClassifier (128-64 ReLU)`.
 * `mi_desarrollo/percepcion_multimodal.py`:
   * `AnalizadorFacial`: Detección de rostro y unidades de acción facial (FACS) mediante `OpenCV`.
   * `AnalizadorAcusticoVoz`: Extracción DSP con `NumPy` de Tonalidad ($F_0$ Hz por autocorrelación), Intensidad ($\text{dBFS}$) y Rapidez ($\text{WPM}$).

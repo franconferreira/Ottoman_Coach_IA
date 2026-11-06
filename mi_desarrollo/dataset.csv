@@ -1,141 +1,561 @@
 texto,intencion
-"avanzá 2 metros",MOVER
-"caminá hacia adelante despacio",MOVER
-"movete 1 metro para adelante",MOVER
-"retrocedé medio metro",MOVER
-"andá para atrás 2 metros",MOVER
-"avanza tres metros lento",MOVER
-"acercate un poco hacia acá",MOVER
-"alejate 1.5 metros despacio",MOVER
-"caminá 4 metros en línea recta",MOVER
-"adelante 0.5 metros a 0.2 m/s",MOVER
-"movete suave hacia el frente",MOVER
-"retrocedé un pasito",MOVER
-"avanzá bastante hacia la puerta",MOVER
-"caminá ligero dos metros",MOVER
-"andá hacia adelante un metro",MOVER
-"retrocede 3 metros por favor",MOVER
-"desplazate 1 metro hacia adelante",MOVER
-"avanzá 2.5 metros tranquilo",MOVER
-"movete un poco para atrás",MOVER
-"caminá medio metro hacia mí",MOVER
-"girá 90 grados a la derecha",GIRAR
-"rotá 45 grados a la izquierda",GIRAR
-"dale media vuelta ahora",GIRAR
-"doblá hacia la derecha",GIRAR
-"girá 120 grados para la izquierda",GIRAR
-"pegá media vuelta en el lugar",GIRAR
-"rotá 30 grados en sentido horario",GIRAR
-"girá un poco a la derecha",GIRAR
-"girate 60 grados a la izquierda",GIRAR
-"hacé un giro de 90 grados",GIRAR
-"doblá 45 grados hacia la izquierda",GIRAR
-"rotá 180 grados despacio",GIRAR
-"girá hacia tu derecha 75 grados",GIRAR
-"cambiá de orientación 90 grados",GIRAR
-"date media vuelta por favor",GIRAR
-"girá 15 grados a la izquierda",GIRAR
-"rotá hacia la derecha un cuarto de vuelta",GIRAR
-"doblá para el lado izquierdo",GIRAR
-"girá 135 grados a la derecha",GIRAR
-"rotá 60 grados suave",GIRAR
-"detente ya mismo",DETENERSE
-"pará todo por favor",DETENERSE
-"frená inmediatamente",DETENERSE
-"quedate quieto ahí",DETENERSE
-"no avances más",DETENERSE
-"no te muevas",DETENERSE
-"stop ahora",DETENERSE
-"detenete en el lugar",DETENERSE
-"basta de caminar",DETENERSE
-"no sigas avanzando",DETENERSE
-"parate ahí mismo",DETENERSE
-"frenate por completo",DETENERSE
-"no gires más",DETENERSE
-"quieto ottoman",DETENERSE
-"cortá el movimiento ya",DETENERSE
-"detenerse de inmediato",DETENERSE
-"no camines hacia allá",DETENERSE
-"frená seco ahora",DETENERSE
-"pará la marcha",DETENERSE
-"quedate inmóvil",DETENERSE
-"saluda a los estudiantes",SALUDO
-"hacé un saludo con la mano",SALUDO
-"saludá al profesor",SALUDO
-"hola ottoman",SALUDO
-"saludame por favor",SALUDO
-"dale un saludo a la clase",SALUDO
-"hola robot",SALUDO
-"saludá a todos los presentes",SALUDO
-"levantá la mano para saludar",SALUDO
-"hacé el gesto de saludo",SALUDO
-"saludá amablemente al grupo",SALUDO
-"mandá un saludo con el brazo",SALUDO
-"hola",SALUDO
-"saludá a los invitados del laboratorio",SALUDO
-"hacé un wave con la mano",SALUDO
-"saludarlos ahora",SALUDO
-"dale un saludo amistoso",SALUDO
-"saludá mirando al frente",SALUDO
-"haceme un saludo",SALUDO
-"saludá a la cámara",SALUDO
-"¿cuánta batería tenés?",CONSULTAR_ESTADO
-"decime el nivel de batería",CONSULTAR_ESTADO
-"¿cómo estás de batería hoy?",CONSULTAR_ESTADO
-"mostrame tu estado actual",CONSULTAR_ESTADO
-"¿cuál es el diagnóstico del sistema?",CONSULTAR_ESTADO
-"consultá la carga restante",CONSULTAR_ESTADO
-"¿qué porcentaje de batería te queda?",CONSULTAR_ESTADO
-"reportá el estado de tus sensores",CONSULTAR_ESTADO
-"¿tenés suficiente carga para seguir?",CONSULTAR_ESTADO
-"verificá el estado del robot",CONSULTAR_ESTADO
-"pasame el status de energía",CONSULTAR_ESTADO
-"¿en qué estado te encontrás?",CONSULTAR_ESTADO
-"chequeá cuánta batería queda",CONSULTAR_ESTADO
-"informame el estado general",CONSULTAR_ESTADO
-"¿cómo viene el nivel de carga?",CONSULTAR_ESTADO
-"dame el reporte de estado",CONSULTAR_ESTADO
-"¿cuánta energía disponible tenés?",CONSULTAR_ESTADO
-"revisá el status interno",CONSULTAR_ESTADO
-"mostrá telemetría y batería",CONSULTAR_ESTADO
-"¿estás bien de carga?",CONSULTAR_ESTADO
-"estoy colapsando de ansiedad por los parciales y no llego",COACH_EMOCIONAL
-"me siento muy triste y sin fuerzas para seguir estudiando",COACH_EMOCIONAL
-"estoy harto y con mucha bronca porque nada me sale",COACH_EMOCIONAL
+avanzá 2 metros,MOVER
+caminá hacia adelante despacio,MOVER
+movete 1 metro para adelante,MOVER
+retrocedé medio metro,MOVER
+andá para atrás 2 metros,MOVER
+avanza tres metros lento,MOVER
+acercate un poco hacia acá,MOVER
+alejate 1.5 metros despacio,MOVER
+caminá 4 metros en línea recta,MOVER
+adelante 0.5 metros a 0.2 m/s,MOVER
+movete suave hacia el frente,MOVER
+retrocedé un pasito,MOVER
+avanzá bastante hacia la puerta,MOVER
+caminá ligero dos metros,MOVER
+andá hacia adelante un metro,MOVER
+retrocede 3 metros por favor,MOVER
+desplazate 1 metro hacia adelante,MOVER
+avanzá 2.5 metros tranquilo,MOVER
+movete un poco para atrás,MOVER
+caminá medio metro hacia mí,MOVER
+avanzá 1.2 metros derecho,MOVER
+dá unos pasos hacia adelante,MOVER
+retrocedé 0.8 metros con cuidado,MOVER
+caminá hasta acá despacio,MOVER
+movete 3 metros hacia el pizarrón,MOVER
+avanzá lento 1.5 metros,MOVER
+andá para adelante dos metros,MOVER
+alejate un metro de la pared,MOVER
+acercate medio metro a la mesa,MOVER
+avanzá 4.5 metros a paso firme,MOVER
+caminá 0.5 metros para atrás,MOVER
+retrocedé dos metros suaves,MOVER
+desplazate hacia adelante 3 metros,MOVER
+movete hacia atrás 1.8 metros,MOVER
+avanzá un poquito por el pasillo,MOVER
+caminá 2 metros a 0.3 m/s,MOVER
+andá retrocediendo un metro,MOVER
+avanzá 3.5 metros sin apuro,MOVER
+acercate despacio dos metros,MOVER
+movete para adelante medio metro,MOVER
+caminá derecho 1.7 metros,MOVER
+retrocedé lento hacia la puerta,MOVER
+avanzá cuatro metros por el aula,MOVER
+alejate un pasito corto,MOVER
+andá 2.2 metros hacia adelante,MOVER
+desplazate medio metro para atrás,MOVER
+caminá suave 3 metros,MOVER
+avanzá a 0.2 m/s durante 1 metro,MOVER
+movete ligero 2.5 metros,MOVER
+retrocedé 1.2 metros tranquilo,MOVER
+acercate 0.6 metros despacio,MOVER
+caminá hacia el frente cuatro metros,MOVER
+avanzá 0.4 metros con calma,MOVER
+andá para atrás medio metro,MOVER
+movete adelante 1.3 metros,MOVER
+retrocedé 2.5 metros derecho,MOVER
+caminá un poco hacia adelante,MOVER
+alejate dos metros del escritorio,MOVER
+avanzá 1.9 metros lento,MOVER
+desplazate suave hacia acá,MOVER
+caminá tres metros para adelante,MOVER
+retrocedé 0.7 metros a 0.2 m/s,MOVER
+avanzá cinco metros exactos,MOVER
+movete 0.9 metros hacia atrás,MOVER
+acercate un metro por favor,MOVER
+andá despacio hacia adelante,MOVER
+caminá 2.8 metros en dirección frontal,MOVER
+retrocedé 1.4 metros sin prisa,MOVER
+avanzá un paso corto,MOVER
+movete 3.2 metros hacia adelante,MOVER
+alejate medio metro con cuidado,MOVER
+caminá 1.1 metros lento,MOVER
+avanzá 0.3 metros muy suave,MOVER
+retrocedé tres metros despacio,MOVER
+andá adelante 2.4 metros,MOVER
+desplazate 1.6 metros en línea recta,MOVER
+acercate 0.8 metros tranquilo,MOVER
+caminá 3.8 metros derecho,MOVER
+movete hacia el frente 2.1 metros,MOVER
+avanzá 1.4 metros a paso lento,MOVER
+girá 90 grados a la derecha,GIRAR
+rotá 45 grados a la izquierda,GIRAR
+dale media vuelta ahora,GIRAR
+doblá hacia la derecha,GIRAR
+girá 120 grados para la izquierda,GIRAR
+pegá media vuelta en el lugar,GIRAR
+rotá 30 grados en sentido horario,GIRAR
+girá un poco a la derecha,GIRAR
+girate 60 grados a la izquierda,GIRAR
+hacé un giro de 90 grados,GIRAR
+doblá 45 grados hacia la izquierda,GIRAR
+rotá 180 grados despacio,GIRAR
+girá hacia tu derecha 75 grados,GIRAR
+cambiá de orientación 90 grados,GIRAR
+date media vuelta por favor,GIRAR
+girá 15 grados a la izquierda,GIRAR
+rotá hacia la derecha un cuarto de vuelta,GIRAR
+doblá para el lado izquierdo,GIRAR
+girá 135 grados a la derecha,GIRAR
+rotá 60 grados suave,GIRAR
+girá 30 grados para la derecha,GIRAR
+doblá 90 grados a tu izquierda,GIRAR
+rotá un poquito hacia la derecha,GIRAR
+girate media vuelta completa,GIRAR
+hacé una rotación de 45 grados,GIRAR
+girá 150 grados hacia la izquierda,GIRAR
+doblá suave a la derecha,GIRAR
+rotá 100 grados para el costado izquierdo,GIRAR
+girá 20 grados a la derecha,GIRAR
+date vuelta 180 grados,GIRAR
+girá hacia la izquierda 80 grados,GIRAR
+rotá 90 grados en el lugar,GIRAR
+doblá un cuarto de giro a la derecha,GIRAR
+girate 50 grados para la derecha,GIRAR
+rotá 110 grados hacia tu izquierda,GIRAR
+girá 40 grados despacio,GIRAR
+hacé un giro corto a la izquierda,GIRAR
+doblá 120 grados a la derecha,GIRAR
+rotá media vuelta tranquila,GIRAR
+girá 70 grados hacia el lado derecho,GIRAR
+girate hacia la izquierda 35 grados,GIRAR
+rotá 160 grados suave,GIRAR
+doblá 25 grados para la derecha,GIRAR
+girá en el eje 90 grados,GIRAR
+rotá a la izquierda 140 grados,GIRAR
+hacé media vuelta sobre tu eje,GIRAR
+girá 85 grados a la derecha,GIRAR
+doblá hacia tu izquierda despacio,GIRAR
+rotá 55 grados para el lado derecho,GIRAR
+girate 10 grados a la izquierda,GIRAR
+girá 170 grados con cuidado,GIRAR
+doblá 65 grados a la izquierda,GIRAR
+rotá hacia la derecha 95 grados,GIRAR
+girá 125 grados lento,GIRAR
+date un giro de 45 grados a la derecha,GIRAR
+rotá 15 grados suaves a la derecha,GIRAR
+doblá para atrás 180 grados,GIRAR
+girá mirando hacia la izquierda,GIRAR
+rotá mirando hacia la derecha,GIRAR
+girate 105 grados a la izquierda,GIRAR
+hacé un giro de 30 grados a la derecha,GIRAR
+doblá 145 grados hacia la izquierda,GIRAR
+rotá 75 grados a la izquierda,GIRAR
+girá 115 grados para la derecha,GIRAR
+girate suave hacia tu derecha,GIRAR
+rotá 175 grados a la izquierda,GIRAR
+doblá 50 grados en sentido horario,GIRAR
+girá 90° hacia la izquierda,GIRAR
+rotá 45° a la derecha,GIRAR
+girá 60° para tu izquierda,GIRAR
+doblá 30° hacia la derecha,GIRAR
+girate 120° a la derecha,GIRAR
+rotá 135° hacia la izquierda,GIRAR
+girá 15° para el costado derecho,GIRAR
+hacé un giro de 150°,GIRAR
+doblá 80 grados hacia la derecha,GIRAR
+rotá 20 grados a tu izquierda,GIRAR
+girá un ángulo de 90 grados,GIRAR
+girate 45 grados tranquilo,GIRAR
+dale un giro a la derecha de 60 grados,GIRAR
+detente ya mismo,DETENERSE
+pará todo por favor,DETENERSE
+frená inmediatamente,DETENERSE
+quedate quieto ahí,DETENERSE
+no avances más,DETENERSE
+no te muevas,DETENERSE
+stop ahora,DETENERSE
+detenete en el lugar,DETENERSE
+basta de caminar,DETENERSE
+no sigas avanzando,DETENERSE
+parate ahí mismo,DETENERSE
+frenate por completo,DETENERSE
+no gires más,DETENERSE
+quieto ottoman,DETENERSE
+cortá el movimiento ya,DETENERSE
+detenerse de inmediato,DETENERSE
+no camines hacia allá,DETENERSE
+frená seco ahora,DETENERSE
+pará la marcha,DETENERSE
+quedate inmóvil,DETENERSE
+detente en este instante,DETENERSE
+no avances ni un paso,DETENERSE
+frená todo movimiento,DETENERSE
+pará de girar,DETENERSE
+quedate parado donde estás,DETENERSE
+alto ahí mismo,DETENERSE
+stop inmediato,DETENERSE
+detenete por favor,DETENERSE
+no te desplaces más,DETENERSE
+frená la caminata,DETENERSE
+pará ya ottoman,DETENERSE
+quieto en el sitio,DETENERSE
+no rotes más,DETENERSE
+suspendé el avance ahora,DETENERSE
+detente por completo,DETENERSE
+parate enseguida,DETENERSE
+frená ahí donde estás,DETENERSE
+no sigas caminando,DETENERSE
+basta de moverte,DETENERSE
+quedate estático ahora,DETENERSE
+interrumpí la marcha ya,DETENERSE
+detenete tranquilo,DETENERSE
+pará el giro inmediatamente,DETENERSE
+frenate ya mismo,DETENERSE
+no avances hacia la puerta,DETENERSE
+quieto ahí por favor,DETENERSE
+stop total,DETENERSE
+detente sin dar otro paso,DETENERSE
+pará los motores de avance,DETENERSE
+frená suave pero ya,DETENERSE
+no camines más,DETENERSE
+quedate firme en el lugar,DETENERSE
+detenete urgente,DETENERSE
+parate seco,DETENERSE
+no sigas girando,DETENERSE
+frená cualquier acción,DETENERSE
+detente ahora robot,DETENERSE
+pará de caminar enseguida,DETENERSE
+quietito en el lugar,DETENERSE
+no te muevas de ahí,DETENERSE
+frenate delante mío,DETENERSE
+detener el avance,DETENERSE
+pará inmediatamente todo,DETENERSE
+basta quieto ahí,DETENERSE
+no avances un centímetro más,DETENERSE
+frená tus pasos,DETENERSE
+quedate clavado en el sitio,DETENERSE
+detenete al instante,DETENERSE
+parate frente a la mesa,DETENERSE
+stop robot,DETENERSE
+cortá el giro ahora,DETENERSE
+no sigas moviéndote,DETENERSE
+frená en seco por favor,DETENERSE
+detente completamente,DETENERSE
+pará el desplazamiento,DETENERSE
+quedate totalmente quieto,DETENERSE
+no des un paso más,DETENERSE
+frenate ahora mismo,DETENERSE
+detenete acá,DETENERSE
+pará todo movimiento ya,DETENERSE
+saluda a los estudiantes,SALUDO
+hacé un saludo con la mano,SALUDO
+saludá al profesor,SALUDO
+hola ottoman,SALUDO
+saludame por favor,SALUDO
+dale un saludo a la clase,SALUDO
+hola robot,SALUDO
+saludá a todos los presentes,SALUDO
+levantá la mano para saludar,SALUDO
+hacé el gesto de saludo,SALUDO
+saludá amablemente al grupo,SALUDO
+mandá un saludo con el brazo,SALUDO
+hola,SALUDO
+saludá a los invitados del laboratorio,SALUDO
+hacé un wave con la mano,SALUDO
+saludarlos ahora,SALUDO
+dale un saludo amistoso,SALUDO
+saludá mirando al frente,SALUDO
+haceme un saludo,SALUDO
+saludá a la cámara,SALUDO
+saludá al jurado del tpo,SALUDO
+hacé un saludo cordial,SALUDO
+saludá a los chicos del curso,SALUDO
+hola buen día ottoman,SALUDO
+saludá con tu mano derecha,SALUDO
+mandale un saludo al docente,SALUDO
+hacé el saludo oficial,SALUDO
+saludá a la audiencia,SALUDO
+dale la bienvenida saludando,SALUDO
+saludá al público presente,SALUDO
+hola querido robot,SALUDO
+saludá a los alumnos nuevos,SALUDO
+hacé un gesto de saludo amable,SALUDO
+saludá a los compañeros,SALUDO
+levantá el brazo y saludá,SALUDO
+saludá a la comisión de jueves,SALUDO
+hacé un saludo simpático,SALUDO
+saludá a quienes entraron al aula,SALUDO
+hola amigo ottoman,SALUDO
+saludá con entusiasmo,SALUDO
+dale un saludo a los profesores,SALUDO
+saludá para la foto,SALUDO
+hacé un saludo formal,SALUDO
+saludá al equipo de ingeniería,SALUDO
+saludame con la mano,SALUDO
+mandá un saludo general,SALUDO
+saludá a la fila de adelante,SALUDO
+hacé tu saludo clásico,SALUDO
+saludá al decano,SALUDO
+saludá al ayudante de cátedra,SALUDO
+hola buenas tardes ottoman,SALUDO
+dale un saludo al visitante,SALUDO
+saludá agitando la mano,SALUDO
+hacé el saludo de bienvenida,SALUDO
+saludá a toda la universidad,SALUDO
+saludá al grupo de robótica,SALUDO
+haceles un saludo,SALUDO
+saludá a la gente del taller,SALUDO
+mandá saludos con el brazo,SALUDO
+saludá antes de empezar,SALUDO
+hola buenas noches robot,SALUDO
+saludá a mi compañero,SALUDO
+hacé un saludo tranquilo,SALUDO
+saludá al tribunal evaluador,SALUDO
+dale un saludo cálido a todos,SALUDO
+saludá desde tu lugar,SALUDO
+hacé un saludo de presentación,SALUDO
+saludá al operador del laboratorio,SALUDO
+saludá a cámara ahora,SALUDO
+mandale un saludo a la clase,SALUDO
+saludá levantando la palma,SALUDO
+hacé un saludo alegre,SALUDO
+saludá al curso de inteligencia artificial,SALUDO
+saludá a todos acá,SALUDO
+dale un saludo inicial,SALUDO
+saludá para despedirte,SALUDO
+hacé otro saludo más,SALUDO
+saludá cortésmente,SALUDO
+saludá con elegancia,SALUDO
+saludá a los espectadores,SALUDO
+¿cuánta batería tenés?,CONSULTAR_ESTADO
+decime el nivel de batería,CONSULTAR_ESTADO
+¿cómo estás de batería hoy?,CONSULTAR_ESTADO
+mostrame tu estado actual,CONSULTAR_ESTADO
+¿cuál es el diagnóstico del sistema?,CONSULTAR_ESTADO
+consultá la carga restante,CONSULTAR_ESTADO
+¿qué porcentaje de batería te queda?,CONSULTAR_ESTADO
+reportá el estado de tus sensores,CONSULTAR_ESTADO
+¿tenés suficiente carga para seguir?,CONSULTAR_ESTADO
+verificá el estado del robot,CONSULTAR_ESTADO
+pasame el status de energía,CONSULTAR_ESTADO
+¿en qué estado te encontrás?,CONSULTAR_ESTADO
+chequeá cuánta batería queda,CONSULTAR_ESTADO
+informame el estado general,CONSULTAR_ESTADO
+¿cómo viene el nivel de carga?,CONSULTAR_ESTADO
+dame el reporte de estado,CONSULTAR_ESTADO
+¿cuánta energía disponible tenés?,CONSULTAR_ESTADO
+revisá el status interno,CONSULTAR_ESTADO
+mostrá telemetría y batería,CONSULTAR_ESTADO
+¿estás bien de carga?,CONSULTAR_ESTADO
+decime tu porcentaje de batería actual,CONSULTAR_ESTADO
+¿cómo anda el estado de los motores?,CONSULTAR_ESTADO
+reportá nivel de batería ahora,CONSULTAR_ESTADO
+quiero ver el estado del sistema,CONSULTAR_ESTADO
+¿cuánta autonomía de batería tenés?,CONSULTAR_ESTADO
+consultá el status del robot,CONSULTAR_ESTADO
+informá tu posición y batería,CONSULTAR_ESTADO
+¿qué nivel de energía marca la batería?,CONSULTAR_ESTADO
+dame un diagnóstico rápido de estado,CONSULTAR_ESTADO
+verificá cuánta batería resta,CONSULTAR_ESTADO
+mostrame el status operativo,CONSULTAR_ESTADO
+¿tenés batería suficiente para la demo?,CONSULTAR_ESTADO
+chequeá tu estado interno,CONSULTAR_ESTADO
+pasame los datos de batería y rumbo,CONSULTAR_ESTADO
+¿cuál es tu estado en este momento?,CONSULTAR_ESTADO
+revisá el porcentaje de carga,CONSULTAR_ESTADO
+contame cómo estás de batería,CONSULTAR_ESTADO
+reportá el status general de ottoman,CONSULTAR_ESTADO
+¿cuánta pila te queda?,CONSULTAR_ESTADO
+mostrá el estado de conexión y batería,CONSULTAR_ESTADO
+necesito saber tu nivel de batería,CONSULTAR_ESTADO
+consultá telemetría interna,CONSULTAR_ESTADO
+¿cómo viene el diagnóstico de energía?,CONSULTAR_ESTADO
+decime el status actual por favor,CONSULTAR_ESTADO
+verificá carga de batería,CONSULTAR_ESTADO
+¿qué estado reporta el controlador?,CONSULTAR_ESTADO
+informame cuánta batería tenés ahora,CONSULTAR_ESTADO
+mostrame el reporte de energía,CONSULTAR_ESTADO
+chequeá el diagnóstico de sensores,CONSULTAR_ESTADO
+¿está cargada tu batería?,CONSULTAR_ESTADO
+dame tu estado operativo,CONSULTAR_ESTADO
+¿cuánto porcentaje de carga tenés?,CONSULTAR_ESTADO
+revisá cómo estás de energía,CONSULTAR_ESTADO
+reportá posición actual y estado,CONSULTAR_ESTADO
+pasame diagnóstico completo de estado,CONSULTAR_ESTADO
+¿tenés buena batería todavía?,CONSULTAR_ESTADO
+consultá estado de marcha y carga,CONSULTAR_ESTADO
+mostrá cuánta batería disponible hay,CONSULTAR_ESTADO
+verificá el status de la unidad,CONSULTAR_ESTADO
+decime en qué estado estás,CONSULTAR_ESTADO
+¿cuál es el nivel actual de batería?,CONSULTAR_ESTADO
+informá el porcentaje de energía,CONSULTAR_ESTADO
+chequeá status de telemetría,CONSULTAR_ESTADO
+reportá diagnóstico de batería,CONSULTAR_ESTADO
+¿cómo se encuentra el estado del robot?,CONSULTAR_ESTADO
+dame lectura de batería,CONSULTAR_ESTADO
+mostrame si tenés batería baja,CONSULTAR_ESTADO
+consultá el estado de carga interna,CONSULTAR_ESTADO
+verificá tu diagnóstico general,CONSULTAR_ESTADO
+¿cuánta carga tiene tu batería hoy?,CONSULTAR_ESTADO
+pasame informe de estado actual,CONSULTAR_ESTADO
+revisá cuánta energía queda,CONSULTAR_ESTADO
+decime tu status operativo,CONSULTAR_ESTADO
+mostrá diagnóstico del sistema,CONSULTAR_ESTADO
+¿cómo está el nivel de tu batería?,CONSULTAR_ESTADO
+reportá estado de carga restante,CONSULTAR_ESTADO
+chequeá batería disponible,CONSULTAR_ESTADO
+informame tu status de batería,CONSULTAR_ESTADO
+¿qué dice el estado de energía?,CONSULTAR_ESTADO
+consultá diagnóstico y batería,CONSULTAR_ESTADO
+estoy colapsando de ansiedad por los parciales y no llego,COACH_EMOCIONAL
+me siento muy triste y sin fuerzas para seguir estudiando,COACH_EMOCIONAL
+estoy harto y con mucha bronca porque nada me sale,COACH_EMOCIONAL
 "no sé qué decisión tomar con mi trabajo, tengo miedo a fallar",COACH_EMOCIONAL
 "¡aprobé la materia, estoy súper feliz y orgulloso!",COACH_EMOCIONAL
-"siento pánico y me falta el aire de tantas entregas juntas",COACH_EMOCIONAL
-"hoy tuve un bajón enorme y tengo ganas de abandonar todo",COACH_EMOCIONAL
-"me da mucha rabia e impotencia cuando el equipo no responde",COACH_EMOCIONAL
-"estoy re inseguro y confundido con mi futuro profesional",COACH_EMOCIONAL
+siento pánico y me falta el aire de tantas entregas juntas,COACH_EMOCIONAL
+hoy tuve un bajón enorme y tengo ganas de abandonar todo,COACH_EMOCIONAL
+me da mucha rabia e impotencia cuando el equipo no responde,COACH_EMOCIONAL
+estoy re inseguro y confundido con mi futuro profesional,COACH_EMOCIONAL
 "me salió increíble la exposición, estoy re motivado",COACH_EMOCIONAL
-"estoy desbordado de estrés y nervios antes de rendir",COACH_EMOCIONAL
-"me siento solo y agotado mentalmente esta semana",COACH_EMOCIONAL
-"estoy furioso e irritado por lo injusto que fue el resultado",COACH_EMOCIONAL
-"tengo síndrome del impostor y dudo de todo lo que hago",COACH_EMOCIONAL
-"logré destrabar el proyecto y estoy re contento",COACH_EMOCIONAL
-"tengo una angustia tremenda y mil cosas en la cabeza",COACH_EMOCIONAL
-"me siento fracasado y decepcionado conmigo mismo",COACH_EMOCIONAL
-"necesito un coach que me ayude a calmarme un segundo",COACH_EMOCIONAL
-"estoy bloqueado por la presión y la ansiedad",COACH_EMOCIONAL
-"estoy entusiasmado porque pude resolver el problema",COACH_EMOCIONAL
-"¿cuál es la capital de Francia?",DESCONOCIDO
+estoy desbordado de estrés y nervios antes de rendir,COACH_EMOCIONAL
+me siento solo y agotado mentalmente esta semana,COACH_EMOCIONAL
+estoy furioso e irritado por lo injusto que fue el resultado,COACH_EMOCIONAL
+tengo síndrome del impostor y dudo de todo lo que hago,COACH_EMOCIONAL
+logré destrabar el proyecto y estoy re contento,COACH_EMOCIONAL
+tengo una angustia tremenda y mil cosas en la cabeza,COACH_EMOCIONAL
+me siento fracasado y decepcionado conmigo mismo,COACH_EMOCIONAL
+necesito un coach que me ayude a calmarme un segundo,COACH_EMOCIONAL
+estoy bloqueado por la presión y la ansiedad,COACH_EMOCIONAL
+estoy entusiasmado porque pude resolver el problema,COACH_EMOCIONAL
+tengo taquicardia de los nervios que me da defender el trabajo,COACH_EMOCIONAL
+estoy llorando de frustración porque me bocharon en el examen,COACH_EMOCIONAL
+"me saca de quicio que se trabe todo a último momento, qué bronca",COACH_EMOCIONAL
+me cuesta decidir si cambiarme de trabajo o quedarme donde estoy,COACH_EMOCIONAL
+"me promocionaron en el laburo, estoy feliz de la vida",COACH_EMOCIONAL
+siento que el pecho me oprime del estrés acumulado que traigo,COACH_EMOCIONAL
+"no tengo ganas de levantarme hoy, me siento vacío y cansado de todo",COACH_EMOCIONAL
+estoy re caliente porque nadie cumplió con su parte del informe,COACH_EMOCIONAL
+"dudo mucho de mis capacidades técnicas, tengo miedo a equivocarme",COACH_EMOCIONAL
+"pude terminar la tesis a tiempo, siento un orgullo gigante",COACH_EMOCIONAL
+estoy abrumado con tantas responsabilidades al mismo tiempo,COACH_EMOCIONAL
+hoy me siento re bajoneado y desanimado con la cursada,COACH_EMOCIONAL
+me da una bronca bárbara que no valoren todo mi esfuerzo,COACH_EMOCIONAL
+estoy perdido entre dos opciones importantes y no me animo a elegir,COACH_EMOCIONAL
+"salió redondo el experimento en el laboratorio, qué alegría",COACH_EMOCIONAL
+no puedo parar de pensar en todo lo que puede salir mal mañana,COACH_EMOCIONAL
+"me siento agotado emocionalmente, vengo durmiendo pésimo de tristeza",COACH_EMOCIONAL
+estoy podrido de renegar con este error insoportable,COACH_EMOCIONAL
+necesito un consejo para ordenar mis ideas porque estoy lleno de dudas,COACH_EMOCIONAL
+"aprobé el final más difícil de la carrera, estoy eufórico",COACH_EMOCIONAL
+estoy sobrepasado de ansiedad y no logro concentrarme en una línea,COACH_EMOCIONAL
+siento mucha decepción porque esperaba mucho más de mí hoy,COACH_EMOCIONAL
+"tengo una irritación terrible encima, fue un día pésimo en la oficina",COACH_EMOCIONAL
+"no sé qué hacer con la elección de optativas, estoy re indeciso",COACH_EMOCIONAL
+"me felicitaron frente a todo el equipo, estoy súper motivado",COACH_EMOCIONAL
+siento un nudo en la garganta de tanta angustia y presión,COACH_EMOCIONAL
+"quiero rendirme con esta entrega, siento que no sirvo para esto",COACH_EMOCIONAL
+me invade la impotencia cuando me cambian las reglas sobre la hora,COACH_EMOCIONAL
+tengo miedo a pasar vergüenza hablando en público mañana,COACH_EMOCIONAL
+"me fue genial en la entrevista técnica, estoy re alegre",COACH_EMOCIONAL
+ayudame a bajar la ansiedad porque estoy temblando de nervios,COACH_EMOCIONAL
+estoy triste porque discutí con mi mejor amigo hoy,COACH_EMOCIONAL
+qué rabia me da perder todo el avance por un corte de luz,COACH_EMOCIONAL
+estoy inseguro sobre cómo encarar esta conversación difícil,COACH_EMOCIONAL
+"conseguí mi primer trabajo en tecnología, qué felicidad enorme",COACH_EMOCIONAL
+tengo la cabeza quemada de tanto estrés laboral y académico,COACH_EMOCIONAL
+me siento apagado y sin motivación desde hace varios días,COACH_EMOCIONAL
+estoy muy enojado conmigo mismo por haberme confiado,COACH_EMOCIONAL
+me paraliza la duda cada vez que tengo que tomar la iniciativa,COACH_EMOCIONAL
+"superé mi propio récord hoy, me siento con toda la energía",COACH_EMOCIONAL
+siento pánico escénico cada vez que pasan mi nombre para exponer,COACH_EMOCIONAL
+"hoy fue un día gris, me siento muy solo acá en la ciudad",COACH_EMOCIONAL
+estoy harto de discutir siempre por el mismo tema sin solución,COACH_EMOCIONAL
+estoy confundido porque las dos propuestas tienen riesgos grandes,COACH_EMOCIONAL
+"terminamos el robot andando perfecto, estamos re contentos",COACH_EMOCIONAL
+"no doy más del estrés, siento que no llego al viernes",COACH_EMOCIONAL
+tengo ganas de llorar del cansancio acumulado que llevo,COACH_EMOCIONAL
+me genera mucha bronca la falta de empatía que hubo hoy,COACH_EMOCIONAL
+dudo si estoy a la altura del puesto que me ofrecieron,COACH_EMOCIONAL
+"me saqué un diez en el parcial práctico, estoy orgulloso",COACH_EMOCIONAL
+necesito hablar con alguien porque tengo mucha angustia encima,COACH_EMOCIONAL
+me siento desanimado después de tantas correcciones seguidas,COACH_EMOCIONAL
+estoy furioso por el trato injusto que recibimos recién,COACH_EMOCIONAL
+no me animo a presentar mi idea por miedo al rechazo,COACH_EMOCIONAL
+"pude superar el miedo y salió excelente la charla, qué lindo",COACH_EMOCIONAL
+estoy re ansioso esperando las notas finales de la materia,COACH_EMOCIONAL
+me pesa todo el cuerpo del bajón anímico que tengo hoy,COACH_EMOCIONAL
+me irrita muchísimo cuando me interrumpen diez veces seguidas,COACH_EMOCIONAL
+no sé si priorizar el estudio o las horas extras este mes,COACH_EMOCIONAL
+"hoy me siento pleno, agradecido y muy entusiasmado con el futuro",COACH_EMOCIONAL
+¿cuál es la capital de Francia?,DESCONOCIDO
 "hola, ¿cómo te llamás?",DESCONOCIDO
-"qué onda",DESCONOCIDO
-"preparame un café con leche",DESCONOCIDO
-"¿va a llover mañana en Buenos Aires?",DESCONOCIDO
-"contame un chiste de loros",DESCONOCIDO
-"¿cuánto salió el partido de ayer?",DESCONOCIDO
-"abrí el navegador de internet",DESCONOCIDO
-"¿quién ganó el mundial de 1986?",DESCONOCIDO
-"calculá la raíz cuadrada de 144",DESCONOCIDO
-"mandale un correo al decano",DESCONOCIDO
-"¿qué hora es en Tokio?",DESCONOCIDO
-"recomendame una película de ciencia ficción",DESCONOCIDO
-"¿cómo se hace una torta de chocolate?",DESCONOCIDO
-"encendé el aire acondicionado del aula",DESCONOCIDO
-"¿cuántos habitantes tiene Argentina?",DESCONOCIDO
-"poné música clásica de fondo",DESCONOCIDO
-"¿qué día cae navidad este año?",DESCONOCIDO
-"traducí esta palabra al alemán",DESCONOCIDO
-"¿cuál es el precio del dólar hoy?",DESCONOCIDO
+qué onda,DESCONOCIDO
+preparame un café con leche,DESCONOCIDO
+¿va a llover mañana en Buenos Aires?,DESCONOCIDO
+contame un chiste de loros,DESCONOCIDO
+¿cuánto salió el partido de ayer?,DESCONOCIDO
+abrí el navegador de internet,DESCONOCIDO
+¿quién ganó el mundial de 1986?,DESCONOCIDO
+calculá la raíz cuadrada de 144,DESCONOCIDO
+mandale un correo al decano,DESCONOCIDO
+¿qué hora es en Tokio?,DESCONOCIDO
+recomendame una película de ciencia ficción,DESCONOCIDO
+¿cómo se hace una torta de chocolate?,DESCONOCIDO
+encendé el aire acondicionado del aula,DESCONOCIDO
+¿cuántos habitantes tiene Argentina?,DESCONOCIDO
+poné música clásica de fondo,DESCONOCIDO
+¿qué día cae navidad este año?,DESCONOCIDO
+traducí esta palabra al alemán,DESCONOCIDO
+¿cuál es el precio del dólar hoy?,DESCONOCIDO
+¿quién escribió el Martín Fierro?,DESCONOCIDO
+comprame dos entradas para el cine,DESCONOCIDO
+¿a qué distancia está la Luna de la Tierra?,DESCONOCIDO
+buscame una receta de empanadas salteñas,DESCONOCIDO
+¿cuál es tu color favorito?,DESCONOCIDO
+apagá las luces del pasillo,DESCONOCIDO
+¿cuántos planetas hay en el sistema solar?,DESCONOCIDO
+reservame una mesa para cenar a las nueve,DESCONOCIDO
+¿quién descubrió la penicilina?,DESCONOCIDO
+decime los números de la quiniela,DESCONOCIDO
+subí el brillo del proyector,DESCONOCIDO
+¿en qué año se fundó Buenos Aires?,DESCONOCIDO
+pedime una pizza de muzzarella,DESCONOCIDO
+¿cómo se dice manzana en japonés?,DESCONOCIDO
+ordená los archivos del escritorio,DESCONOCIDO
+¿quién pintó la Gioconda?,DESCONOCIDO
+poné una alarma a las siete de la mañana,DESCONOCIDO
+¿cuál es el río más largo del mundo?,DESCONOCIDO
+imprimime diez copias de este apunte,DESCONOCIDO
+¿qué temperatura hace en Bariloche?,DESCONOCIDO
+contame la trama de Matrix,DESCONOCIDO
+¿cuántos lados tiene un dodecágono?,DESCONOCIDO
+descargá la última actualización de Windows,DESCONOCIDO
+¿quién fue Alan Turing en la historia?,DESCONOCIDO
+haceme las compras del supermercado,DESCONOCIDO
+¿cuál es la fórmula química del agua?,DESCONOCIDO
+conectate al televisor del living,DESCONOCIDO
+¿qué colectivo me lleva hasta Palermo?,DESCONOCIDO
+escribí un poema sobre el otoño,DESCONOCIDO
+¿cuánto pesa un elefante africano?,DESCONOCIDO
+cambiá el canal de la tele,DESCONOCIDO
+¿en qué continente queda Egipto?,DESCONOCIDO
+prepará unos mates amargos,DESCONOCIDO
+¿cuál es la velocidad de la luz?,DESCONOCIDO
+agendame turno con el dentista,DESCONOCIDO
+¿quién ganó el premio Nobel de física?,DESCONOCIDO
+limpiá el pizarrón de fibra,DESCONOCIDO
+¿qué ingredientes lleva el locro?,DESCONOCIDO
+abrí la ventana del laboratorio,DESCONOCIDO
+¿cuántos huesos tiene el cuerpo humano?,DESCONOCIDO
+buscá vuelos baratos a Córdoba,DESCONOCIDO
+¿cómo funciona un motor diésel?,DESCONOCIDO
+llamá por teléfono a recepción,DESCONOCIDO
+¿cuál es la montaña más alta de América?,DESCONOCIDO
+guardá este documento en la nube,DESCONOCIDO
+¿quién compuso las cuatro estaciones?,DESCONOCIDO
+traeme un vaso de agua fría,DESCONOCIDO
+¿en qué año llegó el hombre a la Luna?,DESCONOCIDO
+cerrá la cortina del aula,DESCONOCIDO
+¿cuál es el océano más grande?,DESCONOCIDO
+sintonizá una radio de rock nacional,DESCONOCIDO
+¿qué significa la palabra resiliencia?,DESCONOCIDO
+revisá si llegó el correo postal,DESCONOCIDO
+¿cuántos kilómetros hay de acá a Mar del Plata?,DESCONOCIDO
+sacá una fotocopia doble faz,DESCONOCIDO
+¿quién inventó la imprenta?,DESCONOCIDO
+poné a calentar la pava eléctrica,DESCONOCIDO
+¿cuál es el símbolo químico del oro?,DESCONOCIDO
+decime el horóscopo de hoy,DESCONOCIDO
+¿a qué hora cierra la biblioteca?,DESCONOCIDO

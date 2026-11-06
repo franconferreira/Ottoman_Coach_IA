@@ -1,0 +1,46 @@
+{
+  "total_ejemplos": 560,
+  "clases": {
+    "MOVER": 80,
+    "GIRAR": 80,
+    "DETENERSE": 80,
+    "SALUDO": 80,
+    "CONSULTAR_ESTADO": 80,
+    "COACH_EMOCIONAL": 80,
+    "DESCONOCIDO": 80
+  },
+  "holdout_25pct": {
+    "Naive Bayes (char+word)": {
+      "accuracy": 0.95,
+      "precision": 0.9503,
+      "recall": 0.95,
+      "f1": 0.9483
+    },
+    "Árbol de Decisión": {
+      "accuracy": 0.8,
+      "precision": 0.8307,
+      "recall": 0.8,
+      "f1": 0.7905
+    },
+    "Regresión Logística (TF-IDF)": {
+      "accuracy": 0.9714,
+      "precision": 0.9726,
+      "recall": 0.9714,
+      "f1": 0.9714
+    },
+    "Red Neuronal MLP (128-64 ReLU)": {
+      "accuracy": 0.9643,
+      "precision": 0.9646,
+      "recall": 0.9643,
+      "f1": 0.9643
+    }
+  },
+  "cv_5fold_mlp": {
+    "accuracy": 0.9625,
+    "precision": 0.9621,
+    "recall": 0.9625,
+    "f1_macro": 0.9618,
+    "epocas_convergencia": 50,
+    "loss_final": 0.00658
+  }
+}

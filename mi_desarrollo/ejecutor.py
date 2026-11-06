@@ -139,13 +139,18 @@ class Ejecutor:
             f"Pausa: {prosodia.pausa_entre_frases_s:.2f}s"
         )
 
-        # 1. Actualizar Rostro Animado
+        # 1. Actualizar Rostro Animado y Dashboard (Cámara FACS + Plano Russell V-A)
         if self.rostro is not None:
             self.rostro.actualizar_estado(
                 emocion=plan.preset_rostro,
                 subtitulo=plan.texto_respuesta,
                 resumen_usuario=resumen_usr,
                 resumen_prosodia=resumen_voz_robot,
+                valencia=estado.valencia if estado is not None else None,
+                arousal=estado.arousal if estado is not None else None,
+                incongruencia=estado.incongruencia_detectada if estado is not None else False,
+                canales=estado.canales_activos if estado is not None else None,
+                metricas_faciales=estado.facial if estado is not None else None,
             )
 
         self._log(f"Estrategia HRI : {plan.estrategia_hri} [{plan.origen_respuesta}]")
