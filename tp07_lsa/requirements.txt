@@ -1,0 +1,6 @@
+# Simulacion (macOS / cualquier PC del TP): solo hace falta mujoco via el lab.
+# Robot real (Linux notebook del lab):
+cyclonedds==0.10.2
+# unitree_sdk2py se instala editable desde el clone oficial:
+#   git clone https://github.com/unitreerobotics/unitree_sdk2_python
+#   pip install -e unitree_sdk2_python

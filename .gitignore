@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+entorno/sim/.simulador_activo.json
+entorno/sim/.pose_actual.json
+*.mp3
+*.wav
+.DS_Store
+Thumbs.db
