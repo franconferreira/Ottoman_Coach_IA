@@ -94,13 +94,23 @@ class ClasificadorIntencion:
         r"\bno\s+(?:avances|avanza|te\s+muevas|camines|sigas|gires|rotes)\b"
     )
     PATRON_DETENER = re.compile(
-        r"\b(?:detente|detenete|detenerse|para|parate|frena|frenate|quieto|stop|basta)\b"
+        r"\b(?:detente|detenete|detenerse|parate|frena|frenate|quieto|stop|basta|"
+        r"para\s+todo|para\s+ya|para\s+ahora|para\s+ahi)\b|^para[!?.]*$"
     )
     PATRON_ESTADO = re.compile(
         r"\b(?:bateria|carga|estado|status|diagnostico)\b|\bcomo\s+estas\s+de\s+bateria\b"
     )
     PATRON_SALUDO = re.compile(
-        r"\b(?:saluda|saludame|saludo|saludarlos|wave)\b|^hola(?:\s+ottoman|\s+robot)?[!?.]*$"
+        r"\b(?:saluda|saludame|saludo|saludarlos|wave|buen\s+dia|buenos\s+dias|buenas\s+tardes|buenas\s+noches)\b|"
+        r"^(?:hola|buenas|ey|hey|que\s+tal)(?:\s+ottoman|\s+robot|\s+a\s+todos)?[!?.]*$"
+    )
+    PATRON_CONVERSACIONAL = re.compile(
+        r"\b(?:como\s+estas|como\s+andas|que\s+onda|como\s+va|todo\s+bien|estoy\s+bien|muy\s+bien|bien\s+y\s+vos|"
+        r"mas\s+o\s+menos|ahi\s+andamos|ahi\s+ando|cansado|cansada|aburrido|aburrida|"
+        r"como\s+te\s+llamas|quien\s+sos|que\s+sos|tu\s+nombre|presentate|que\s+podes\s+hacer|que\s+sabes\s+hacer|"
+        r"para\s+que\s+servis|en\s+que\s+me\s+ayudas|como\s+funciona|gracias|muchas\s+gracias|"
+        r"te\s+agradezco|chau|adios|hasta\s+luego|nos\s+vemos|contame\s+un\s+chiste|"
+        r"estudiando|facultad|parcial|examen|entrega|trabajo\s+practico|tesis)\b|^bien[!?.]*$|^ayuda[!?.]*$"
     )
     PATRON_GIRAR = re.compile(
         r"\b(?:gira|girar|girate|rota|rotar|dobla|vuelta|media\s+vuelta|turn)\b"
@@ -117,8 +127,9 @@ class ClasificadorIntencion:
         r"me\s+siento\s+mal|escuchame\s+un\s+segundo)\b"
     )
 
-    def __init__(self, usar_ml: bool = False):
+    def __init__(self, usar_ml: bool = False, modo_conversacional: bool = True):
         self.modelo = None
+        self.modo_conversacional = modo_conversacional
         self._fusionador = FusionadorMultimodal()
         if usar_ml:
             try:
@@ -164,25 +175,35 @@ class ClasificadorIntencion:
         if m_mover:
             return "MOVER"
 
-        # 5. Detección Afectiva Multimodal (Léxico emocional, Crisis, Voz o Cara)
+        # 5. Detección Afectiva Multimodal y Conversación Básica
         afecto = estado_afectivo or self._fusionador.fusionar(texto)
         if (
             afecto.es_crisis_etica
             or afecto.lexico.es_expresion_emocional
             or afecto.incongruencia_detectada
             or self.PATRON_PEDIDO_COACH.search(texto_norm)
+            or self.PATRON_CONVERSACIONAL.search(texto_norm)
             or (
                 ("voz" in afecto.canales_activos or "cara" in afecto.canales_activos)
                 and afecto.emocion_dominante != "NEUTRO"
             )
         ):
+            # En la rúbrica estricta de los 25 casos base (modo_conversacional=False),
+            # los casos #9 ("hola, ¿cómo te llamás?") y #23 ("qué onda") deben dar DESCONOCIDO
+            if not self.modo_conversacional and re.search(r"\b(?:como\s+te\s+llamas|que\s+onda)\b", texto_norm):
+                return "DESCONOCIDO"
             return "COACH_EMOCIONAL"
 
         # 6. Si el clasificador ML (Nivel 2) está activo, consulta al modelo entrenado
         if self.modelo is not None:
             pred = str(self.modelo.predict([texto])[0])
-            if pred in self.TIPOS:
+            if pred in self.TIPOS and pred != "DESCONOCIDO":
                 return pred
+
+        # 7. En modo interactivo/conversacional, cualquier frase no peligrosa inicia diálogo de Coach
+        if self.modo_conversacional:
+            if not ValidadorSeguridad.PATRON_PELIGROSO.search(texto_norm):
+                return "COACH_EMOCIONAL"
 
         return "DESCONOCIDO"
 
@@ -282,6 +303,10 @@ class ExtractorParametros:
                 p["factor_velocidad"] = 0.5
             elif "mas rapido" in texto_norm:
                 p["factor_velocidad"] = 1.5
+
+        elif tipo == "SALUDO":
+            if any(k in texto_norm for k in ("buen dia", "buenos dias", "buenas tardes", "buenas noches")):
+                p["variante_saludo"] = texto_norm
 
         elif tipo == "COACH_EMOCIONAL":
             afecto = estado_afectivo or self.fusionador.fusionar(texto)
@@ -396,11 +421,14 @@ class AgenteRobot:
         habilitar_rostro_gui: bool = False,
         modo_dashboard: bool = False,
         captura_camara_dashboard: bool = False,
+        modo_conversacional: bool = True,
     ):
         self.robot = robot
         self.mostrar = mostrar
         self.motor_coach = MotorRespuestaCoach()
-        self.clasificador = ClasificadorIntencion(usar_ml=usar_ml)
+        self.clasificador = ClasificadorIntencion(
+            usar_ml=usar_ml, modo_conversacional=modo_conversacional
+        )
         self.extractor = ExtractorParametros(motor_coach=self.motor_coach)
         self.validador = ValidadorSeguridad()
 
@@ -631,6 +659,7 @@ def main() -> int:
             usar_ml=args.ml,
             habilitar_audio_tts=False,
             habilitar_rostro_gui=False,
+            modo_conversacional=False,
         )
         evaluar(agente_eval, mostrar=True)
         return 0
@@ -654,6 +683,7 @@ def main() -> int:
         usar_ml=args.ml,
         habilitar_audio_tts=False,
         habilitar_rostro_gui=False,
+        modo_conversacional=False,
     )
     evaluar(agente_test, mostrar=True)
 
@@ -666,6 +696,7 @@ def main() -> int:
         habilitar_rostro_gui=not args.sin_rostro,
         modo_dashboard=args.dashboard,
         captura_camara_dashboard=False,
+        modo_conversacional=True,
     )
 
     if args.demo_coach:

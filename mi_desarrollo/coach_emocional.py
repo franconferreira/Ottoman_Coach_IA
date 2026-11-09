@@ -389,6 +389,8 @@ class MotorRespuestaCoach:
             ),
             [
                 "Acá estoy atento escuchándote. Contame cómo te venís sintiendo hoy o qué tema tenés en mente y me adapto a tu ritmo.",
+                "Te escucho con atención. Contame un poco más sobre eso o cómo te hace sentir para poder acompañarte mejor.",
+                "Claro, te sigo. ¿Y cómo venís llevando ese tema hoy? Si querés lo charlamos paso a paso.",
             ],
         ),
     }
@@ -396,6 +398,100 @@ class MotorRespuestaCoach:
     def __init__(self, usar_llm_si_disponible: bool = True):
         self.usar_llm_si_disponible = usar_llm_si_disponible
         self._contadores_rotacion: dict[str, int] = {}
+
+    @staticmethod
+    def _responder_conversacion_basica(
+        texto_usuario: str,
+        estado: EstadoAfectivoUsuario,
+    ) -> Optional[tuple[str, str, str]]:
+        """Detecta intenciones de conversación social básica y devuelve (estrategia, preset_rostro, respuesta)."""
+        if estado.incongruencia_detectada or estado.es_crisis_etica:
+            return None
+
+        from percepcion_multimodal import normalizar_texto
+        t = normalizar_texto(texto_usuario).strip()
+        if not t:
+            return None
+
+        # 1. Identidad / nombre / presentación del robot
+        if re.search(r"\b(?:como\s+te\s+llamas|quien\s+sos|que\s+sos|tu\s+nombre|presentate)\b", t):
+            return (
+                "Presentación e Identidad Robótica",
+                "MOTIVACION_ALEGRIA",
+                "Me llamo Ottoman. Soy un robot humanoide Unitree G1 y tu coach de Inteligencia Artificial en UADE. Puedo ejecutar movimientos físicos seguros o charlar con vos para acompañarte y regular el estrés.",
+            )
+
+        # 2. Capacidades / ayuda / cómo funciona
+        if re.search(r"\b(?:que\s+podes\s+hacer|que\s+sabes\s+hacer|para\s+que\s+servis|en\s+que\s+me\s+ayudas|como\s+funciona|que\s+comandos)\b|^ayuda$", t):
+            return (
+                "Orientación de Capacidades Multimodales",
+                "NEUTRO",
+                "Puedo ayudarte de dos formas: si me pedís avanzar, girar, saludar o frenar, muevo mi cuerpo en el simulador. Y si me contás cómo te sentís o cómo viene tu día, adapto mi voz, mi rostro y mis gestos para acompañarte como coach.",
+            )
+
+        # 3. Pregunta de cortesía / estado al robot ("¿cómo estás?", "¿qué onda?", "¿todo bien?")
+        if re.search(r"\b(?:como\s+estas|como\s+andas|que\s+onda|que\s+tal|como\s+va|como\s+te\s+sentis)\b", t) and not re.search(r"\b(?:bien|mal|triste|ansioso|cansado)\b", t):
+            return (
+                "Rapport Social y Apertura Empática",
+                "MOTIVACION_ALEGRIA",
+                "¡Todo excelente por acá! Tengo los motores listos y los sensores activos para escucharte. Contame de vos, ¿cómo viene tu día hoy?",
+            )
+
+        # 4. Usuario responde que está bien / tranquilo ("estoy bien", "todo bien", "bien y vos")
+        if estado.emocion_dominante in ("NEUTRO", "MOTIVACION_ALEGRIA") and re.search(
+            r"\b(?:estoy\s+bien|todo\s+bien|muy\s+bien|bien\s+por\s+suerte|todo\s+tranqui|re\s+bien|barbaro|de\s+diez|joya)\b|^bien(?:\s+y\s+vos|\s+gracias)?[!?.]*$",
+            t,
+        ):
+            return (
+                "Sintonía Positiva y Exploración de Metas",
+                "MOTIVACION_ALEGRIA",
+                "¡Qué bueno escuchar que estás bien! Mantener esa tranquilidad suma muchísimo. ¿En qué proyecto o materia estás trabajando hoy, o qué tenés ganas de probar?",
+            )
+
+        # 5. Usuario responde "más o menos" / cansado / aburrido / día largo
+        if re.search(r"\b(?:mas\s+o\s+menos|ahi\s+andamos|ahi\s+ando|tirando|cansado|cansada|con\s+sueno|aburrido|aburrida|dia\s+largo|pesado\s+el\s+dia)\b", t):
+            return (
+                "Escucha Activa y Validación Cotidiana",
+                "NEUTRO",
+                "Te entiendo, hay días que se hacen largos y uno viene con bastante cansancio acumulado. Si tenés ganas, contame qué es lo que más te está pesando hoy, o decime si preferís hacer una pausa corta.",
+            )
+
+        # 6. Charla sobre estudio / facultad / entregas / programación
+        if estado.emocion_dominante == "NEUTRO" and re.search(
+            r"\b(?:estudiando|estudio|facultad|uade|parcial|examen|final|entrega|trabajo\s+practico|tpo|tesis|programando|codigo|cursada|materia)\b",
+            t,
+        ):
+            return (
+                "Acompañamiento Académico y Enfoque",
+                "DUDA_INSEGURIDAD",
+                "El ritmo de la cursada y las entregas demanda mucha concentración. Un buen truco es dividir lo que te falta en bloques cortos e ir paso a paso. ¿Cómo te sentís con ese tema ahora?",
+            )
+
+        # 7. Agradecimientos ("gracias", "muchas gracias", "me sirvió")
+        if re.search(r"\b(?:gracias|muchas\s+gracias|te\s+agradezco|muy\s+amable|mil\s+gracias|me\s+sirvio)\b", t):
+            return (
+                "Cierre Cálido y Disponibilidad",
+                "MOTIVACION_ALEGRIA",
+                "¡De nada! Es un verdadero gusto acompañarte. Acá me quedo atento por si querés seguir charlando o darme alguna orden de movimiento.",
+            )
+
+        # 8. Despedidas ("chau", "hasta luego", "nos vemos", "adiós")
+        if re.search(r"\b(?:chau|adios|hasta\s+luego|nos\s+vemos|hasta\s+manana|me\s+voy\s+yendo)\b", t):
+            return (
+                "Despedida Cordial",
+                "MOTIVACION_ALEGRIA",
+                "¡Hasta luego! Que tengas un excelente resto del día y muchos éxitos con todo. ¡Nos vemos pronto!",
+            )
+
+        # 9. Pedido de chiste o distensión
+        if re.search(r"\b(?:contame\s+un\s+chiste|algun\s+chiste|algo\s+gracioso|haceme\s+reir)\b", t):
+            return (
+                "Descompresión con Humor Amigable",
+                "MOTIVACION_ALEGRIA",
+                "¡Ahí va uno de robótica! ¿Por qué el robot fue al coach? Porque tenía demasiados circuitos integrados y necesitaba aprender a desconectar un rato. ¡Espero haberte sacado una sonrisa!",
+            )
+
+        return None
 
     def planificar(
         self,
@@ -406,6 +502,16 @@ class MotorRespuestaCoach:
         """Construye el plan completo de voz, léxico, rostro y postura."""
         emo = estado.emocion_dominante if estado.emocion_dominante in self.PERFILES_BASE else "NEUTRO"
         estrategia, prosodia_base, plantillas = self.PERFILES_BASE[emo]
+        preset_rostro = emo
+
+        # Verificar si es un turno de conversación social básica (preguntas al robot, gracias, etc.)
+        conv_basica = self._responder_conversacion_basica(texto_usuario, estado) if emo in ("NEUTRO", "MOTIVACION_ALEGRIA") else None
+        if conv_basica is not None:
+            estrategia, preset_rostro, respuesta_conv = conv_basica
+            if preset_rostro in self.PERFILES_BASE:
+                _, prosodia_base, _ = self.PERFILES_BASE[preset_rostro]
+        else:
+            respuesta_conv = ""
 
         # Ajuste continuo fino de la prosodia según la intensidad real medida en cara/voz
         factor_int = max(0.0, estado.intensidad - 0.5)
@@ -432,9 +538,9 @@ class MotorRespuestaCoach:
             estilo_lexico=prosodia_base.estilo_lexico,
         )
 
-        # Selección de respuesta: LLM opcional (si hay API Key y no es crisis) o CBR Local
+        # Selección de respuesta: LLM opcional (si hay API Key y no es crisis) o Conversación/CBR Local
         origen = "CBR_LOCAL"
-        respuesta = ""
+        respuesta = respuesta_conv
         if self.usar_llm_si_disponible and emo != "CRISIS_RIESGO" and os.environ.get("GEMINI_API_KEY"):
             respuesta_llm = self._consultar_gemini_flash(texto_usuario, estado, estrategia, prosodia)
             if respuesta_llm:
@@ -459,10 +565,10 @@ class MotorRespuestaCoach:
             elif previas[-1] in ("ANSIEDAD_ESTRES", "TRISTEZA_DESANIMO", "ENOJO_FRUSTRACION") and emo == "MOTIVACION_ALEGRIA":
                 respuesta = "¡Qué bueno notar cómo cambió tu energía respecto a hace un rato! " + respuesta
 
-        secuencia, dur_step, prox_m, prox_vel = CoreografoPosturalG1.obtener_coreografia(emo)
+        secuencia, dur_step, prox_m, prox_vel = CoreografoPosturalG1.obtener_coreografia(preset_rostro)
 
         return PlanRegulacionEmocional(
-            emocion_usuario=emo,
+            emocion_usuario=emo if conv_basica is None else preset_rostro,
             estrategia_hri=estrategia,
             texto_respuesta=respuesta,
             prosodia=prosodia,
@@ -470,7 +576,7 @@ class MotorRespuestaCoach:
             duracion_step_postura=dur_step,
             proxemica_distancia_m=prox_m,
             proxemica_velocidad_ms=prox_vel,
-            preset_rostro=emo,
+            preset_rostro=preset_rostro,
             origen_respuesta=origen,
         )
 

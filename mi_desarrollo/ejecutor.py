@@ -60,10 +60,9 @@ class Ejecutor:
                 self.robot.detenerse()
                 return "detenido"
             if tipo == "SALUDO":
-                return self._saludar()
+                return self._saludar(parametros)
             if tipo == "CONSULTAR_ESTADO":
-                e = self.robot.verificar_estado()
-                return f"estado: {e}"
+                return self._consultar_estado()
             if tipo == "COACH_EMOCIONAL":
                 return self._ejecutar_coach(parametros)
         except ErrorDeSeguridad as exc:
@@ -113,9 +112,52 @@ class Ejecutor:
             self.robot.girar(velocidad=signo * velocidad, tiempo=t)
         return f"giro {grados:g} grados a la {lado} en {len(tramos)} orden(es)"
 
-    def _saludar(self) -> str:
+    def _consultar_estado(self) -> str:
+        """Consulta el estado del robot y lo informa también por voz y Dashboard si están activos."""
+        e = self.robot.verificar_estado()
+        bat = e.get("bateria", 87) if isinstance(e, dict) else getattr(e, "bateria", 87)
+        texto_estado = f"Mi estado operativo es óptimo. Tengo un {bat} por ciento de batería disponible y todos los sensores en línea."
+        if self.rostro is not None:
+            self.rostro.actualizar_estado(
+                emocion="NEUTRO",
+                subtitulo=texto_estado,
+                resumen_usuario=f"Intención: CONSULTAR_ESTADO | Batería: {bat}%",
+                resumen_prosodia="Voz Ottoman -> 150 ppm (0%) | +0.0 dB | +0 Hz",
+                valencia=0.30,
+                arousal=0.10,
+                incongruencia=False,
+                canales=["lexico"],
+            )
+        if self.sintetizador_voz is not None and self.sintetizador_voz.habilitado:
+            from coach_emocional import PerfilProsodico
+            prosodia_est = PerfilProsodico(
+                velocidad_wpm=150,
+                velocidad_pct=0,
+                volumen_db=0.0,
+                tono_hz=0,
+                pausa_inicial_s=0.05,
+                pausa_entre_frases_s=0.25,
+                estilo_lexico="informativo_claro",
+            )
+            hilo = self.sintetizador_voz.hablar_sincronizado(
+                texto=texto_estado, prosodia=prosodia_est, rostro=self.rostro, bloqueante=False
+            )
+            if hilo is not None:
+                hilo.join(timeout=7.0)
+        return f"estado: {e}"
+
+    def _saludar(self, p: Optional[dict] = None) -> str:
         """Ejecuta saludo empático sincronizando rostro animado, voz y gesto de brazo G1."""
-        texto_saludo = "¡Hola! Soy Ottoman, tu coach y asistente robótico. ¿Cómo te sentís hoy?"
+        p = p or {}
+        variante = str(p.get("variante_saludo", "")).lower()
+        if "buenos dias" in variante or "buen dia" in variante:
+            texto_saludo = "¡Muy buenos días! Soy Ottoman, tu coach y asistente robótico. ¿Cómo amaneciste y cómo te sentís hoy?"
+        elif "buenas tardes" in variante:
+            texto_saludo = "¡Buenas tardes! Soy Ottoman, tu coach y asistente robótico. ¿Cómo viene tu día hasta ahora?"
+        elif "buenas noches" in variante:
+            texto_saludo = "¡Buenas noches! Soy Ottoman, tu coach y asistente robótico. ¿Cómo terminaste el día hoy?"
+        else:
+            texto_saludo = "¡Hola! Soy Ottoman, tu coach y asistente robótico. ¿Cómo te sentís hoy?"
         if self.rostro is not None:
             self.rostro.actualizar_estado(
                 emocion="ALEGRIA",
