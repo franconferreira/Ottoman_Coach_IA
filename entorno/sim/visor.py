@@ -56,7 +56,7 @@ class Visor:
             if idx < len(art):
                 art[idx] = valor
 
-        if e["accion"] in ("saludando", "besando"):
+        if e["accion"] in ("saludando", "besando", "saludo"):
             for idx, valor in self.robot.saludo.items():
                 if idx < len(art):
                     art[idx] = valor + (

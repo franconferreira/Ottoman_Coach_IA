@@ -408,12 +408,15 @@ class Robot:
                 "right_wrist_roll": 0.0,
             },
         ]
-        if getattr(self._cliente, "MoverArticulaciones", None) is not None:
-            return self.ejecutar_secuencia_poses(secuencia_saludo, duracion_step=0.45)
         wave_fn = getattr(self._cliente, "WaveHand", None)
         if wave_fn is not None:
-            wave_fn()
-            time.sleep(1.5)
+            try:
+                wave_fn()
+            except Exception:
+                pass
+        if getattr(self._cliente, "MoverArticulaciones", None) is not None:
+            return self.ejecutar_secuencia_poses(secuencia_saludo, duracion_step=0.45)
+        time.sleep(1.5)
         return self.verificar_estado()
 
     def ejecutar_secuencia_senas(self, secuencia: list[dict], duracion_step: float = 0.5) -> EstadoRobot:

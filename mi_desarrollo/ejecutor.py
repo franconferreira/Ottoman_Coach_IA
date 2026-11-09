@@ -140,15 +140,15 @@ class Ejecutor:
         self._log(f"Saludo G1      : \"{texto_saludo}\"")
         hilo_voz = None
         if self.sintetizador_voz is not None and self.sintetizador_voz.habilitado:
-            from motor_coach import ConfiguracionProsodica
-            prosodia_saludo = ConfiguracionProsodica(
+            from coach_emocional import PerfilProsodico
+            prosodia_saludo = PerfilProsodico(
                 velocidad_wpm=155,
                 velocidad_pct=7,
-                volumen_lineal=0.92,
                 volumen_db=1.0,
                 tono_hz=8,
+                pausa_inicial_s=0.05,
                 pausa_entre_frases_s=0.30,
-                descripcion_estilo="cálido y receptivo",
+                estilo_lexico="cálido y receptivo",
             )
             hilo_voz = self.sintetizador_voz.hablar_sincronizado(
                 texto=texto_saludo,
