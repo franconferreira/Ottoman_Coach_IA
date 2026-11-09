@@ -665,7 +665,7 @@ def main() -> int:
         habilitar_audio_tts=not args.sin_tts,
         habilitar_rostro_gui=not args.sin_rostro,
         modo_dashboard=args.dashboard,
-        captura_camara_dashboard=(args.dashboard and not args.camara and not args.demo_coach),
+        captura_camara_dashboard=False,
     )
 
     if args.demo_coach:
@@ -728,7 +728,10 @@ def main() -> int:
                 correr_demo_coach(agente)
                 continue
 
-            agente.procesar(texto_usr, facial=lectura_facial, acustica=lectura_voz)
+            try:
+                agente.procesar(texto_usr, facial=lectura_facial, acustica=lectura_voz)
+            except Exception as exc:
+                print(f"  [ERROR] No se pudo completar la orden: {type(exc).__name__}: {exc}")
     except (KeyboardInterrupt, EOFError):
         print("\n  Cerrando sesión de Ottoman Coach...")
     finally:

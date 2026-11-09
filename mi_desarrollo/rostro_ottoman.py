@@ -228,6 +228,8 @@ class RostroOttoman:
     def cerrar(self) -> None:
         self._activo = False
         self._cola.put({"cmd": "cerrar"})
+        if self._hilo is not None and self._hilo.is_alive():
+            self._hilo.join(timeout=1.0)
 
     def actualizar_estado(
         self,
@@ -365,7 +367,12 @@ class RostroOttoman:
         def _al_cerrar():
             self._activo = False
             detener_cam.set()
-            root.destroy()
+            photo_ref[0] = None
+            try:
+                root.quit()
+                root.destroy()
+            except Exception:
+                pass
 
         root.protocol("WM_DELETE_WINDOW", _al_cerrar)
 
@@ -375,11 +382,7 @@ class RostroOttoman:
             nonlocal val_interp, aro_interp, t_proximo_parpadeo, parpadeo_hasta
 
             if not self._activo:
-                detener_cam.set()
-                try:
-                    root.destroy()
-                except Exception:
-                    pass
+                _al_cerrar()
                 return
 
             while not self._cola.empty():

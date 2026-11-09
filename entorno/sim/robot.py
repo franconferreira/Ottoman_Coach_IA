@@ -375,6 +375,47 @@ class Robot:
 
         return self.verificar_estado()
 
+    def saludar(self) -> EstadoRobot:
+        """Ejecuta el saludo con la mano derecha en el simulador MuJoCo o robot G1."""
+        self._exigir_conexion()
+        secuencia_saludo = [
+            {
+                "right_shoulder_pitch": -1.55,
+                "right_shoulder_roll": -0.65,
+                "right_shoulder_yaw": -0.25,
+                "right_elbow": -0.95,
+                "right_wrist_roll": 0.65,
+            },
+            {
+                "right_shoulder_pitch": -1.55,
+                "right_shoulder_roll": -0.35,
+                "right_shoulder_yaw": 0.20,
+                "right_elbow": -0.75,
+                "right_wrist_roll": -0.65,
+            },
+            {
+                "right_shoulder_pitch": -1.55,
+                "right_shoulder_roll": -0.65,
+                "right_shoulder_yaw": -0.25,
+                "right_elbow": -0.95,
+                "right_wrist_roll": 0.65,
+            },
+            {
+                "right_shoulder_pitch": 0.0,
+                "right_shoulder_roll": 0.0,
+                "right_shoulder_yaw": 0.0,
+                "right_elbow": 0.0,
+                "right_wrist_roll": 0.0,
+            },
+        ]
+        if getattr(self._cliente, "MoverArticulaciones", None) is not None:
+            return self.ejecutar_secuencia_poses(secuencia_saludo, duracion_step=0.45)
+        wave_fn = getattr(self._cliente, "WaveHand", None)
+        if wave_fn is not None:
+            wave_fn()
+            time.sleep(1.5)
+        return self.verificar_estado()
+
     def ejecutar_secuencia_senas(self, secuencia: list[dict], duracion_step: float = 0.5) -> EstadoRobot:
         return self.ejecutar_secuencia_poses(secuencia, duracion_step=duracion_step)
 

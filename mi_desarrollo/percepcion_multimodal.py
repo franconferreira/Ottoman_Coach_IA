@@ -18,12 +18,15 @@ Este módulo implementa los sensores afectivos del Agente Inteligente Ottoman Co
 from __future__ import annotations
 
 import math
+import os
 import re
 import unicodedata
 from dataclasses import asdict, dataclass, field
 from typing import Optional
 
 import numpy as np
+
+os.environ.setdefault("OPENCV_LOG_LEVEL", "OFF")
 
 
 def normalizar_texto(texto: str) -> str:
@@ -133,13 +136,20 @@ class AnalizadorFacial:
             self._face_cascade = None
 
     def abrir_camara(self) -> bool:
-        """Abre la cámara web local si está disponible."""
+        """Abre la cámara web local si está disponible, silenciando warnings C++ de OpenCV."""
         if self._cap is not None and self._cap.isOpened():
             return True
         try:
             import cv2
-            self._cap = cv2.VideoCapture(self.indice_camara)
-            return bool(self._cap.isOpened())
+            if hasattr(cv2, "setLogLevel"):
+                cv2.setLogLevel(0)
+            backend = getattr(cv2, "CAP_DSHOW", 0) if os.name == "nt" else 0
+            self._cap = cv2.VideoCapture(self.indice_camara, backend) if backend else cv2.VideoCapture(self.indice_camara)
+            if not self._cap.isOpened():
+                self._cap.release()
+                self._cap = None
+                return False
+            return True
         except Exception:
             self._cap = None
             return False

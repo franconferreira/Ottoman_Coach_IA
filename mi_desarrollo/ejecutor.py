@@ -60,8 +60,7 @@ class Ejecutor:
                 self.robot.detenerse()
                 return "detenido"
             if tipo == "SALUDO":
-                self.robot.saludar()
-                return "saludo"
+                return self._saludar()
             if tipo == "CONSULTAR_ESTADO":
                 e = self.robot.verificar_estado()
                 return f"estado: {e}"
@@ -114,6 +113,88 @@ class Ejecutor:
             self.robot.girar(velocidad=signo * velocidad, tiempo=t)
         return f"giro {grados:g} grados a la {lado} en {len(tramos)} orden(es)"
 
+    def _saludar(self) -> str:
+        """Ejecuta saludo empático sincronizando rostro animado, voz y gesto de brazo G1."""
+        texto_saludo = "¡Hola! Soy Ottoman, tu coach y asistente robótico. ¿Cómo te sentís hoy?"
+        if self.rostro is not None:
+            self.rostro.actualizar_estado(
+                emocion="ALEGRIA",
+                subtitulo=texto_saludo,
+                resumen_usuario="Intención: SALUDO | V:+0.75 A:+0.35",
+                resumen_prosodia="Voz Ottoman -> 155 ppm (+7%) | +1.0 dB | +8 Hz",
+                valencia=0.75,
+                arousal=0.35,
+                incongruencia=False,
+                canales=["lexico"],
+                metricas_faciales={
+                    "rostro_detectado": False,
+                    "apertura_ojos": 0.65,
+                    "tension_cejas": 0.12,
+                    "curvatura_boca": 0.72,
+                    "apertura_boca": 0.25,
+                    "inclinacion_cabeza_deg": 0.0,
+                    "emocion_facial": "ALEGRIA",
+                },
+            )
+
+        self._log(f"Saludo G1      : \"{texto_saludo}\"")
+        hilo_voz = None
+        if self.sintetizador_voz is not None and self.sintetizador_voz.habilitado:
+            from motor_coach import ConfiguracionProsodica
+            prosodia_saludo = ConfiguracionProsodica(
+                velocidad_wpm=155,
+                velocidad_pct=7,
+                volumen_lineal=0.92,
+                volumen_db=1.0,
+                tono_hz=8,
+                pausa_entre_frases_s=0.30,
+                descripcion_estilo="cálido y receptivo",
+            )
+            hilo_voz = self.sintetizador_voz.hablar_sincronizado(
+                texto=texto_saludo,
+                prosodia=prosodia_saludo,
+                rostro=self.rostro,
+                bloqueante=False,
+            )
+
+        saludar_fn = getattr(self.robot, "saludar", None)
+        if saludar_fn is not None:
+            saludar_fn()
+        else:
+            secuencia_saludo = [
+                {"right_shoulder_pitch": -1.55, "right_shoulder_roll": -0.65, "right_elbow": -0.95, "right_wrist_roll": 0.65},
+                {"right_shoulder_pitch": -1.55, "right_shoulder_roll": -0.35, "right_elbow": -0.75, "right_wrist_roll": -0.65},
+                {"right_shoulder_pitch": 0.0, "right_shoulder_roll": 0.0, "right_elbow": 0.0, "right_wrist_roll": 0.0},
+            ]
+            ejecutar_poses = getattr(self.robot, "ejecutar_secuencia_poses", None) or getattr(
+                self.robot, "ejecutar_secuencia_senas", None
+            )
+            if ejecutar_poses is not None:
+                ejecutar_poses(secuencia_saludo, duracion_step=0.45)
+
+        if hilo_voz is not None:
+            hilo_voz.join(timeout=8.0)
+        return "saludo"
+
+    @staticmethod
+    def _metricas_faciales_para_dashboard(estado) -> Optional[object]:
+        """Si hay cámara física usa la lectura real; si es chat de texto proyecta FACS equivalentes."""
+        if estado is None:
+            return None
+        if estado.facial.rostro_detectado:
+            return estado.facial
+        v = float(estado.valencia)
+        a = float(estado.arousal)
+        return {
+            "rostro_detectado": False,
+            "apertura_ojos": max(0.20, min(0.95, 0.52 + 0.32 * a)),
+            "tension_cejas": max(0.08, min(0.95, 0.25 - 0.35 * v + 0.28 * max(0.0, a))),
+            "curvatura_boca": max(-0.90, min(0.90, 0.78 * v)),
+            "apertura_boca": max(0.08, min(0.85, 0.16 + 0.28 * abs(a))),
+            "inclinacion_cabeza_deg": -8.0 if v < -0.25 and a < 0 else 0.0,
+            "emocion_facial": estado.emocion_dominante,
+        }
+
     def _ejecutar_coach(self, p: dict) -> str:
         """Ejecuta de forma sincronizada Rostro + Voz Adaptativa + Proxémica + Postura G1."""
         plan = p.get("plan_coach")
@@ -150,7 +231,7 @@ class Ejecutor:
                 arousal=estado.arousal if estado is not None else None,
                 incongruencia=estado.incongruencia_detectada if estado is not None else False,
                 canales=estado.canales_activos if estado is not None else None,
-                metricas_faciales=estado.facial if estado is not None else None,
+                metricas_faciales=self._metricas_faciales_para_dashboard(estado),
             )
 
         self._log(f"Estrategia HRI : {plan.estrategia_hri} [{plan.origen_respuesta}]")
@@ -177,7 +258,9 @@ class Ejecutor:
             self.robot.avanzar(velocidad=signo * vel_segura, tiempo=dur_prox)
 
         # 4. Ejecutar secuencia cinemática de torso, brazos y dedos Inspire
-        ejecutar_poses = getattr(self.robot, "ejecutar_secuencia_poses", None)
+        ejecutar_poses = getattr(self.robot, "ejecutar_secuencia_poses", None) or getattr(
+            self.robot, "ejecutar_secuencia_senas", None
+        )
         if ejecutar_poses is not None and plan.secuencia_postural:
             self._log(
                 f"Kinésica G1    : {len(plan.secuencia_postural)} keyframes articulares "
