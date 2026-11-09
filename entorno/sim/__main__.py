@@ -75,7 +75,7 @@ def _sena_viva():
     try:
         # Senal 0: no hace nada, solo pregunta si el proceso existe.
         os.kill(pid, 0)
-    except OSError:
+    except (OSError, SystemError):
         return None      # murio mal y dejo la sena colgada: no bloquea
     return datos
 

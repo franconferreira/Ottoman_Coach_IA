@@ -101,7 +101,7 @@ goto :eof
 
 
 cd entorno
-"%PYTHON%" %PYARGS% -m sim --robot %ROBOT% --materia tp07
+python -m sim --robot %ROBOT% --materia tp07
 
 echo.
 pause

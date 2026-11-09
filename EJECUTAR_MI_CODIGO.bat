@@ -93,6 +93,6 @@ if not exist "%ARCHIVO%" (
   exit /b 1
 )
 
-"%PYTHON%" %PYARGS% "%ARCHIVO%" %MODO_VOZ%
+python "%ARCHIVO%" %MODO_VOZ%
 echo.
 pause
