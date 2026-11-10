@@ -1004,20 +1004,24 @@ class SintetizadorVozAdaptativo:
         rostro=None,
         bloqueante: bool = False,
     ) -> Optional[threading.Thread]:
-        """Sintetiza cada frase, aplica DSP de Tono/Timbre/Volumen y reproduce sincronizado."""
-        if not self.habilitado or not texto.strip():
+        """Sintetiza la respuesta completa de una sola vez, aplica DSP de Tono/Timbre/Volumen y reproduce."""
+        texto_limpio = texto.strip()
+        if not self.habilitado or not texto_limpio:
             return None
 
         def _tarea_audio():
             with self._lock:
                 time.sleep(max(0.0, prosodia.pausa_inicial_s))
-                frases = self.segmentar_frases(texto)
                 volumen_lineal = self.db_a_ganancia(prosodia.volumen_db)
                 ratio_pitch = float(np.clip((160.0 + float(prosodia.tono_hz)) / 160.0, 0.84, 1.20))
-                # Pre-compensar la velocidad de pyttsx3 por el factor de pitch para que la
-                # velocidad final tras el re-muestreo sea exactamente prosodia.velocidad_wpm
                 rate_compensado = int(round(prosodia.velocidad_wpm / ratio_pitch))
 
+                fd_raw, ruta_raw = tempfile.mkstemp(suffix="_raw.wav")
+                os.close(fd_raw)
+                fd_mod, ruta_mod = tempfile.mkstemp(suffix="_dsp.wav")
+                os.close(fd_mod)
+
+                reproduccion_exitosa = False
                 try:
                     import pyttsx3
                     from scipy.io import wavfile
@@ -1032,50 +1036,56 @@ class SintetizadorVozAdaptativo:
                     engine.setProperty("rate", rate_compensado)
                     engine.setProperty("volume", volumen_lineal)
 
-                    for i, frase in enumerate(frases):
-                        if rostro is not None:
-                            rostro.set_hablando(True, subtitulo=frase)
+                    # Sintetizar el texto completo de una sola vez para evitar el bug COM de Windows
+                    engine.save_to_file(texto_limpio, ruta_raw)
+                    engine.runAndWait()
 
-                        fd_raw, ruta_raw = tempfile.mkstemp(suffix="_raw.wav")
-                        os.close(fd_raw)
-                        fd_mod, ruta_mod = tempfile.mkstemp(suffix="_dsp.wav")
-                        os.close(fd_mod)
+                    if os.path.exists(ruta_raw) and os.path.getsize(ruta_raw) > 100:
+                        sr, data = wavfile.read(ruta_raw)
+                        data_mod, sr_mod = self.modular_onda_dsp(data, sr, prosodia)
+                        wavfile.write(ruta_mod, sr_mod, data_mod)
+
+                        if rostro is not None:
+                            rostro.set_hablando(True, subtitulo=texto_limpio)
                         try:
-                            engine.save_to_file(frase, ruta_raw)
-                            engine.runAndWait()
-                            if os.path.exists(ruta_raw) and os.path.getsize(ruta_raw) > 100:
-                                sr, data = wavfile.read(ruta_raw)
-                                data_mod, sr_mod = self.modular_onda_dsp(data, sr, prosodia)
-                                wavfile.write(ruta_mod, sr_mod, data_mod)
-                                winsound.PlaySound(ruta_mod, winsound.SND_FILENAME)
-                            else:
-                                engine.setProperty("rate", int(prosodia.velocidad_wpm))
-                                engine.say(frase)
-                                engine.runAndWait()
+                            winsound.PlaySound(ruta_mod, winsound.SND_FILENAME)
+                            reproduccion_exitosa = True
                         finally:
-                            for r_tmp in (ruta_raw, ruta_mod):
-                                try:
-                                    if os.path.exists(r_tmp):
-                                        os.remove(r_tmp)
-                                except OSError:
-                                    pass
-
+                            if rostro is not None:
+                                rostro.set_hablando(False)
+                    else:
                         if rostro is not None:
-                            rostro.set_hablando(False)
-                        if i < len(frases) - 1:
-                            time.sleep(max(0.05, prosodia.pausa_entre_frases_s))
+                            rostro.set_hablando(True, subtitulo=texto_limpio)
+                        try:
+                            engine.setProperty("rate", int(prosodia.velocidad_wpm))
+                            engine.say(texto_limpio)
+                            engine.runAndWait()
+                            reproduccion_exitosa = True
+                        finally:
+                            if rostro is not None:
+                                rostro.set_hablando(False)
                 except Exception:
-                    # Fallback limpio si no hay dispositivo de salida o winsound
-                    for i, frase in enumerate(frases):
-                        if rostro is not None:
-                            rostro.set_hablando(True, subtitulo=frase)
-                        palabras = max(1, len(frase.split()))
-                        dur = (palabras / max(80, prosodia.velocidad_wpm)) * 60.0
-                        time.sleep(min(3.5, dur))
-                        if rostro is not None:
-                            rostro.set_hablando(False)
-                        if i < len(frases) - 1:
-                            time.sleep(max(0.05, prosodia.pausa_entre_frases_s))
+                    reproduccion_exitosa = False
+                finally:
+                    # Garantía absoluta: apagar boca de la cara y limpiar archivos temporales
+                    if rostro is not None:
+                        rostro.set_hablando(False)
+                    for r_tmp in (ruta_raw, ruta_mod):
+                        try:
+                            if os.path.exists(r_tmp):
+                                os.remove(r_tmp)
+                        except OSError:
+                            pass
+
+                # Fallback visual por duración estimada si el hardware de audio no estuvo disponible
+                if not reproduccion_exitosa:
+                    if rostro is not None:
+                        rostro.set_hablando(True, subtitulo=texto_limpio)
+                    palabras = max(1, len(texto_limpio.split()))
+                    dur = (palabras / max(80, prosodia.velocidad_wpm)) * 60.0
+                    time.sleep(min(6.0, dur))
+                    if rostro is not None:
+                        rostro.set_hablando(False)
 
         if bloqueante:
             _tarea_audio()
