@@ -58,6 +58,8 @@ class Ejecutor:
                 return self._girar(parametros)
             if tipo == "DETENERSE":
                 self.robot.detenerse()
+                if self.rostro and hasattr(self.rostro, "disparar_glifo"):
+                    self.rostro.disparar_glifo("!", duracion=1.8)
                 return "detenido"
             if tipo == "SALUDO":
                 return self._saludar(parametros)
@@ -66,6 +68,8 @@ class Ejecutor:
             if tipo == "COACH_EMOCIONAL":
                 return self._ejecutar_coach(parametros)
         except ErrorDeSeguridad as exc:
+            if self.rostro and hasattr(self.rostro, "disparar_glifo"):
+                self.rostro.disparar_glifo("!", duracion=2.5)
             return f"RECHAZADO POR EL ROBOT: {exc}"
         return f"no se como ejecutar {tipo}"
 

@@ -90,6 +90,166 @@ class PlanRegulacionEmocional:
     origen_respuesta: str = "CBR_LOCAL"
 
 
+@dataclass
+class EventoMicroExpresion:
+    """Micro-expresión facial programada en la línea de tiempo de habla."""
+    t_inicio: float
+    duracion: float
+    forma_ojo: str
+    glifo: Optional[str] = None
+    apertura: Optional[float] = None
+    inclinacion: Optional[float] = None
+
+
+class PlanificadorCoreografiaFacial:
+    """Planificador prosódico-lingüístico de micro-expresiones faciales en tiempo real.
+    
+    Analiza la estructura discursiva, signos de puntuación (¡!, ¿?, ,, .) y marcadores
+    emocionales para generar una línea de tiempo dinámica de micro-gestos y glifos,
+    evitando la rigidez de una máscara facial estática durante el habla de Ottoman.
+    """
+
+    @classmethod
+    def planificar(
+        cls,
+        texto: str,
+        emocion_base: str = "NEUTRO",
+        prosodia: Optional[PerfilProsodico] = None,
+    ) -> list[EventoMicroExpresion]:
+        if not texto or not texto.strip():
+            return []
+
+        wpm = prosodia.velocidad_wpm if prosodia else 150
+        # Velocidad en palabras por segundo (típicamente 2.5 palabras/s a 150 WPM)
+        wps = max(1.4, wpm / 60.0)
+
+        # Segmentar en oraciones manteniendo puntuación
+        oraciones_crudas = [f.strip() for f in re.split(r"(?<=[.?!])\s+", texto.strip()) if f.strip()]
+        bloques: list[str] = []
+        for ora in oraciones_crudas:
+            if "," in ora:
+                sub = [s.strip() for s in ora.split(",") if s.strip()]
+                for s in sub:
+                    bloques.append(s)
+            else:
+                bloques.append(ora)
+
+        if not bloques:
+            bloques = [texto.strip()]
+
+        eventos: list[EventoMicroExpresion] = []
+        t_acumulado = 0.0
+
+        for i, bloque in enumerate(bloques):
+            txt_min = bloque.lower().strip()
+            palabras = [p for p in re.findall(r"\w+", txt_min) if p]
+            num_palabras = max(1, len(palabras))
+            duracion_estimada = max(0.85, round(num_palabras / wps, 2))
+
+            forma = "capsula"
+            glifo = None
+            apertura = None
+            inclinacion = None
+
+            # 1. Detección de exclamación o énfasis heroico / alerta
+            if "¡" in bloque or "!" in bloque or any(w in txt_min for w in ("vamos", "excelente", "felicitaciones", "genial", "alegría")):
+                if any(w in txt_min for w in ("cuidado", "atención", "ojo", "alto", "freno", "peligro", "emergencia", "bloqueo")):
+                    glifo = "!"
+                    forma = "diagonal_enojo"
+                    inclinacion = 18.0
+                    apertura = 1.10
+                elif any(w in txt_min for w in ("eureka", "idea", "logramos", "brillante", "excelente", "super")):
+                    glifo = "!"
+                    forma = "chispa_estrella"
+                    apertura = 1.12
+                else:
+                    glifo = "!"
+                    forma = "arco_feliz"
+                    apertura = 1.08
+
+            # 2. Detección de interrogación / duda reflexiva
+            elif "¿" in bloque or "?" in bloque or any(w in txt_min for w in ("cómo", "qué", "cuál", "quién", "dónde", "probaste", "pensás", "parece")):
+                glifo = "?"
+                forma = "asimetrico_duda"
+                apertura = 0.98
+
+            # 3. Marcadores de co-regulación, respiración y calma
+            elif any(w in txt_min for w in ("tranquilo", "calma", "despacio", "inhalá", "exhalá", "respiremos", "paz", "serenidad", "relajá")):
+                forma = "suave_calma"
+                apertura = 0.74
+
+            # 4. Marcadores de concentración, análisis y foco cognitivo
+            elif any(w in txt_min for w in ("pensemos", "analicemos", "plan", "primer paso", "opciones", "enfoque", "estrategia", "revisemos")):
+                forma = "entrecerrado_enfoque"
+                apertura = 0.82
+
+            # 5. Marcadores de empatía cálida y contención
+            elif any(w in txt_min for w in ("entiendo", "difícil", "cuesta", "duro", "pesar", "triste", "estoy con vos", "abrazo")):
+                forma = "caido_triste"
+                inclinacion = -14.0
+                apertura = 0.80
+
+            # 6. Marcadores de asombro y descubrimiento
+            elif any(w in txt_min for w in ("guau", "sorprendente", "mirá", "increíble", "asombroso")):
+                forma = "ojo_circular_asombro"
+                apertura = 1.15
+
+            # 7. Dispersión natural según la emoción dominante del coach
+            else:
+                if emocion_base == "MOTIVACION_ALEGRIA":
+                    forma = "arco_feliz"
+                    apertura = 1.05
+                elif emocion_base == "ANSIEDAD_ESTRES":
+                    forma = "suave_calma"
+                    apertura = 0.76
+                elif emocion_base == "TRISTEZA_DESANIMO":
+                    forma = "caido_triste"
+                    inclinacion = -12.0
+                    apertura = 0.82
+                elif emocion_base == "ENOJO_FRUSTRACION":
+                    forma = "diagonal_enojo"
+                    inclinacion = 14.0
+                    apertura = 0.86
+                elif emocion_base == "DUDA_INSEGURIDAD":
+                    forma = "asimetrico_duda"
+                    apertura = 0.95
+                else:
+                    forma = "capsula"
+                    apertura = 0.92
+
+            eventos.append(
+                EventoMicroExpresion(
+                    t_inicio=round(t_acumulado, 2),
+                    duracion=duracion_estimada,
+                    forma_ojo=forma,
+                    glifo=glifo,
+                    apertura=apertura,
+                    inclinacion=inclinacion,
+                )
+            )
+
+            # Si el bloque empezó con glifo '!' o '?', y dura más de 1.1s, desvanecerlo suavemente a la forma ocular secundaria
+            if glifo in ("!", "?") and duracion_estimada > 1.1:
+                dur_glifo = 0.85
+                dur_resto = round(duracion_estimada - dur_glifo, 2)
+                eventos[-1].duracion = dur_glifo
+                eventos.append(
+                    EventoMicroExpresion(
+                        t_inicio=round(t_acumulado + dur_glifo, 2),
+                        duracion=dur_resto,
+                        forma_ojo="arco_feliz" if glifo == "!" else "asimetrico_duda",
+                        glifo=None,
+                        apertura=apertura,
+                        inclinacion=inclinacion,
+                    )
+                )
+
+            # Acumular tiempo para el próximo bloque más una micro-pausa
+            t_acumulado += duracion_estimada + 0.15
+
+        return eventos
+
+
 # =====================================================================
 #  1. COREÓGRAFO POSTURAL Y PROXÉMICO PARA UNITREE G1 (29 DoF + MANOS)
 # =====================================================================
@@ -1314,25 +1474,29 @@ class CoreografoPosturalG1:
             mod_r_wr = -0.15 * math.sin(f + 1.15 + 0.80)
             dedos_val = float(np.clip(0.06 + amp_dedos * abs(math.sin((f + 1.15) * 0.5)), 0.02, 0.45))
         else:
-            # Idle diaphragmatic breathing (0.25 Hz)
+            # Idle diaphragmatic breathing (0.25 Hz = ~4s) + postural sway orgánico (~6.5s)
             f = fase_tiempo
-            mod_torso = 0.014 * math.sin(f)
-            mod_l_sh = 0.010 * math.sin(f + 0.20)
-            mod_r_sh = 0.010 * math.sin(f + 0.20)
-            mod_l_el = 0.008 * math.cos(f)
-            mod_r_el = 0.008 * math.cos(f)
-            mod_l_wr = 0.0
-            mod_r_wr = 0.0
-            dedos_val = float(np.clip(0.04 + 0.02 * (1.0 + math.sin(f)), 0.02, 0.10))
+            f_sway = f * 0.61  # ciclo pendular postural
+            mod_torso = 0.038 * math.sin(f)
+            mod_l_sh = 0.028 * math.sin(f + 0.25)
+            mod_r_sh = 0.028 * math.sin(f + 0.25)
+            mod_l_el = 0.022 * math.cos(f)
+            mod_r_el = 0.022 * math.cos(f)
+            mod_l_wr = 0.040 * math.sin(f + 0.50)
+            mod_r_wr = -0.040 * math.sin(f + 0.50)
+            dedos_val = float(np.clip(0.05 + 0.04 * (1.0 + math.sin(f)), 0.02, 0.20))
+            sway_leg = math.sin(f_sway)
+            sway_pelvis_roll = 0.022 * math.sin(f_sway)
+            sway_pelvis_yaw = 0.014 * math.cos(f_sway * 0.5)
 
         pose = {
             "waist_pitch": pitch_base + mod_torso,
-            "waist_roll": roll_base,
-            "waist_yaw": yaw_base,
+            "waist_roll": roll_base + (sway_pelvis_roll if not hablando else 0.0),
+            "waist_yaw": yaw_base + (sway_pelvis_yaw if not hablando else 0.0),
             "left_shoulder_pitch": sh_pitch_base + mod_l_sh,
             "right_shoulder_pitch": sh_pitch_base + mod_r_sh,
-            "left_shoulder_roll": sh_roll_base,
-            "right_shoulder_roll": -sh_roll_base,
+            "left_shoulder_roll": sh_roll_base - (sway_pelvis_roll * 0.5 if not hablando else 0.0),
+            "right_shoulder_roll": -sh_roll_base - (sway_pelvis_roll * 0.5 if not hablando else 0.0),
             "left_shoulder_yaw": 0.0,
             "right_shoulder_yaw": 0.0,
             "left_elbow": el_base + mod_l_el,
@@ -1345,23 +1509,28 @@ class CoreografoPosturalG1:
             "right_wrist_yaw": 0.0,
         }
 
-        # Piernas vivas con flexión orgánica visible y contrapposto
+        # Piernas vivas con flexión orgánica visible y contrapposto dinámico
         knee_base = float(np.clip(0.32 + 0.10 * abs(a), 0.22, 0.48))
-        ankle_base = -knee_base * 0.5
-        hip_pitch_base = -knee_base * 0.5
-        hip_roll_l = float(np.clip(0.02 + 0.03 * v, -0.06, 0.08))
-        hip_roll_r = float(np.clip(-0.02 - 0.03 * v, -0.08, 0.06))
+        leg_sway_amp = (0.042 * sway_leg) if not hablando else 0.0
+        knee_l = knee_base + leg_sway_amp
+        knee_r = knee_base - leg_sway_amp
+        hip_pitch_l = -knee_l * 0.5
+        hip_pitch_r = -knee_r * 0.5
+        ankle_l = -knee_l * 0.5
+        ankle_r = -knee_r * 0.5
+        hip_roll_l = float(np.clip(0.02 + 0.03 * v + (0.012 * sway_leg if not hablando else 0.0), -0.06, 0.08))
+        hip_roll_r = float(np.clip(-0.02 - 0.03 * v + (0.012 * sway_leg if not hablando else 0.0), -0.08, 0.06))
 
-        pose["left_hip_pitch"] = hip_pitch_base
-        pose["right_hip_pitch"] = hip_pitch_base
+        pose["left_hip_pitch"] = hip_pitch_l
+        pose["right_hip_pitch"] = hip_pitch_r
         pose["left_hip_roll"] = hip_roll_l
         pose["right_hip_roll"] = hip_roll_r
         pose["left_hip_yaw"] = 0.0
         pose["right_hip_yaw"] = 0.0
-        pose["left_knee"] = knee_base
-        pose["right_knee"] = knee_base
-        pose["left_ankle_pitch"] = ankle_base
-        pose["right_ankle_pitch"] = ankle_base
+        pose["left_knee"] = knee_l
+        pose["right_knee"] = knee_r
+        pose["left_ankle_pitch"] = ankle_l
+        pose["right_ankle_pitch"] = ankle_r
         pose["left_ankle_roll"] = -hip_roll_l * 0.5
         pose["right_ankle_roll"] = -hip_roll_r * 0.5
 
@@ -1408,12 +1577,12 @@ class MotorRespuestaCoach:
                 timbre="calido_suave",
             ),
             [
-                "Paremos un segundo acá. Inhalá suave conmigo mientras subo los brazos... y soltá el aire despacio. No tenés que resolver todo al mismo tiempo; elijamos una sola cosa chiquita para los próximos diez minutos.",
-                "Estás a salvo en este momento, bajemos un cambio juntos. Sentí el apoyo de los pies en el piso y tomá aire lento. Cuando la mente va a mil, frenar treinta segundos ordena todo el panorama.",
-                "Te escucho y noto la presión que tenés encima. Hagamos una respiración profunda juntos ahora mismo... Eso es. Vamos paso a paso, sin exigirte perfección.",
-                "Tranquilo, aflojá los hombros y la mandíbula un instante. La urgencia muchas veces es una ilusión de la cabeza; frenemos acá y ordenemos una sola prioridad.",
-                "Tomate este minuto como una pausa protegida. No tenés que demostrarle nada a nadie en este segundo. Inhalá profundo, exhalá largo y después seguimos.",
-                "Acá estoy con vos. Cuando el cuerpo se tensiona así, ayuda anclar la atención en lo concreto. ¿Qué es lo primero y más simple que está bajo tu control ahora?",
+                "Pará un segundo... Te noto la voz súper acelerada y estás hablando casi sin respirar. Aflojá los hombros un momento conmigo. No intentes resolver todo el proyecto junto; vamos de a un paso. ¿Qué es lo más importante que tenemos que mirar ahora?",
+                "Tranqui, frenemos la pelota un minuto. Cuando la cabeza va a mil por hora, todo parece urgente y no es así. Tomá aire lento... y decime: ¿cuál es la primera cosa que podemos cerrar en diez minutos?",
+                "Te escucho y noto el apuro que tenés encima. Estás buscando que todo salga perfecto ya mismo, y el perfeccionismo te termina bloqueando. Bajemos la vara un poco hoy: ¿qué parte mínima podemos resolver ahora?",
+                "Mirá, no te me aceleres que no ganamos nada corriendo en círculos. Respirá hondo conmigo mientras subo los brazos... y soltá despacio. Ahora sí: ¿por dónde arrancamos para destrabar esto?",
+                "Tomate este momento para bajar un cambio. Si intentás abarcar cinco temas a la vez te vas a quemar la cabeza. Elijamos una sola tarea chiquita y la liquidamos juntos. ¿Cuál elegís?",
+                "Aflojá un toque. Noto que tenés mucha presión encima, pero el mundo no se acaba hoy. Desarmemos el lío en partes manejables: decime cuál es la traba principal y le buscamos la vuelta.",
             ],
         ),
         "TRISTEZA_DESANIMO": (
@@ -1429,12 +1598,12 @@ class MotorRespuestaCoach:
                 timbre="calido_suave",
             ),
             [
-                "Te escucho de verdad, y es totalmente válido que hoy te sientas agotado o triste. Un tropiezo no borra todo el esfuerzo que venís haciendo. Hoy date permiso para descansar un poco; acá estoy acompañándote.",
-                "Lamento que estés pasando este momento pesado. No tenés que poder con todo hoy ni forzar estar bien. Si querés, contame qué fue lo que más te dolió y lo pensamos sin apuro.",
-                "Es humano sentirse sin fuerzas cuando algo no sale como esperabas. Tratate con la misma paciencia con la que tratarías a un buen amigo. Cuando estés listo, damos el próximo paso juntos.",
-                "Abrazá este momento sin juzgarte; los días grises también forman parte del camino. No hay nada malo en necesitar una pausa y bajar las exigencias hoy.",
-                "Sé que pesa mucho cuando las cosas no se dan como querías. No estás solo con esto; descansá la cabeza hoy y mañana lo miramos con ojos frescos.",
-                "A veces el acto más valiente es simplemente frenar y respirar. Acá me quedo haciéndote el aguante en silencio o charlando de lo que te haga bien.",
+                "Che, te veo la cara y se nota que tuviste un día pesado. Es normal sentirse sin energía cuando las cosas no salen como esperabas, a todos nos pasa. Hoy date permiso para aflojar un poco, no te castigues tanto. ¿Querés que hagamos una pausa de cinco minutos?",
+                "Sé que pesa mucho cuando le metés ganas a algo y no rinde lo que querías. Pero un mal resultado no borra todo lo que sabés hacer. Descansá la cabeza un rato y después lo miramos de nuevo con otra perspectiva, ¿dale?",
+                "Te re entiendo, hay días en los que cuesta arrancar y dan ganas de mandar todo a volar. Pero acá me tenés haciéndote el aguante. No tenés que resolver el mundo hoy: hacete una pausa y cuando sientas ganas, damos el primer paso juntos.",
+                "Es totalmente humano tener días grises, no tenés que estar siempre con una sonrisa. Tratate con paciencia hoy, como tratarías a un buen amigo. ¿Querés que charlemos un rato de otra cosa para despejar la cabeza?",
+                "Lamento que estés pasando por este momento de bajón. No te exijas ser súper productivo ahora mismo; a veces frenar y tomar aire es lo más inteligente. Contame qué pasó si tenés ganas de descargarte.",
+                "No te me caigas que esto tiene solución, aunque hoy lo veas todo cuesta arriba. Tomate un descanso merecido, despejate un toque y cuando retomes lo encaramos juntos de forma más simple.",
             ],
         ),
         "ENOJO_FRUSTRACION": (
@@ -1450,12 +1619,12 @@ class MotorRespuestaCoach:
                 timbre="firme_templado",
             ),
             [
-                "Entiendo perfectamente tu bronca; cualquiera estaría frustrado en esa situación. Te doy tu espacio para descargar. Cuando quieras, separamos lo que no depende de vos de lo que sí podemos destrabar hoy.",
-                "Tiene sentido que te dé impotencia cuando algo se traba así. Tomemos aire un instante para no decidir en caliente. Decime cuál es el obstáculo principal y lo atacamos de forma concreta.",
-                "Escucho tu frustración y no te voy a pedir que la ignores. Usemos esa energía a tu favor: identifiquemos qué parte puntual falló y armemos un plan directo para corregirlo.",
-                "Comprendo la calentura, es totalmente lógica. Descargá tranquilo. Cuando baje un poco el calor, vemos cómo dar vuelta la situación a tu favor con calma y precisión.",
-                "Frenemos la pelota un segundo. La bronca te da energía, pero no dejemos que te nuble el criterio. ¿Cuál es el núcleo del problema que querés destrabar?",
-                "Te escucho con total respeto. No te voy a decir que te calmes porque tenés motivos para estar molesto; enfoquemos esa fuerza en resolver lo que depende de vos.",
+                "Te entiendo totalmente, es para enojarse en serio. Descargá tranquilo, tenés todo el derecho a estar molesto. Pero cuando estés listo, decime bien qué fue lo que falló y vemos cómo lo arreglamos juntos, ¿dale?",
+                "Tiene sentido que te dé bronca cuando las cosas se traban de esa manera. Pero no dejemos que la calentura te nuble las ideas. Tomemos aire un instante y decime: ¿qué parte puntual del problema podemos dar vuelta ahora?",
+                "Escucho tu frustración y no te voy a decir que te calmes, porque motivos tenés de sobra. Usemos esa energía a tu favor: identifiquemos el nudo del problema y armemos un plan directo para destrabarlo.",
+                "Comprendo el disgusto, a cualquiera le pasaría lo mismo en tu lugar. Descargá toda la bronca que haga falta... y después vemos con la cabeza más fría cómo lo resolvemos punto por punto. ¿Por dónde empezamos?",
+                "Pará un segundo. La bronca te da mucha fuerza, pero si actuás en caliente podés complicarla más. Frenemos un momento: decime en una frase concreta cuál es el obstáculo principal y le buscamos la vuelta.",
+                "Te escucho con total atención. La queja sirve para desahogarse, pero no arregla el problema. Te propongo algo: decime qué depende de nosotros para corregir esto hoy y nos ponemos a trabajar en eso.",
             ],
         ),
         "DUDA_INSEGURIDAD": (
@@ -1471,12 +1640,12 @@ class MotorRespuestaCoach:
                 timbre="brillante_claro",
             ),
             [
-                "Cuando una decisión parece enorme, ayuda dividirla en dos caminos claros. Por un lado, pensá qué es lo peor realista que podría pasar; por el otro, qué aprenderías si sale bien. ¿Cuál opción te da más curiosidad que miedo?",
-                "Es normal dudar cuando algo te importa. En vez de buscar la decisión perfecta de entrada, hagamos una prueba chiquita y reversible hoy. ¿Cuál sería el primer paso más simple para probar?",
-                "Ordenemos las ideas juntos. Si tuvieras que aconsejar a un compañero en tu misma situación con los datos que hoy tenés en la mano, ¿qué camino le sugerirías elegir primero?",
-                "La duda es señal de que estás cuidando el resultado. Si tuvieras garantizado que no vas a fallar, ¿qué camino tomarías sin dudarlo un segundo?",
-                "A veces el análisis excesivo paraliza. Elijamos la opción que más puertas te deje abiertas para rectificar sobre la marcha. ¿Cuál sentís más flexible?",
-                "Bajar la incertidumbre se logra con pequeñas acciones, no pensando en bucle. ¿Qué dato concreto te falta hoy para sentirte un diez por ciento más seguro?",
+                "Estás pensando demasiado cada detalle y eso te termina frenando. No existe una opción perfecta de entrada; lo importante es arrancar y corregir en el camino. Si tuvieras que elegir una ahora mismo sin pensarlo más, ¿por cuál vas?",
+                "Es normal dudar cuando algo te importa, pero darle vueltas a la cabeza en círculos no te va a dar más certezas. Hagamos una prueba chica y reversible hoy: ¿cuál sería el primer paso más simple para probar?",
+                "A veces el exceso de análisis te deja congelado. Si un amigo viniera con este mismo dilema a pedirte consejo, ¿qué camino le dirías que tome primero? Pensalo por un segundo.",
+                "La duda aparece porque querés cuidar el resultado, pero la inacción también es una decisión. Elijamos la opción que más puertas te deje abiertas para ajustar sobre la marcha. ¿Cuál sentís más flexible?",
+                "Para bajar la incertidumbre no sirve seguir pensando en abstracto; sirve dar un paso concreto. ¿Qué dato simple te falta hoy para sentirte un poco más seguro y avanzar?",
+                "Animate a dar el salto. No necesitás tener todo el mapa resuelto para empezar a caminar, con ver los primeros dos metros alcanza. ¿Cuál es la primera acción concreta que podés hacer hoy?",
             ],
         ),
         "MOTIVACION_ALEGRIA": (
@@ -1492,12 +1661,12 @@ class MotorRespuestaCoach:
                 timbre="brillante_claro",
             ),
             [
-                "¡Qué alegría enorme escuchar eso! Te lo ganaste con constancia y dedicación. Guardate bien esta sensación de logro para recordar de todo lo que sos capaz en el próximo desafío.",
-                "¡Excelente noticia, felicitaciones! Disfrutá este resultado porque es fruto directo de tu trabajo. ¿Cuál es el próximo objetivo que te entusiasma encarar con este envión?",
-                "¡Increíble avance! Me encanta ver esa energía. Reconocer tus propios logros fortalece tu confianza; celebralo hoy como corresponde.",
-                "¡Golazo total! Esas son las noticias que dan gusto escuchar. Aprovechá este envión anímico que te deja la vara altísima.",
-                "¡Brillante lo que lograste! Qué satisfacción da ver cuando el esfuerzo rinde sus frutos. Festejalo con ganas que te lo re merecés.",
-                "¡Qué gran momento! Mirá hacia atrás un segundo y fijate todo lo que tuviste que superar para llegar hasta acá. ¡A seguir con todo!",
+                "¡Qué bien, te felicito en serio! Me pone muy contento ver que te salió después de meterle tantas ganas. Festejalo hoy, te lo merecés. ¿Qué es lo próximo que tenés ganas de encarar?",
+                "¡Excelente noticia! Disfrutá este momento porque es fruto directo de tu esfuerzo y constancia. Guardate bien esta sensación de logro para el próximo desafío. ¡A seguir con todo!",
+                "¡Qué buen avance metiste! Me encanta ver esa energía positiva. Reconocer tus propios logros fortalece un montón la confianza. ¿Con qué objetivo seguimos ahora que venís con todo el envión?",
+                "¡Buenísimo, felicitaciones! Esas son las noticias que dan gusto escuchar. Aprovechá este envión anímico para dar el siguiente paso con la misma determinación.",
+                "¡Brillante lo que conseguiste! Qué satisfacción da cuando el trabajo rinde sus frutos. Tomate un momento para disfrutarlo, que te lo ganaste con creces.",
+                "¡Qué momento genial! Mirá hacia atrás un segundo y fijate todo lo que tuviste que remar para llegar hasta acá. ¡Ahora a mantener esa motivación bien arriba!",
             ],
         ),
         "CRISIS_RIESGO": (
@@ -1529,12 +1698,12 @@ class MotorRespuestaCoach:
                 timbre="neutro_templado",
             ),
             [
-                "Acá estoy atento escuchándote. Contame cómo te venís sintiendo hoy o qué tema tenés en mente y me adapto a tu ritmo.",
-                "Te escucho con atención. Contame un poco más sobre eso o cómo te hace sentir para poder acompañarte mejor.",
-                "Claro, te sigo. ¿Y cómo venís llevando ese tema hoy? Si querés lo charlamos paso a paso.",
-                "Entiendo perfectamente lo que me decís. ¿Qué aspecto de eso sentís que es el más relevante ahora mismo?",
-                "Te voy siguiendo. A veces poner las ideas en palabras aclara el panorama. Contame un poco más y lo pensamos juntos.",
-                "Acá me tenés disponible para lo que necesites, ya sea charlar de cualquier cosa o probar algún movimiento en el robot.",
+                "¿Cómo estás? Te veo pensativo. Si estás trabado con algún tema o querés charlar para despejar la cabeza, avisame y lo pensamos juntos. ¿En qué andás hoy?",
+                "Acá estoy atento escuchándote. Contame cómo viene tu día o qué tema tenés en mente y le buscamos la vuelta a tu ritmo.",
+                "Te escucho con atención. A veces poner las ideas en palabras ayuda a ordenar el panorama. ¿Qué es lo más importante que tenés para hoy?",
+                "Claro, te voy siguiendo. Contame un poco más sobre eso y vemos cómo lo encaramos paso a paso.",
+                "Entiendo lo que me decís. ¿Qué aspecto de eso sentís que es el que más atención necesita ahora mismo?",
+                "Acá me tenés listo para lo que necesites, ya sea charlar de cualquier cosa o probar algún movimiento en el robot. ¿Por dónde querés ir?",
             ],
         ),
     }
@@ -1542,9 +1711,31 @@ class MotorRespuestaCoach:
     def __init__(self, usar_llm_si_disponible: bool = True, usar_llm_local: bool = False):
         self.usar_llm_si_disponible = usar_llm_si_disponible
         self.usar_llm_local = usar_llm_local
+        self.nombre_usuario: Optional[str] = None
         self._contadores_rotacion: dict[str, int] = {}
         self.historial_chat: deque[dict[str, str]] = deque(maxlen=10)
         self._analizador_lexico = AnalizadorLexicoAfectivo()
+
+    @staticmethod
+    def _es_rechazo_invalido_llm(texto: str) -> bool:
+        """Detecta si el LLM generó una negativa genérica, un rechazo ético absurdo o alucinó identidades."""
+        if not texto or not texto.strip():
+            return True
+        t = texto.lower()
+        patrones_rechazo = [
+            r"\b(?:no\s+puedo\s+ayudarte|no\s+puedo\s+intervenir|no\s+puedo\s+asistirte|no\s+puedo\s+hacer\s+eso)\b",
+            r"\b(?:libre\s+voluntad|libre\s+albedrio|asuntos\s+de\s+libre|situaciones\s+que\s+son\s+de\s+libre)\b",
+            r"\b(?:como\s+modelo\s+de\s+lenguaje|como\s+ia|como\s+asistente\s+virtual\s+no\s+tengo)\b",
+            r"\b(?:lo\s+siento,\s+pero\s+no\s+puedo|disculpa,\s+pero\s+no\s+puedo|lo\s+siento\s+pero\s+no)\b",
+            r"\b(?:no\s+tengo\s+emociones|no\s+puedo\s+sentir)\b",
+            r"\b(?:no\s+estoy\s+autorizado|no\s+tengo\s+permitido)\b",
+            r"\b(?:descomportate|descomporte)\b",
+            r"\b(?:como\s+te\s+llamas\s+tu,\s+ottoman|tu\s+nombre\s+es\s+ottoman|te\s+llamas\s+ottoman)\b",
+        ]
+        for p in patrones_rechazo:
+            if re.search(p, t):
+                return True
+        return False
 
     def registrar_turno(self, texto_usuario: str, respuesta_robot: str) -> None:
         """Guarda un intercambio en la memoria conversacional multiturno."""
@@ -1553,8 +1744,8 @@ class MotorRespuestaCoach:
         if respuesta_robot and respuesta_robot.strip():
             self.historial_chat.append({"role": "assistant", "content": respuesta_robot.strip()})
 
-    @staticmethod
     def _responder_conversacion_basica(
+        self,
         texto_usuario: str,
         estado: EstadoAfectivoUsuario,
     ) -> Optional[tuple[str, str, str]]:
@@ -1567,12 +1758,45 @@ class MotorRespuestaCoach:
         if not t:
             return None
 
+        # 0. Registro de nombre del usuario ("me llamo Franco", "mi nombre es Franco", "soy Franco")
+        m_nombre = re.search(r"\b(?:me\s+llamo|mi\s+nombre\s+es)\s+([A-Za-zÁÉÍÓÚáéíóúñÑ]{2,20})\b", t)
+        if not m_nombre:
+            m_nombre = re.search(r"^soy\s+([A-Za-zÁÉÍÓÚáéíóúñÑ]{2,20})[!?.]*$", t)
+        if m_nombre:
+            nom_candidato = m_nombre.group(1).capitalize()
+            # Descartar falsos positivos de palabras afectivas o comunes
+            if nom_candidato.lower() not in (
+                "triste", "bien", "mal", "yo", "ottoman", "robot", "humano", "estudiante", "furioso", "enojado", "cansado"
+            ):
+                self.nombre_usuario = nom_candidato
+                return (
+                    "Registro de Nombre de Usuario",
+                    "MOTIVACION_ALEGRIA",
+                    f"¡Qué hacés, {self.nombre_usuario}! Un gustazo. Ya me lo guardo en la memoria para tenerlo presente. ¿Cómo andás hoy?",
+                )
+
+        # 0b. Pregunta por el nombre del usuario ("¿cómo me llamo?", "¿sabés mi nombre?", "¿quién soy?")
+        if re.search(r"\b(?:como\s+me\s+llamo|sabes\s+mi\s+nombre|te\s+acordas\s+de\s+mi\s+nombre|quien\s+soy)\b", t):
+            if self.nombre_usuario:
+                return (
+                    "Identidad de Usuario Recordada",
+                    "MOTIVACION_ALEGRIA",
+                    f"¡Obvio que me acuerdo! Te llamás {self.nombre_usuario}. ¿O me estabas poniendo a prueba para ver si me fallaba la memoria?",
+                )
+            else:
+                return (
+                    "Consulta de Identidad Desconocida",
+                    "NEUTRO",
+                    "Todavía no me dijiste tu nombre, che. ¿Cómo te llamás así ya nos conocemos bien?",
+                )
+
         # 1. Identidad / nombre / presentación del robot
-        if re.search(r"\b(?:como\s+te\s+llamas|quien\s+sos|que\s+sos|tu\s+nombre|presentate)\b", t):
+        if re.search(r"\b(?:como\s+te\s+llamas|quien\s+sos|que\s+sos|tu\s+nombre|presentate|hablame\s+de\s+vos|contame\s+de\s+vos|sobre\s+vos)\b", t):
+            prefijo_nom = f"¡Hola {self.nombre_usuario}! " if self.nombre_usuario else "¡Hola! "
             return (
                 "Presentación e Identidad Robótica",
                 "MOTIVACION_ALEGRIA",
-                "Me llamo Ottoman. Soy un robot humanoide Unitree G1 y tu coach de Inteligencia Artificial en UADE. Puedo ejecutar movimientos físicos seguros o charlar con vos de cualquier tema adaptando mi voz y mis gestos.",
+                f"{prefijo_nom}Soy Ottoman, tu compañero y coach acá en UADE. Si querés probar algún movimiento del robot me decís, y si estás medio trabado con algo o querés charlar, acá estoy para darte una mano. ¿Cómo viene tu día?",
             )
 
         # 2. Capacidades / ayuda / cómo funciona
@@ -1580,7 +1804,7 @@ class MotorRespuestaCoach:
             return (
                 "Orientación de Capacidades Multimodales",
                 "NEUTRO",
-                "Puedo ayudarte de dos formas: si me pedís avanzar, girar, saludar o frenar, muevo mi cuerpo en el simulador. Y si charlás conmigo de cualquier tema, analizo tus palabras, tu voz y tu cara para acompañarte.",
+                "Puedo darte una mano con dos cosas: si me pedís avanzar, girar o saludar, muevo el cuerpo en el simulador. Y si estás estudiando o con la cabeza medio cansada, charlamos y buscamos la forma de destrabarlo juntos. ¿Por dónde querés arrancar?",
             )
 
         # 3. Pregunta de cortesía / estado al robot ("¿cómo estás?", "¿qué onda?", "¿todo bien?")
@@ -1588,7 +1812,7 @@ class MotorRespuestaCoach:
             return (
                 "Rapport Social y Apertura Empática",
                 "MOTIVACION_ALEGRIA",
-                "¡Todo excelente por acá! Tengo los motores listos y los sensores activos para escucharte. Contame de vos, ¿cómo viene tu día hoy?",
+                "¡Por acá todo de diez! Motores listos y sensores activos para darte una mano. ¿Cómo venís vos hoy con tus cosas?",
             )
 
         # 4. Usuario responde que está bien / tranquilo ("estoy bien", "todo bien", "bien y vos")
@@ -1599,7 +1823,7 @@ class MotorRespuestaCoach:
             return (
                 "Sintonía Positiva y Exploración de Metas",
                 "MOTIVACION_ALEGRIA",
-                "¡Qué bueno escuchar que estás bien! Mantener esa tranquilidad suma muchísimo. ¿En qué proyecto o tema estás pensando hoy?",
+                "¡Qué bueno escuchar eso! Me alegra que vengas bien. ¿En qué estás trabajando hoy o qué tenés ganas de encarar?",
             )
 
         # 5. Agradecimientos ("gracias", "muchas gracias", "me sirvió")
@@ -1607,7 +1831,7 @@ class MotorRespuestaCoach:
             return (
                 "Cierre Cálido y Disponibilidad",
                 "MOTIVACION_ALEGRIA",
-                "¡De nada! Es un verdadero gusto acompañarte. Acá me quedo atento por si querés seguir charlando o darme alguna orden de movimiento.",
+                "¡De nada! Para eso estamos acá. Avisame si querés seguir charlando o si le mandamos a algún movimiento.",
             )
 
         # 6. Despedidas ("chau", "hasta luego", "nos vemos", "adiós")
@@ -1615,7 +1839,7 @@ class MotorRespuestaCoach:
             return (
                 "Despedida Cordial",
                 "MOTIVACION_ALEGRIA",
-                "¡Hasta luego! Que tengas un excelente resto del día y muchos éxitos con todo. ¡Nos vemos pronto!",
+                "¡Nos vemos! Que termines muy bien el día y muchos éxitos con todo. ¡Cualquier cosa acá me tenés!",
             )
 
         # 7. Usuario no sabe qué decir / bloqueo reflexivo / momento de silencio
@@ -1624,15 +1848,32 @@ class MotorRespuestaCoach:
             t,
         ):
             respuestas_bloqueo = [
-                "Está perfecto no saber qué decir. No hay ningún apuro acá ni tenés que tener todo resuelto hoy. Podemos quedarnos un momento tranquilos o empezar por lo más chiquito que se te cruce por la mente. ¿Querés?",
-                "Tranquilo, tomarse un momento para pensar o no tener palabras claras es parte del proceso. Respiremos un segundo sin presiones. Acá estoy acompañándote a tu ritmo.",
-                "No te preocupes en absoluto. A veces frenar y no decir nada dice un montón. Tomate tu tiempo; cuando sientas ganas de retomar, decime.",
+                "Está perfecto no saber qué decir, no te preocupes. No hay ningún apuro acá ni tenés que tener todo resuelto hoy. Podemos quedarnos un momento tranquilos o empezar por lo más simple. ¿Querés?",
+                "Tranqui, tomarse un momento para pensar o no tener palabras claras es totalmente normal. Respiremos un segundo sin presiones; acá te acompaño a tu ritmo.",
+                "No te preocupes en absoluto. A veces frenar un momento aclara las ideas. Tomate tu tiempo; cuando sientas ganas de retomar, avisame y seguimos.",
             ]
             import random
             return (
                 "Contención y Descompresión Reflexiva",
                 "ANSIEDAD_ESTRES",
                 random.choice(respuestas_bloqueo),
+            )
+
+        # 8. Actividad física / esparcimiento / despeje ("salir a caminar", "dar una vuelta", "caminar un rato")
+        if re.search(
+            r"\b(?:salir\s+a\s+caminar|ir\s+a\s+caminar|caminar\s+un\s+rato|dar\s+una\s+vuelta|despejar(?:me)?\s+la\s+cabeza|cambiar\s+de\s+aire)\b",
+            t,
+        ):
+            respuestas_caminar = [
+                "¡Es una idea buenísima! Salir a caminar y cambiar de aire es de lo mejor para despejar la cabeza y bajar tensiones. ¿Tenés algún parque o lugar lindo cerca adonde ir?",
+                "Caminar un rato viene bárbaro para oxigenarse y resetear la mente. Mover las piernas ayuda un montón a ordenar los pensamientos. ¡Hacelo, te va a hacer re bien!",
+                "Totalmente de acuerdo. Una buena caminata sin presiones afloja el estrés y te renueva la energía. Si podés salir un rato, dale para adelante.",
+            ]
+            import random
+            return (
+                "Aliento al Esparcimiento y Bienestar",
+                "MOTIVACION_ALEGRIA",
+                random.choice(respuestas_caminar),
             )
 
         return None
@@ -1650,7 +1891,7 @@ class MotorRespuestaCoach:
 
         conv_basica = (
             self._responder_conversacion_basica(texto_usuario, estado)
-            if emo in ("NEUTRO", "MOTIVACION_ALEGRIA", "ANSIEDAD_ESTRES")
+            if emo != "CRISIS_RIESGO"
             else None
         )
         if conv_basica is not None:
@@ -1670,13 +1911,13 @@ class MotorRespuestaCoach:
         if self.usar_llm_si_disponible and emo != "CRISIS_RIESGO":
             if any(os.environ.get(k) for k in ("GEMINI_API_KEY", "GROQ_API_KEY", "OPENAI_API_KEY")):
                 resp_nube, orig_nube = self._consultar_llm_nube(texto_usuario, estado, estrategia, prosodia_base)
-                if resp_nube:
+                if resp_nube and not self._es_rechazo_invalido_llm(resp_nube):
                     respuesta = resp_nube
                     origen = orig_nube
 
             if not respuesta and self.usar_llm_local and not conv_basica:
                 resp_local = self._consultar_llm_local_gguf(texto_usuario, estado, estrategia)
-                if resp_local:
+                if resp_local and not self._es_rechazo_invalido_llm(resp_local):
                     respuesta = resp_local
                     origen = "LLM_LOCAL_QWEN"
 
@@ -1878,24 +2119,30 @@ class MotorRespuestaCoach:
         tono_guia = (
             f"El usuario se siente con {estado.emocion_dominante} (aplicá {estrategia})."
             if estado.emocion_dominante != "NEUTRO"
-            else "Mantené un tono conversacional, amigable y curioso."
+            else "Mantené un tono conversacional, amigable, despierto y curioso."
         )
         if estado.incongruencia_detectada:
             tono_guia += f" Nota importante: {estado.detalle_incongruencia}. Mencionalo con tacto."
 
+        nom_usr = self.nombre_usuario if self.nombre_usuario else "el usuario (no sabés su nombre todavía; tratalo cordialmente de 'vos')"
         sistema = (
-            "Sos un asistente y coach empático argentino (tu nombre es Ottoman y hablás con el usuario). "
-            "Usá español rioplatense natural ('vos', 'tenés', 'descansá', 'contame'). "
-            "Regla principal: respondé SIEMPRE de forma específica al tema concreto que cuenta o pregunta el usuario "
-            "en 2 oraciones breves (máximo 40 palabras), sin usar listas. "
+            "Tu rol: Sos Ottoman, un robot humanoide Unitree G1 de UADE actuando como compañero y coach emocional. "
+            f"Estás hablando con {nom_usr}. "
+            "REGLAS CRÍTICAS DE IDENTIDAD Y SEGURIDAD: "
+            "1. TU nombre es Ottoman. Vos sos el robot. NUNCA llames Ottoman al usuario ni asumas que se llama así. "
+            "2. Sos un coach de apoyo ante el estrés, la frustración, el enojo o el estudio. "
+            "3. Es tu deber y propósito escuchar, contener y desescalar el enojo, la tristeza o el cansancio del usuario. "
+            "4. NUNCA te niegues a ayudarlo, NUNCA digas que 'no podés intervenir' ni hables de 'libre voluntad'. "
+            "5. Usá español rioplatense natural ('vos', 'tenés', 'mirá', 'dale', 'tranqui'), sin jerga pesada ni formalismos rígidos. "
+            "6. Respondé de forma específica al tema en 2 oraciones breves (máximo 40 palabras), sin usar listas. "
             f"{tono_guia}"
         )
         mensajes: list[dict[str, str]] = [
             {"role": "system", "content": sistema},
-            {"role": "user", "content": "Estuve estudiando toda la tarde y ya tengo hambre."},
+            {"role": "user", "content": "Estoy re caliente con este trabajo práctico, no me sale nada."},
             {
                 "role": "assistant",
-                "content": "¡Qué gran esfuerzo metiste toda la tarde con el estudio! Hacete una pausa para comer algo rico y despejar la mente, te lo ganaste.",
+                "content": "Te entiendo totalmente, da mucha bronca cuando algo se traba así. Frenemos un segundo para tomar aire y decime qué parte puntual es la que falla, así le buscamos la vuelta.",
             },
         ]
         # Agregar los últimos 6 mensajes del historial para sostener el hilo de la conversación
@@ -1914,6 +2161,8 @@ class MotorRespuestaCoach:
             )
             texto = res["choices"][0]["message"]["content"].strip()
             texto = re.sub(r"^(?:Ottoman|Asistente|Respuesta)\s*:\s*", "", texto, flags=re.IGNORECASE).strip()
+            if self._es_rechazo_invalido_llm(texto):
+                return ""
             return texto
         except Exception:
             return ""
@@ -1927,10 +2176,13 @@ class MotorRespuestaCoach:
     ) -> tuple[str, str]:
         """Consulta Gemini, Groq u OpenAI si hay API key configurada."""
         ctx = self._construir_contexto_sensorial(estado, estrategia)
+        nom_usr = self.nombre_usuario if self.nombre_usuario else "el usuario (no sabés su nombre; tratalo cordialmente de 'vos')"
         sistema = (
-            "Sos Ottoman, el robot humanoide Unitree G1 de UADE actuando como compañero conversacional "
-            "y Coach Emocional ético (human-ai.org). Respondé en español rioplatense ('vos') en MÁXIMO "
-            f"2 oraciones breves. Estilo léxico: {prosodia.estilo_lexico}. Contexto biométrico: {ctx}"
+            f"Sos Ottoman, el robot humanoide Unitree G1 de UADE actuando como compañero y Coach Emocional ético. "
+            f"Estás hablando con {nom_usr}. TU nombre es Ottoman; NUNCA llames Ottoman al usuario. "
+            f"Es tu deber acompañar y contener al usuario en su enojo, tristeza o estrés; NUNCA te niegues a ayudarlo ni hables de libre voluntad. "
+            f"Respondé en español rioplatense natural y casual ('vos', 'tenés', 'mirá', 'dale') en MÁXIMO 2 oraciones breves (40 palabras), sin jerga pesada. "
+            f"Estilo léxico: {prosodia.estilo_lexico}. Contexto biométrico: {ctx}"
         )
 
         # 1. Gemini API
@@ -1956,7 +2208,9 @@ class MotorRespuestaCoach:
                 with urllib.request.urlopen(req, timeout=4.0) as resp:
                     datos = json.loads(resp.read().decode("utf-8"))
                     partes = datos["candidates"][0]["content"]["parts"]
-                    return partes[0]["text"].strip(), "GEMINI_API"
+                    txt_gen = partes[0]["text"].strip()
+                    if not self._es_rechazo_invalido_llm(txt_gen):
+                        return txt_gen, "GEMINI_API"
             except Exception:
                 pass
 
@@ -1994,8 +2248,10 @@ class MotorRespuestaCoach:
             try:
                 with urllib.request.urlopen(req, timeout=4.0) as resp:
                     datos = json.loads(resp.read().decode("utf-8"))
-                    texto = datos["choices"][0]["message"]["content"].strip()
-                    return texto, ("GROQ_API" if es_groq else "OPENAI_API")
+                    txt_gen = datos["choices"][0]["message"]["content"].strip()
+                    orig = "GROQ_API" if es_groq else "OPENAI_API"
+                    if not self._es_rechazo_invalido_llm(txt_gen):
+                        return txt_gen, orig
             except Exception:
                 pass
 
@@ -2174,6 +2430,39 @@ class SintetizadorVozAdaptativo:
                 reproduccion_exitosa = False
                 archivos_a_borrar: list[str] = []
 
+                def _despachar_coreografia(rostro_ref):
+                    if rostro_ref is None or not hasattr(rostro_ref, "disparar_micro_expresion"):
+                        return None
+                    emo_base = getattr(rostro_ref, "emocion_actual", "NEUTRO")
+                    evs = PlanificadorCoreografiaFacial.planificar(texto_limpio, emocion_base=emo_base, prosodia=prosodia)
+                    if not evs:
+                        return None
+                    stop_ev = threading.Event()
+                    def _loop():
+                        t0 = time.monotonic()
+                        for ev in evs:
+                            if stop_ev.is_set():
+                                break
+                            espera = (t0 + ev.t_inicio) - time.monotonic()
+                            if espera > 0:
+                                if stop_ev.wait(espera):
+                                    break
+                            if stop_ev.is_set():
+                                break
+                            try:
+                                rostro_ref.disparar_micro_expresion(
+                                    forma_ojo=ev.forma_ojo,
+                                    glifo=ev.glifo,
+                                    duracion=ev.duracion,
+                                    apertura=ev.apertura,
+                                    inclinacion=ev.inclinacion,
+                                )
+                            except Exception:
+                                pass
+                    t_coreo = threading.Thread(target=_loop, daemon=True)
+                    t_coreo.start()
+                    return stop_ev
+
                 # INTENTO 1: edge-tts (Neuronal Argentino Tomás con nueva base ágil)
                 try:
                     import asyncio
@@ -2257,12 +2546,16 @@ class SintetizadorVozAdaptativo:
                         data_mod, sr_mod = SintetizadorVozAdaptativo.modular_onda_dsp(data_final, sr, prosodia)
                         wavfile.write(final_wav, sr_mod, data_mod)
 
+                        stop_coreo = None
                         if rostro is not None:
                             rostro.set_hablando(True, subtitulo=texto_limpio)
+                            stop_coreo = _despachar_coreografia(rostro)
                         try:
                             winsound.PlaySound(final_wav, winsound.SND_FILENAME)
                             reproduccion_exitosa = True
                         finally:
+                            if stop_coreo is not None:
+                                stop_coreo.set()
                             if rostro is not None:
                                 rostro.set_hablando(False)
                 except Exception:
@@ -2302,23 +2595,31 @@ class SintetizadorVozAdaptativo:
                             data_mod, sr_mod = self.modular_onda_dsp(data, sr, prosodia)
                             wavfile.write(ruta_mod, sr_mod, data_mod)
 
+                            stop_coreo = None
                             if rostro is not None:
                                 rostro.set_hablando(True, subtitulo=texto_limpio)
+                                stop_coreo = _despachar_coreografia(rostro)
                             try:
                                 winsound.PlaySound(ruta_mod, winsound.SND_FILENAME)
                                 reproduccion_exitosa = True
                             finally:
+                                if stop_coreo is not None:
+                                    stop_coreo.set()
                                 if rostro is not None:
                                     rostro.set_hablando(False)
                         else:
+                            stop_coreo = None
                             if rostro is not None:
                                 rostro.set_hablando(True, subtitulo=texto_limpio)
+                                stop_coreo = _despachar_coreografia(rostro)
                             try:
                                 engine.setProperty("rate", int(prosodia.velocidad_wpm))
                                 engine.say(texto_limpio)
                                 engine.runAndWait()
                                 reproduccion_exitosa = True
                             finally:
+                                if stop_coreo is not None:
+                                    stop_coreo.set()
                                 if rostro is not None:
                                     rostro.set_hablando(False)
                     except Exception:

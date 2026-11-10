@@ -51,11 +51,12 @@ class PresetFacialRobot:
     guia_respiracion: bool = False  # modulación orgánica de inhalar/exhalar
     intervalo_parpadeo: float = 4.0 # segundos promedio entre parpadeos
     # Parámetros geométricos del visor y ojos LED
-    forma_ojo: str = "capsula"      # capsula | arco_feliz | diagonal_enojo | caido_triste | asimetrico_duda | suave_calma
+    forma_ojo: str = "capsula"      # capsula | arco_feliz | diagonal_enojo | caido_triste | asimetrico_duda | suave_calma | chispa_estrella | entrecerrado_enfoque | ojo_circular_asombro
     inclinacion_ojo: float = 0.0    # grados (+ hacia adentro, - hacia afuera)
     ancho_ojo: float = 72.0         # ancho base del LED en px (modo ojos gigantes)
     alto_ojo: float = 120.0         # alto base del LED en px (modo ojos gigantes)
     escala_asimetrica: float = 1.0  # escala del ojo izquierdo para guiños y asimetría reflexiva
+    glifo: Optional[str] = None     # None | "!" | "?" (glifos de personalidad heroica)
 
 
 PRESETS_ROSTRO: dict[str, PresetFacialRobot] = {
@@ -617,33 +618,43 @@ class SimuladorEmbebidoG1:
                         mod_r_wr = -0.18 * math.sin(f + 1.15 + 0.85)
                         mod_dedos = amp_dedos * abs(math.sin((f + 1.15) * 0.5))
                     else:
-                        # Idle breathing diafragmático (0.25 Hz = ~4s)
-                        f_resp = ahora * 1.57
-                        mod_torso = 0.014 * math.sin(f_resp)
-                        mod_l_sh = 0.010 * math.sin(f_resp + 0.20)
-                        mod_r_sh = 0.010 * math.sin(f_resp + 0.20)
-                        mod_l_el = 0.008 * math.cos(f_resp)
-                        mod_r_el = 0.008 * math.cos(f_resp)
-                        mod_l_wr = 0.0
-                        mod_r_wr = 0.0
-                        mod_dedos = 0.02 * (1.0 + math.sin(f_resp))
+                        # Idle breathing diafragmático orgánico (~4s) + balanceo postural pendular (~6.5s)
+                        f_resp = ahora * 1.57   # Ciclo respiratorio diafragmático (~4s)
+                        f_sway = ahora * 0.96   # Ciclo pendular postural orgánico (~6.5s)
+
+                        # Expansión torácica y respiración viva claramente visible
+                        mod_torso = 0.038 * math.sin(f_resp)
+                        mod_l_sh = 0.028 * math.sin(f_resp + 0.25)
+                        mod_r_sh = 0.028 * math.sin(f_resp + 0.25)
+                        mod_l_el = 0.022 * math.cos(f_resp)
+                        mod_r_el = 0.022 * math.cos(f_resp)
+                        mod_l_wr = 0.040 * math.sin(f_resp + 0.50)
+                        mod_r_wr = -0.040 * math.sin(f_resp + 0.50)
+                        mod_dedos = 0.05 * (0.5 + 0.5 * math.sin(f_resp))
+
+                        # Balanceo postural pendular y contrapposto orgánico (cambio sutil de peso)
+                        sway_pelvis_roll = 0.022 * math.sin(f_sway)
+                        sway_pelvis_yaw = 0.014 * math.cos(f_sway * 0.5)
+                        sway_leg = math.sin(f_sway)
 
                     # 3. Aplicar a las articulaciones de MuJoCo
                     p = self._pose_base
                     if "waist_pitch" in self._jmap:
                         self._data.qpos[self._jmap["waist_pitch"]] = p["waist_pitch"] + mod_torso
                     if "waist_roll" in self._jmap:
-                        self._data.qpos[self._jmap["waist_roll"]] = p["waist_roll"]
+                        self._data.qpos[self._jmap["waist_roll"]] = p["waist_roll"] + (sway_pelvis_roll if not self.hablando else 0.0)
                     if "waist_yaw" in self._jmap:
-                        self._data.qpos[self._jmap["waist_yaw"]] = p["waist_yaw"]
+                        self._data.qpos[self._jmap["waist_yaw"]] = p["waist_yaw"] + (sway_pelvis_yaw if not self.hablando else 0.0)
                     if "left_shoulder_pitch" in self._jmap:
                         self._data.qpos[self._jmap["left_shoulder_pitch"]] = p["left_shoulder_pitch"] + mod_l_sh
                     if "right_shoulder_pitch" in self._jmap:
                         self._data.qpos[self._jmap["right_shoulder_pitch"]] = p["right_shoulder_pitch"] + mod_r_sh
                     if "left_shoulder_roll" in self._jmap:
-                        self._data.qpos[self._jmap["left_shoulder_roll"]] = p["left_shoulder_roll"]
+                        sh_roll_mod = (-sway_pelvis_roll * 0.5) if not self.hablando else 0.0
+                        self._data.qpos[self._jmap["left_shoulder_roll"]] = p["left_shoulder_roll"] + sh_roll_mod
                     if "right_shoulder_roll" in self._jmap:
-                        self._data.qpos[self._jmap["right_shoulder_roll"]] = p["right_shoulder_roll"]
+                        sh_roll_mod = (-sway_pelvis_roll * 0.5) if not self.hablando else 0.0
+                        self._data.qpos[self._jmap["right_shoulder_roll"]] = p["right_shoulder_roll"] + sh_roll_mod
                     if "left_elbow" in self._jmap:
                         self._data.qpos[self._jmap["left_elbow"]] = p["left_elbow"] + mod_l_el
                     if "right_elbow" in self._jmap:
@@ -653,11 +664,25 @@ class SimuladorEmbebidoG1:
                     if "right_wrist_roll" in self._jmap:
                         self._data.qpos[self._jmap["right_wrist_roll"]] = p["right_wrist_roll"] + mod_r_wr
 
-                    # Piernas vivas con flexión visible natural (rodillas hacia adelante)
+                    # Piernas vivas con flexión visible natural y contrapposto orgánico dinámico
+                    leg_sway_amp = (0.042 * sway_leg) if not self.hablando else 0.0
+                    lk_val = 0.32 + leg_sway_amp
+                    rk_val = 0.32 - leg_sway_amp
+                    hp_l_val = -0.16 - leg_sway_amp * 0.5
+                    hp_r_val = -0.16 + leg_sway_amp * 0.5
+                    ap_l_val = -0.16 - leg_sway_amp * 0.5
+                    ap_r_val = -0.16 + leg_sway_amp * 0.5
+                    hr_l_val = 0.02 + (0.012 * sway_leg if not self.hablando else 0.0)
+                    hr_r_val = -0.02 + (0.012 * sway_leg if not self.hablando else 0.0)
+                    ar_l_val = -(hr_l_val * 0.5)
+                    ar_r_val = -(hr_r_val * 0.5)
+
                     for leg_joint, leg_val in (
-                        ("left_hip_pitch", -0.16), ("right_hip_pitch", -0.16),
-                        ("left_knee", 0.32), ("right_knee", 0.32),
-                        ("left_ankle_pitch", -0.16), ("right_ankle_pitch", -0.16),
+                        ("left_hip_pitch", hp_l_val), ("right_hip_pitch", hp_r_val),
+                        ("left_hip_roll", hr_l_val), ("right_hip_roll", hr_r_val),
+                        ("left_knee", lk_val), ("right_knee", rk_val),
+                        ("left_ankle_pitch", ap_l_val), ("right_ankle_pitch", ap_r_val),
+                        ("left_ankle_roll", ar_l_val), ("right_ankle_roll", ar_r_val),
                     ):
                         if leg_joint in self._jmap:
                             self._data.qpos[self._jmap[leg_joint]] = leg_val
@@ -1073,6 +1098,29 @@ class RostroOttoman:
                 "subtitulo": self.subtitulo_actual,
             })
 
+    def disparar_micro_expresion(
+        self,
+        forma_ojo: str = "capsula",
+        glifo: Optional[str] = None,
+        duracion: float = 1.8,
+        apertura: Optional[float] = None,
+        inclinacion: Optional[float] = None,
+    ) -> None:
+        """Dispara una micro-expresión conversacional temporal que vuelve suavemente al estado base."""
+        if self._activo:
+            self._cola.put({
+                "cmd": "micro_expresion",
+                "forma_ojo": forma_ojo,
+                "glifo": glifo,
+                "duracion": duracion,
+                "apertura": apertura,
+                "inclinacion": inclinacion,
+            })
+
+    def disparar_glifo(self, glifo: str, duracion: float = 2.0) -> None:
+        """Muestra un glifo heroico de personalidad ('!' o '?') en los ojos del visor OLED."""
+        self.disparar_micro_expresion(forma_ojo="capsula", glifo=glifo, duracion=duracion)
+
     # -----------------------------------------------------------------
     #  Renderizado visual y gestión de eventos de la GUI
     # -----------------------------------------------------------------
@@ -1204,6 +1252,20 @@ class RostroOttoman:
         t_proximo_parpadeo = time.monotonic() + 3.0
         parpadeo_hasta = 0.0
 
+        # Coreografía dinámica y micro-expresiones conversacionales
+        forma_ojo_micro: Optional[str] = None
+        glifo_micro: Optional[str] = None
+        fin_micro_expresion: float = 0.0
+        apertura_micro: Optional[float] = None
+        inclinacion_micro: Optional[float] = None
+
+        # Idle life: micro-sacadas foveales estocásticas (gaze natural)
+        mirada_target_x = 0.0
+        mirada_target_y = 0.0
+        mirada_cur_x = 0.0
+        mirada_cur_y = 0.0
+        t_proxima_sacada = time.monotonic() + 2.0
+
         def _al_cerrar():
             self._activo = False
             photo_sim_ref[0] = None
@@ -1221,6 +1283,8 @@ class RostroOttoman:
             nonlocal ceja_izq_act, ceja_der_act, alt_ceja_act, boca_act
             nonlocal inc_ojo_act, ancho_ojo_act, alto_ojo_act, asimetria_act
             nonlocal val_interp, aro_interp, t_proximo_parpadeo, parpadeo_hasta
+            nonlocal forma_ojo_micro, glifo_micro, fin_micro_expresion, apertura_micro, inclinacion_micro
+            nonlocal mirada_target_x, mirada_target_y, mirada_cur_x, mirada_cur_y, t_proxima_sacada
 
             if not self._activo:
                 _al_cerrar()
@@ -1243,35 +1307,76 @@ class RostroOttoman:
                 elif msg.get("cmd") == "habla":
                     h = bool(msg.get("hablando", False))
                     self.simulador_3d.fijar_estado_habla(h)
+                    if not h:
+                        fin_micro_expresion = 0.0
+                        glifo_micro = None
+                        forma_ojo_micro = None
+                        apertura_micro = None
+                        inclinacion_micro = None
                     if "subtitulo" in msg and msg["subtitulo"]:
                         lbl_subtitulo.config(text=f"\"{msg['subtitulo']}\"")
+                elif msg.get("cmd") == "micro_expresion":
+                    dur = float(msg.get("duracion", 1.8))
+                    fin_micro_expresion = time.monotonic() + dur
+                    forma_ojo_micro = msg.get("forma_ojo")
+                    glifo_micro = msg.get("glifo")
+                    apertura_micro = msg.get("apertura")
+                    inclinacion_micro = msg.get("inclinacion")
                 elif msg.get("cmd") == "estado":
                     if "emocion" in msg:
                         preset_obj = PRESETS_ROSTRO.get(msg["emocion"], PRESETS_ROSTRO["NEUTRO"])
+                        fin_micro_expresion = 0.0
+                        glifo_micro = None
+                        forma_ojo_micro = None
+                        apertura_micro = None
+                        inclinacion_micro = None
                     if "subtitulo" in msg:
                         lbl_subtitulo.config(text=f"\"{msg['subtitulo']}\"")
                     lbl_telemetria_voz.config(text=f"{self.resumen_usuario}  |  {self.resumen_prosodia}")
 
             ahora = time.monotonic()
-            vel_interp = 0.14
+            vel_interp = 0.16
+
+            en_micro = (ahora < fin_micro_expresion)
+            forma_ojo_efectiva = forma_ojo_micro if (en_micro and forma_ojo_micro) else preset_obj.forma_ojo
+            glifo_efectivo = glifo_micro if (en_micro and glifo_micro) else getattr(preset_obj, "glifo", None)
+
+            target_apertura = apertura_micro if (en_micro and apertura_micro is not None) else preset_obj.apertura_ojo
+            target_inclinacion = inclinacion_micro if (en_micro and inclinacion_micro is not None) else preset_obj.inclinacion_ojo
+
             for i in range(3):
                 color_act[i] = _lerp(color_act[i], preset_obj.color_rgb[i], vel_interp)
-            apertura_act = _lerp(apertura_act, preset_obj.apertura_ojo, vel_interp)
+            apertura_act = _lerp(apertura_act, target_apertura, vel_interp)
             arco_act = _lerp(arco_act, preset_obj.arco_feliz, vel_interp)
             ceja_izq_act = _lerp(ceja_izq_act, preset_obj.angulo_ceja_izq, vel_interp)
             ceja_der_act = _lerp(ceja_der_act, preset_obj.angulo_ceja_der, vel_interp)
             alt_ceja_act = _lerp(alt_ceja_act, preset_obj.altura_ceja, vel_interp)
             boca_act = _lerp(boca_act, preset_obj.curvatura_boca, vel_interp)
-            inc_ojo_act = _lerp(inc_ojo_act, preset_obj.inclinacion_ojo, vel_interp)
+            inc_ojo_act = _lerp(inc_ojo_act, target_inclinacion, vel_interp)
             ancho_ojo_act = _lerp(ancho_ojo_act, preset_obj.ancho_ojo, vel_interp)
             alto_ojo_act = _lerp(alto_ojo_act, preset_obj.alto_ojo, vel_interp)
             asimetria_act = _lerp(asimetria_act, preset_obj.escala_asimetrica, vel_interp)
             val_interp = _lerp(val_interp, self.valencia_actual, 0.16)
             aro_interp = _lerp(aro_interp, self.arousal_actual, 0.16)
 
+            # Idle life: micro-sacadas de mirada foveales no lineales
+            if ahora >= t_proxima_sacada:
+                mirada_target_x = random.uniform(-4.2, 4.2)
+                mirada_target_y = random.uniform(-2.2, 2.2)
+                t_proxima_sacada = ahora + random.uniform(1.8, 3.8)
+
+            mirada_cur_x = _lerp(mirada_cur_x, mirada_target_x, 0.20)
+            mirada_cur_y = _lerp(mirada_cur_y, mirada_target_y, 0.20)
+            mirada_x = mirada_cur_x + 0.5 * math.sin(ahora * 2.5)
+            mirada_y = mirada_cur_y + 0.3 * math.cos(ahora * 2.0)
+
+            # Pestañeo humanoide con soporte de doble pestañeo casual
             if ahora >= t_proximo_parpadeo:
-                parpadeo_hasta = ahora + 0.14
-                t_proximo_parpadeo = ahora + preset_obj.intervalo_parpadeo * random.uniform(0.75, 1.25)
+                parpadeo_hasta = ahora + 0.13
+                if random.random() < 0.22:
+                    t_proximo_parpadeo = ahora + 0.28
+                else:
+                    t_proximo_parpadeo = ahora + preset_obj.intervalo_parpadeo * random.uniform(0.75, 1.25)
 
             factor_parpadeo = 0.08 if ahora < parpadeo_hasta else 1.0
             col_principal = _rgb_hex((color_act[0], color_act[1], color_act[2]))
@@ -1392,8 +1497,6 @@ class RostroOttoman:
                 cx_der = cx_c + 82
                 cy_ojo = cy_c
                 h_blink = max(0.04, factor_parpadeo)
-                mirada_x = 2.5 * math.sin(ahora * 0.8)
-                mirada_y = 1.6 * math.cos(ahora * 0.6)
 
                 for sig, ox in ((-1, cx_izq), (1, cx_der)):
                     es_izq = (sig == -1)
@@ -1409,10 +1512,61 @@ class RostroOttoman:
                         )
                         continue
 
-                    forma = preset_obj.forma_ojo
+                    # Caso 0: Glifos Heroicos de Personalidad (! y ?)
+                    if glifo_efectivo == "!":
+                        t_sz = int(round(86 * pulso_habla * pulso_resp_ojo))
+                        canvas.create_text(
+                            ox + mirada_x, cy_ojo + mirada_y,
+                            text="!",
+                            font=("Segoe UI", max(24, t_sz), "bold"),
+                            fill=col_principal,
+                        )
+                    elif glifo_efectivo == "?":
+                        t_sz = int(round(84 * pulso_habla * pulso_resp_ojo))
+                        canvas.create_text(
+                            ox + mirada_x, cy_ojo + mirada_y,
+                            text="?",
+                            font=("Segoe UI", max(24, t_sz), "bold"),
+                            fill=col_principal,
+                        )
 
-                    # Caso A: Arco Feliz (Motivación / Alegría ^ ^)
-                    if forma == "arco_feliz" or arco_act > 0.45:
+                    # Caso A: Chispa / Estrella Eureka
+                    elif forma_ojo_efectiva == "chispa_estrella":
+                        rx = (ancho_ojo_act * 0.54) * pulso_resp_ojo
+                        ry = (alto_ojo_act * 0.52) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
+                        pts_star = [
+                            ox + mirada_x, cy_ojo - ry * 1.08 + mirada_y,
+                            ox + rx * 0.30 + mirada_x, cy_ojo - ry * 0.30 + mirada_y,
+                            ox + rx * 1.08 + mirada_x, cy_ojo + mirada_y,
+                            ox + rx * 0.30 + mirada_x, cy_ojo + ry * 0.30 + mirada_y,
+                            ox + mirada_x, cy_ojo + ry * 1.08 + mirada_y,
+                            ox - rx * 0.30 + mirada_x, cy_ojo + ry * 0.30 + mirada_y,
+                            ox - rx * 1.08 + mirada_x, cy_ojo + mirada_y,
+                            ox - rx * 0.30 + mirada_x, cy_ojo - ry * 0.30 + mirada_y,
+                        ]
+                        canvas.create_polygon(*pts_star, fill=col_principal, outline="", smooth=True)
+
+                    # Caso B: Entrecerrado Enfoque (Análisis táctico y concentración)
+                    elif forma_ojo_efectiva == "entrecerrado_enfoque":
+                        rx = (ancho_ojo_act * 0.56) * pulso_resp_ojo
+                        ry = (alto_ojo_act * 0.25) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
+                        canvas.create_oval(
+                            ox - rx + mirada_x, cy_ojo - ry + mirada_y,
+                            ox + rx + mirada_x, cy_ojo + ry + mirada_y,
+                            fill=col_principal, outline="",
+                        )
+
+                    # Caso C: Ojo Circular Asombro (Sorpresa genuina abierta)
+                    elif forma_ojo_efectiva == "ojo_circular_asombro":
+                        r_circ = (alto_ojo_act * 0.50) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
+                        canvas.create_oval(
+                            ox - r_circ + mirada_x, cy_ojo - r_circ + mirada_y,
+                            ox + r_circ + mirada_x, cy_ojo + r_circ + mirada_y,
+                            fill=col_principal, outline="",
+                        )
+
+                    # Caso D: Arco Feliz (Motivación / Alegría ^ ^)
+                    elif forma_ojo_efectiva == "arco_feliz" or (arco_act > 0.45 and forma_ojo_efectiva == "capsula"):
                         rx = (ancho_ojo_act * 0.68) * pulso_resp_ojo
                         ry = (alto_ojo_act * 0.52) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
                         t_vals = [0.18 + i * (math.pi - 0.36) / 8 for i in range(9)]
@@ -1424,8 +1578,8 @@ class RostroOttoman:
                             ])
                         canvas.create_line(*pts_arco, smooth=True, fill=col_principal, width=20, capstyle="round")
 
-                    # Caso B: Diagonal Enojo / Firmeza (\ /)
-                    elif forma == "diagonal_enojo":
+                    # Caso E: Diagonal Enojo / Firmeza (\ /)
+                    elif forma_ojo_efectiva == "diagonal_enojo":
                         rx = (ancho_ojo_act * 0.50) * pulso_resp_ojo
                         ry = (alto_ojo_act * 0.46) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
                         s = 1 if es_izq else -1
@@ -1438,8 +1592,8 @@ class RostroOttoman:
                         ]
                         canvas.create_polygon(*pts, fill=col_principal, outline="", smooth=True)
 
-                    # Caso C: Caído Triste / Empatía (/ \)
-                    elif forma == "caido_triste":
+                    # Caso F: Caído Triste / Empatía (/ \)
+                    elif forma_ojo_efectiva == "caido_triste":
                         rx = (ancho_ojo_act * 0.48) * pulso_resp_ojo
                         ry = (alto_ojo_act * 0.46) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
                         s = -1 if es_izq else 1
@@ -1452,8 +1606,8 @@ class RostroOttoman:
                         ]
                         canvas.create_polygon(*pts, fill=col_principal, outline="", smooth=True)
 
-                    # Caso D: Asimétrico Duda (Ojo izquierdo entrecerrado/guiño, derecho abierto curioso)
-                    elif forma == "asimetrico_duda":
+                    # Caso G: Asimétrico Duda (Ojo izquierdo entrecerrado/guiño, derecho abierto curioso)
+                    elif forma_ojo_efectiva == "asimetrico_duda":
                         if es_izq:
                             w_guiño = (ancho_ojo_act * 0.65)
                             canvas.create_line(
@@ -1470,8 +1624,8 @@ class RostroOttoman:
                                 fill=col_principal, outline="",
                             )
 
-                    # Caso E: Suave Calma (Serenidad / Co-regulación respiratoria)
-                    elif forma == "suave_calma":
+                    # Caso H: Suave Calma (Serenidad / Co-regulación respiratoria)
+                    elif forma_ojo_efectiva == "suave_calma":
                         rx = (ancho_ojo_act * 0.54) * pulso_resp_ojo
                         ry = (alto_ojo_act * 0.44) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
                         canvas.create_oval(
@@ -1480,7 +1634,7 @@ class RostroOttoman:
                             fill=col_principal, outline="",
                         )
 
-                    # Caso F: Cápsula vertical (Neutro)
+                    # Caso I: Cápsula vertical (Neutro)
                     else:
                         rx = (ancho_ojo_act * 0.48) * pulso_resp_ojo
                         ry = (alto_ojo_act * 0.50) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo

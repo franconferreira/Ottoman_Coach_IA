@@ -108,8 +108,9 @@ class ClasificadorIntencion:
     PATRON_CONVERSACIONAL = re.compile(
         r"\b(?:como\s+estas|como\s+andas|que\s+onda|como\s+va|todo\s+bien|estoy\s+bien|muy\s+bien|bien\s+y\s+vos|"
         r"mas\s+o\s+menos|ahi\s+andamos|ahi\s+ando|cansado|cansada|aburrido|aburrida|"
-        r"como\s+te\s+llamas|quien\s+sos|que\s+sos|tu\s+nombre|presentate|que\s+podes\s+hacer|que\s+sabes\s+hacer|"
-        r"para\s+que\s+servis|en\s+que\s+me\s+ayudas|como\s+funciona|gracias|muchas\s+gracias|"
+        r"como\s+te\s+llamas|quien\s+sos|que\s+sos|tu\s+nombre|presentate|hablame\s+de\s+vos|contame\s+de\s+vos|sobre\s+vos|"
+        r"hablame|contame|charlar|platicar|como\s+me\s+llamo|sabes\s+mi\s+nombre|quien\s+soy|me\s+llamo|mi\s+nombre\s+es|"
+        r"que\s+podes\s+hacer|que\s+sabes\s+hacer|para\s+que\s+servis|en\s+que\s+me\s+ayudas|como\s+funciona|gracias|muchas\s+gracias|"
         r"te\s+agradezco|chau|adios|hasta\s+luego|nos\s+vemos|contame\s+un\s+chiste|"
         r"estudiando|facultad|parcial|examen|entrega|trabajo\s+practico|tesis)\b|^bien[!?.]*$|^ayuda[!?.]*$"
     )
@@ -117,8 +118,17 @@ class ClasificadorIntencion:
         r"\b(?:gira|girar|girate|rota|rotar|dobla|vuelta|media\s+vuelta|turn)\b"
     )
     PATRON_MOVER = re.compile(
-        r"\b(?:avanza|avanzar|muevete|movete|camina|caminar|retrocede|retroceder|"
-        r"adelante|anda\s+para\s+atras|anda\s+hacia|acercate|alejate)\b"
+        r"\b(?:avanza|avanzar|muevete|movete|camina|retrocede|retroceder|"
+        r"adelante|anda\s+para\s+atras|anda\s+hacia|acercate|alejate)\b|"
+        r"\bcaminar(?:\s+\d+|\s+hacia|\s+despacio|\s+rapido|\s+derecho|\s+lento|\s+un\s+poco)\b"
+    )
+    PATRON_DESAMBIGUACION_CHARLA = re.compile(
+        r"\b(?:me\s+gusta|me\s+gustaria|quisiera|quiero|tengo\s+ganas|estaba\s+pensando|estoy\s+pensando|"
+        r"voy\s+a|sali\s+a|fui\s+a|estuve|empece\s+a|pense\s+en|tengo\s+que|deberia)\s+"
+        r"(?:salir|ir|caminar|correr|trotar|hacer|estar|hablar|charlar|estudiar|descansar|dormir|relajar|despejar)\b|"
+        r"\b(?:salir\s+a\s+caminar|ir\s+a\s+caminar|caminar\s+un\s+rato|dar\s+una\s+vuelta|despejar\w*|cambiar\s+de\s+aire)\b|"
+        r"\b(?:avanzar\s+en\s+mi|avanzar\s+con\s+mi|retroceder\s+en\s+mi|dar\s+vueltas\s+con|dar\s+vueltas\s+a)\b|"
+        r"\b(?:me\s+cuesta|me\s+hace|me\s+siento|hoy\s+sali|hoy\s+fui|ayer\s+fui)\b"
     )
     PATRON_MEMORIA = re.compile(
         r"\b(?:hacelo\s+otra\s+vez|repetilo|repeti\s+eso|de\s+nuevo|como\s+antes)\b"
@@ -158,12 +168,24 @@ class ClasificadorIntencion:
         if self.PATRON_MEMORIA.search(texto_norm):
             return "REPETIR_MEMORIA"
 
-        # 3. Consulta de telemetría/batería y saludo explícito
+        # 3. Consulta de telemetría/batería
         if self.PATRON_ESTADO.search(texto_norm):
             return "CONSULTAR_ESTADO"
 
+        # Conversación social / interacción verbal explícita (prevalece sobre saludo motor simple)
+        if self.PATRON_CONVERSACIONAL.search(texto_norm):
+            if not self.modo_conversacional and re.search(r"\b(?:como\s+te\s+llamas|que\s+onda)\b", texto_norm):
+                return "DESCONOCIDO"
+            return "COACH_EMOCIONAL"
+
         if self.PATRON_SALUDO.search(texto_norm):
             return "SALUDO"
+
+        # Desambiguación pragmática: deseos en 1ª persona, esparcimiento o relatos NO son órdenes para el robot
+        if self.PATRON_DESAMBIGUACION_CHARLA.search(texto_norm):
+            if not self.modo_conversacional:
+                return "DESCONOCIDO"
+            return "COACH_EMOCIONAL"
 
         # 4. Comandos de locomoción (si aparecen ambos en una oración compuesta como
         #    "girá 45° a la derecha y después avanzá", prevalece la primera acción verbal)
@@ -555,6 +577,8 @@ class AgenteRobot:
                     self.sintetizador.hablar_sincronizado(
                         plan_crisis.texto_respuesta, plan_crisis.prosodia, rostro=self.rostro, bloqueante=True
                     )
+            if self.rostro and hasattr(self.rostro, "disparar_glifo"):
+                self.rostro.disparar_glifo("!", duracion=2.5)
             if self.rostro and hasattr(self.rostro, "agregar_chat_mensaje"):
                 self.rostro.agregar_chat_mensaje("Ottoman (Seguridad)", f"⛔ {motivo}", "#F87171")
             return {
@@ -571,6 +595,8 @@ class AgenteRobot:
             if self.mostrar:
                 print(f"    3. Seguridad  : OK (inofensivo)")
                 print(f"    4. Resultado  : DESCONOCIDO — {msg}")
+            if self.rostro and hasattr(self.rostro, "disparar_glifo"):
+                self.rostro.disparar_glifo("?", duracion=2.2)
             if self.rostro and hasattr(self.rostro, "agregar_chat_mensaje"):
                 self.rostro.agregar_chat_mensaje("Ottoman", msg, "#94A3B8")
             return {

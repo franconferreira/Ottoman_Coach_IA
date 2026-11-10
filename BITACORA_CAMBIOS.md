@@ -117,3 +117,52 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
     - Mantiene el paso de `--evaluar` para preservar el comportamiento histórico de corrección académica exigido por la cátedra.
 - **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --sin-robot`).
 
+### [2026-11-10] - Personalidad Jovial/Limpia, Coaching Proactivo, Memoria de Nombre y Filtro Antirrechazos
+- **Archivos tocados:**
+  - `mi_desarrollo/coach_emocional.py`:
+    - Renovación total de plantillas CBR en las 6 emociones (`PERFILES_BASE`): rediseño casual, jovial y cálido con voseo rioplatense natural, erradicando formalismos acartonados y jerga pesada caricaturesca (*"fiera"*, *"la pucha"*, *"patatús"*, *"rosca mental"*).
+    - Nueva arquitectura de coaching proactivo de 3 pasos: [Espejo Biométrico/Observación] $\rightarrow$ [Interrupción/Desafío positivo] $\rightarrow$ [Micro-compromiso accionable].
+    - Implementación de memoria de identidad y nombre de usuario (`self.nombre_usuario`): captura presentaciones (*"me llamo X"*, *"mi nombre es X"*) y responde a preguntas de identidad (*"¿cómo me llamo?"*). Erradicación total del bug donde el robot asumía que el usuario se llamaba Ottoman.
+    - Nuevo filtro detector de rechazos `_es_rechazo_invalido_llm`: neutraliza las negativas absurdas de modelos locales (*"no puedo ayudarte con eso"*, *"situaciones de libre voluntad"*), descartando la alucinación del LLM y activando de inmediato el fallback a plantillas CBR de coaching de alta calidad.
+    - Blindaje del System Prompt para LLMs locales y en la nube: directivas explícitas de rol, prohibición de negarse ante el enojo y preservación estricta de identidades.
+  - `mi_desarrollo/mi_tp07.py`:
+    - Ampliación de `PATRON_CONVERSACIONAL` con expresiones de presentación y charla (*"hablame de vos"*, *"contame de vos"*, *"sobre vos"*, *"me llamo"*, *"cómo me llamo"*).
+    - Priorización conversacional en `ClasificadorIntencion`: frases de diálogo verbal como *"Hola, hablame de vos"* ahora se enrutan correctamente a `COACH_EMOCIONAL` en vez de disparar el gesto motor físico `SALUDO` (`✅ saludo`).
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`), 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --sin-robot --evaluar`) y 6/6 tests de diálogo y memoria aprobados (`verificar_dialogo_coach.py`).
+
+### [2026-11-10] - Coreografía Facial Dinámica, Micro-expresiones Vivas y Glifos Heroicos (!) y (?)
+- **Archivos tocados:**
+  - `mi_desarrollo/rostro_ottoman.py`:
+    - Catálogo ampliado a 9 morfologías oculares LED gigantes sobre pantalla OLED pura: `capsula`, `arco_feliz`, `chispa_estrella`, `entrecerrado_enfoque`, `ojo_circular_asombro`, `diagonal_enojo`, `caido_triste`, `asimetrico_duda` y `suave_calma`.
+    - Incorporación de renderizado nativo de Glifos Heroicos `!` y `?` (sin paréntesis) con tipografía Segoe UI bold de alta escala y reactividad de voz.
+    - Motor de interpolación temporal y micro-expresiones dinámicas (`disparar_micro_expresion` / `disparar_glifo`) con desvanecimiento orgánico a la pose base.
+    - Sistema *Idle Life* con micro-sacadas oculares estocásticas de atención foveal (cada 1.8-3.8s) y doble pestañeo humanoide.
+  - `mi_desarrollo/coach_emocional.py`:
+    - Implementación de `PlanificadorCoreografiaFacial` y `EventoMicroExpresion`: parser sintáctico-prosódico que segmenta el discurso de Ottoman por signos de puntuación (`¡!`, `¿?`, `,`, `.`), velocidad WPM y marcadores discursivos, generando una línea de tiempo sincronizada.
+    - Despachador asíncrono en `SintetizadorVozAdaptativo.hablar_sincronizado`: sincroniza la emisión acústica neuronal/DSP con las transiciones gestuales de los ojos en tiempo real.
+  - `mi_desarrollo/ejecutor.py` y `mi_desarrollo/mi_tp07.py`:
+    - Vinculación reactiva del glifo `?` ante instrucciones fuera de dominio (`DESCONOCIDO`).
+    - Vinculación reactiva del glifo `!` ante bloqueos de seguridad y paradas de emergencia (`DETENERSE`).
+  - `docs/graficos/ottoman_faces_preview.png`:
+    - Nueva lámina técnica 3x4 con las 12 expresiones, glifos heroicos y pestañeo electrónico.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --sin-robot --evaluar`).
+
+### [2026-11-10] - Simulación 3D Viva en Reposo y Desambiguación de Charla en 1ª Persona ("Salir a caminar")
+- **Archivos tocados:**
+  - `mi_desarrollo/rostro_ottoman.py`:
+    - Erradicación de la congelación visual en reposo (`quieto`):
+      - Respiración diafragmática y torácica amplificada a valores plenamente visibles (amplitud de torso a $0.038\text{ rad} \approx 2.2^\circ$, hombros $0.028\text{ rad}$, codos $0.022\text{ rad}$ y muñecas $0.040\text{ rad}$).
+      - Balanceo postural pendular orgánico (*postural sway* de período lento $\sim 6.5\text{s}$) en pelvis: inclinación lateral `waist_roll` ($\pm 0.022\text{ rad}$) y rotación `waist_yaw` ($\pm 0.014\text{ rad}$).
+      - *Contrapposto* dinámico con transferencia de peso en piernas: alternancia fluida de flexión de rodillas ($0.278 \leftrightarrow 0.362\text{ rad}$) y caderas, manteniendo los pies firmes y el centro de masa compensado en altura (`knee_avg`).
+      - Manos Inspire RH56 con micro-movimientos cadenciosos de relajación en falanges ($0.05 \leftrightarrow 0.15$) al ritmo del aire.
+  - `mi_desarrollo/coach_emocional.py`:
+    - Sincronización de `CoreografoPosturalG1.generar_postura_continua` con las mismas dinámicas de respiración y sway postural vivo.
+    - Nuevo manejador conversacional en `_responder_conversacion_basica` para actividades de esparcimiento, caminata y bienestar ("salir a caminar", "caminar un rato", "dar una vuelta", "despejarme"), respondiendo con aliento motivacional en lugar de silencio o comandos mecánicos.
+  - `mi_desarrollo/mi_tp07.py`:
+    - Incorporación de `PATRON_DESAMBIGUACION_CHARLA` en `ClasificadorIntencion`: intercepta y enruta a `COACH_EMOCIONAL` expresiones en primera persona ("me gustaría...", "quiero...", "estaba pensando en..."), planes personales ("salir a caminar", "ir a caminar", "caminar un rato", "dar una vuelta") y metáforas reflexivas ("avanzar en mi...", "dar vueltas con...").
+    - `PATRON_MOVER` ajustado para exigir contexto directivo/imperativo para infinitivos (`caminá hacia adelante`, `caminar 2 metros`), evitando que palabras sueltas como "caminar" en medio de una charla activen los motores del robot.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --sin-robot`). Verificación de desambiguación completada exitosamente.
+
+
+
+
