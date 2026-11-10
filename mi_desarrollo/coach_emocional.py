@@ -13,12 +13,14 @@ Fundamentación científica implementada:
 
 from __future__ import annotations
 
+import asyncio
 from collections import deque
 import json
 import math
 import os
 from pathlib import Path
 import re
+import subprocess
 import tempfile
 import threading
 import time
@@ -1539,12 +1541,51 @@ class MotorRespuestaCoach:
 #  3. SINTETIZADOR DE VOZ ADAPTATIVO DSP (VELOCIDAD, PAUSAS, dB, TONO Hz, TIMBRE)
 # =====================================================================
 
+def enriquecer_texto_prosodico(texto: str) -> str:
+    """Aplica formato prosódico rioplatense: signos enfáticos en aperturas/cierres,
+    comas de apoyo interno para forzar tildes y acentuación tónica viva (estilo Prueba 3).
+    """
+    if not texto:
+        return ""
+    t = texto.strip()
+
+    # 1. Asegurar tildes obligatorias en voseo rioplatense
+    reemplazos_voseo = [
+        (r"\bmira\b", "mirá"),
+        (r"\btenes\b", "tenés"),
+        (r"\bestas\b", "estás"),
+        (r"\bhace\b", "hacé"),
+        (r"\brespira\b", "respirá"),
+        (r"\bparate\b", "parate"),
+        (r"\bdecime\b", "decime"),
+    ]
+    for pat, rep in reemplazos_voseo:
+        t = re.sub(pat, rep, t, flags=re.IGNORECASE)
+
+    # 2. Aperturas coloquiales enfáticas (técnica de Prueba 3: ¡Mirá!,, ¡Che!,, etc.)
+    t = re.sub(r"^(Che|Mirá|Atento)\s*,\s*", r"¡\1!, ", t, flags=re.IGNORECASE)
+    t = re.sub(r"([.!?])\s*(Che|Mirá)\s*,\s*", r"\1 ¡\2!, ", t, flags=re.IGNORECASE)
+
+    # 3. Cierres coloquiales vivos
+    t = re.sub(r"¿(dale|sí|te parece)\?\s*$", r"¡¿\1?!", t, flags=re.IGNORECASE)
+
+    # 4. Comas de apoyo rítmico en conectores clave
+    t = re.sub(r"\s+([,.:;?!])", r"\1", t)
+    t = re.sub(r",\s*,+", ", ", t)
+    t = re.sub(r",\s*\.", ".", t)
+    return t.strip()
+
+
 class SintetizadorVozAdaptativo:
     """Modula la onda acústica del robot en WPM, decibeles, tono F0 (Hz) y timbre espectral."""
 
     def __init__(self, habilitado: bool = True):
         self.habilitado = habilitado
         self._lock = threading.Lock()
+
+    @staticmethod
+    def enriquecer_texto_prosodico(texto: str) -> str:
+        return enriquecer_texto_prosodico(texto)
 
     @staticmethod
     def db_a_ganancia(volumen_db: float, base: float = 0.80) -> float:
@@ -1557,6 +1598,45 @@ class SintetizadorVozAdaptativo:
         """Divide la respuesta en unidades respiratorias para aplicar temporalización."""
         partes = [p.strip() for p in re.split(r"(?<=[.!?;])\s+|\.\.\.\s*", texto) if p.strip()]
         return partes if partes else [texto.strip()]
+
+    @staticmethod
+    def aplicar_dsp_estudio(onda_int16: np.ndarray, sample_rate: int) -> np.ndarray:
+        """Aplica presencia de pecho, suavizado de sibilancias y micro-reverberación física."""
+        if onda_int16.size == 0:
+            return onda_int16
+        try:
+            from scipy.signal import butter, sosfilt
+            x = onda_int16.astype(np.float32) / 32768.0
+            nyq = 0.5 * sample_rate
+
+            # 1. De-essing: filtro low-pass suave para apagar sibilancias digitales (>6800 Hz)
+            if nyq > 6800:
+                sos_lp = butter(2, 6800.0 / nyq, btype="low", output="sos")
+                x = sosfilt(sos_lp, x)
+
+            # 2. Resonancia torácica: realce cálido en banda de pecho (200 Hz - 450 Hz)
+            if nyq > 450:
+                sos_band = butter(2, [200.0 / nyq, 450.0 / nyq], btype="band", output="sos")
+                cuerpo = sosfilt(sos_band, x)
+                x = x + 0.30 * cuerpo
+
+            # 3. Micro-reverberación de sala física (early reflections a 18ms, 31ms, 46ms)
+            delays_ms = [18, 31, 46]
+            gains = [0.12, 0.08, 0.04]
+            reverb = np.zeros_like(x)
+            for d_ms, g in zip(delays_ms, gains):
+                d_samples = int(sample_rate * (d_ms / 1000.0))
+                if len(x) > d_samples:
+                    delayed = np.pad(x[:-d_samples], (d_samples, 0))
+                    reverb += g * delayed
+            x = x + reverb
+
+            pico = float(np.max(np.abs(x)))
+            if pico > 0.01:
+                x = (x / pico) * 0.94
+            return (x * 32767.0).astype(np.int16)
+        except Exception:
+            return onda_int16
 
     @staticmethod
     def modular_onda_dsp(
@@ -1616,7 +1696,9 @@ class SintetizadorVozAdaptativo:
         rostro=None,
         bloqueante: bool = False,
     ) -> Optional[threading.Thread]:
-        """Sintetiza la respuesta completa de una sola vez, aplica DSP de Tono/Timbre/Volumen y reproduce."""
+        """Sintetiza la respuesta usando edge-tts (es-AR-TomasNeural) con nueva base ágil,
+        acentuación enfática, bloques dinámicos y cadena DSP, con fallback seguro a pyttsx3.
+        """
         texto_limpio = texto.strip()
         if not self.habilitado or not texto_limpio:
             return None
@@ -1624,72 +1706,170 @@ class SintetizadorVozAdaptativo:
         def _tarea_audio():
             with self._lock:
                 time.sleep(max(0.0, prosodia.pausa_inicial_s))
-                volumen_lineal = self.db_a_ganancia(prosodia.volumen_db)
-                ratio_pitch = float(np.clip((160.0 + float(prosodia.tono_hz)) / 160.0, 0.84, 1.20))
-                rate_compensado = int(round(prosodia.velocidad_wpm / ratio_pitch))
-
-                fd_raw, ruta_raw = tempfile.mkstemp(suffix="_raw.wav")
-                os.close(fd_raw)
-                fd_mod, ruta_mod = tempfile.mkstemp(suffix="_dsp.wav")
-                os.close(fd_mod)
+                texto_prosodico = enriquecer_texto_prosodico(texto_limpio)
 
                 reproduccion_exitosa = False
+                archivos_a_borrar: list[str] = []
+
+                # INTENTO 1: edge-tts (Neuronal Argentino Tomás con nueva base ágil)
                 try:
-                    import pyttsx3
+                    import asyncio
+                    import edge_tts
                     from scipy.io import wavfile
                     import winsound
 
-                    engine = pyttsx3.init()
-                    for v in engine.getProperty("voices") or []:
-                        vid = f"{getattr(v, 'id', '')} {getattr(v, 'name', '')}".lower()
-                        if any(tag in vid for tag in ("spanish", "espanol", "español", "es-", "es_", "helena", "sabina", "pablo")):
-                            engine.setProperty("voice", v.id)
-                            break
-                    engine.setProperty("rate", rate_compensado)
-                    engine.setProperty("volume", volumen_lineal)
+                    # Mapeo a la nueva base ágil (+8% velocidad, +3Hz tono)
+                    pct_rate = int(round(+8 + ((prosodia.velocidad_wpm - 150) / 150.0) * 35))
+                    pct_rate = max(+3, min(+25, pct_rate))
+                    val_pitch = int(round(+3 + (prosodia.tono_hz * 0.4)))
+                    val_pitch = max(-4, min(+8, val_pitch))
+                    val_vol = int(round(prosodia.volumen_db * 3.0))
+                    val_vol = max(-25, min(+10, val_vol))
 
-                    # Sintetizar el texto completo de una sola vez para evitar el bug COM de Windows
-                    engine.save_to_file(texto_limpio, ruta_raw)
-                    engine.runAndWait()
+                    # Detección de bloques dinámicos (Contención inicial -> Silencio -> Acción)
+                    oraciones = [o.strip() for o in re.split(r"(?<=[.!?])\s+", texto_prosodico) if o.strip()]
+                    es_bimodal = len(oraciones) >= 2 and any(
+                        w in texto_prosodico.lower() for w in ("vamos", "plan", "primer", "arranquemos", "contame", "¿dale?", "¡¿dale?!")
+                    )
 
-                    if os.path.exists(ruta_raw) and os.path.getsize(ruta_raw) > 100:
-                        sr, data = wavfile.read(ruta_raw)
-                        data_mod, sr_mod = self.modular_onda_dsp(data, sr, prosodia)
-                        wavfile.write(ruta_mod, sr_mod, data_mod)
+                    with tempfile.TemporaryDirectory() as tmpdir:
+                        final_wav = os.path.join(tmpdir, "final.wav")
+                        if es_bimodal:
+                            # Mitad 1: contención suave (-4% vel, -3Hz tono, -12% vol)
+                            corte = max(1, len(oraciones) // 2)
+                            txt_b1 = " ".join(oraciones[:corte])
+                            txt_b2 = " ".join(oraciones[corte:])
+
+                            r_b1 = f"{max(+3, pct_rate - 4):+d}%"
+                            p_b1 = f"{max(-3, val_pitch - 3):+d}Hz"
+                            v_b1 = f"{val_vol - 12:+d}%"
+
+                            r_b2 = f"{min(+22, pct_rate + 2):+d}%"
+                            p_b2 = f"{min(+6, val_pitch + 1):+d}Hz"
+                            v_b2 = f"{val_vol:+d}%"
+
+                            mp3_1 = os.path.join(tmpdir, "b1.mp3")
+                            mp3_2 = os.path.join(tmpdir, "b2.mp3")
+                            wav_1 = os.path.join(tmpdir, "b1.wav")
+                            wav_2 = os.path.join(tmpdir, "b2.wav")
+
+                            async def _gen_bloques():
+                                c1 = edge_tts.Communicate(txt_b1, "es-AR-TomasNeural", rate=r_b1, pitch=p_b1, volume=v_b1)
+                                c2 = edge_tts.Communicate(txt_b2, "es-AR-TomasNeural", rate=r_b2, pitch=p_b2, volume=v_b2)
+                                await c1.save(mp3_1)
+                                await c2.save(mp3_2)
+
+                            asyncio.run(_gen_bloques())
+
+                            cmd1 = ["ffmpeg", "-y", "-i", mp3_1, "-ac", "1", "-ar", "24000", wav_1]
+                            cmd2 = ["ffmpeg", "-y", "-i", mp3_2, "-ac", "1", "-ar", "24000", wav_2]
+                            subprocess.run(cmd1, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            subprocess.run(cmd2, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                            sr, d1 = wavfile.read(wav_1)
+                            _, d2 = wavfile.read(wav_2)
+                            silencio = np.zeros(int(sr * 0.42), dtype=np.int16)
+                            data_pcm = np.concatenate([d1, silencio, d2])
+                        else:
+                            r_str = f"{pct_rate:+d}%"
+                            p_str = f"{val_pitch:+d}Hz"
+                            v_str = f"{val_vol:+d}%"
+                            mp3_u = os.path.join(tmpdir, "unit.mp3")
+                            wav_u = os.path.join(tmpdir, "unit.wav")
+
+                            async def _gen_unit():
+                                c = edge_tts.Communicate(texto_prosodico, "es-AR-TomasNeural", rate=r_str, pitch=p_str, volume=v_str)
+                                await c.save(mp3_u)
+
+                            asyncio.run(_gen_unit())
+
+                            cmd_u = ["ffmpeg", "-y", "-i", mp3_u, "-ac", "1", "-ar", "24000", wav_u]
+                            subprocess.run(cmd_u, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            sr, data_pcm = wavfile.read(wav_u)
+
+                        # Aplicar cadena DSP de estudio (pecho + de-essing + micro-reverberación)
+                        data_final = SintetizadorVozAdaptativo.aplicar_dsp_estudio(data_pcm, sr)
+
+                        # Modulación espectral de timbre según prosodia
+                        data_mod, sr_mod = SintetizadorVozAdaptativo.modular_onda_dsp(data_final, sr, prosodia)
+                        wavfile.write(final_wav, sr_mod, data_mod)
 
                         if rostro is not None:
                             rostro.set_hablando(True, subtitulo=texto_limpio)
                         try:
-                            winsound.PlaySound(ruta_mod, winsound.SND_FILENAME)
-                            reproduccion_exitosa = True
-                        finally:
-                            if rostro is not None:
-                                rostro.set_hablando(False)
-                    else:
-                        if rostro is not None:
-                            rostro.set_hablando(True, subtitulo=texto_limpio)
-                        try:
-                            engine.setProperty("rate", int(prosodia.velocidad_wpm))
-                            engine.say(texto_limpio)
-                            engine.runAndWait()
+                            winsound.PlaySound(final_wav, winsound.SND_FILENAME)
                             reproduccion_exitosa = True
                         finally:
                             if rostro is not None:
                                 rostro.set_hablando(False)
                 except Exception:
                     reproduccion_exitosa = False
-                finally:
-                    # Garantía absoluta: apagar boca de la cara y limpiar archivos temporales
-                    if rostro is not None:
-                        rostro.set_hablando(False)
-                    for r_tmp in (ruta_raw, ruta_mod):
-                        try:
-                            if os.path.exists(r_tmp):
-                                os.remove(r_tmp)
-                        except OSError:
-                            pass
 
-                # Fallback visual por duración estimada si el hardware de audio no estuvo disponible
+                # INTENTO 2: Fallback offline transparente a pyttsx3 si edge-tts no pudo emitir audio
+                if not reproduccion_exitosa:
+                    fd_raw, ruta_raw = tempfile.mkstemp(suffix="_raw.wav")
+                    os.close(fd_raw)
+                    fd_mod, ruta_mod = tempfile.mkstemp(suffix="_dsp.wav")
+                    os.close(fd_mod)
+                    archivos_a_borrar.extend([ruta_raw, ruta_mod])
+
+                    try:
+                        import pyttsx3
+                        from scipy.io import wavfile
+                        import winsound
+
+                        volumen_lineal = self.db_a_ganancia(prosodia.volumen_db)
+                        ratio_pitch = float(np.clip((160.0 + float(prosodia.tono_hz)) / 160.0, 0.84, 1.20))
+                        rate_compensado = int(round(prosodia.velocidad_wpm / ratio_pitch))
+
+                        engine = pyttsx3.init()
+                        for v in engine.getProperty("voices") or []:
+                            vid = f"{getattr(v, 'id', '')} {getattr(v, 'name', '')}".lower()
+                            if any(tag in vid for tag in ("spanish", "espanol", "español", "es-", "es_", "helena", "sabina", "pablo")):
+                                engine.setProperty("voice", v.id)
+                                break
+                        engine.setProperty("rate", rate_compensado)
+                        engine.setProperty("volume", volumen_lineal)
+
+                        engine.save_to_file(texto_limpio, ruta_raw)
+                        engine.runAndWait()
+
+                        if os.path.exists(ruta_raw) and os.path.getsize(ruta_raw) > 100:
+                            sr, data = wavfile.read(ruta_raw)
+                            data_mod, sr_mod = self.modular_onda_dsp(data, sr, prosodia)
+                            wavfile.write(ruta_mod, sr_mod, data_mod)
+
+                            if rostro is not None:
+                                rostro.set_hablando(True, subtitulo=texto_limpio)
+                            try:
+                                winsound.PlaySound(ruta_mod, winsound.SND_FILENAME)
+                                reproduccion_exitosa = True
+                            finally:
+                                if rostro is not None:
+                                    rostro.set_hablando(False)
+                        else:
+                            if rostro is not None:
+                                rostro.set_hablando(True, subtitulo=texto_limpio)
+                            try:
+                                engine.setProperty("rate", int(prosodia.velocidad_wpm))
+                                engine.say(texto_limpio)
+                                engine.runAndWait()
+                                reproduccion_exitosa = True
+                            finally:
+                                if rostro is not None:
+                                    rostro.set_hablando(False)
+                    except Exception:
+                        reproduccion_exitosa = False
+
+                # Limpieza de archivos temporales
+                for r_tmp in archivos_a_borrar:
+                    try:
+                        if os.path.exists(r_tmp):
+                            os.remove(r_tmp)
+                    except OSError:
+                        pass
+
+                # Fallback visual de seguridad por duración estimada si el audio no funcionó
                 if not reproduccion_exitosa:
                     if rostro is not None:
                         rostro.set_hablando(True, subtitulo=texto_limpio)

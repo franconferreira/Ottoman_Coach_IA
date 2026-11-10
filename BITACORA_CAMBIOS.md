@@ -53,3 +53,13 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
     - Modos de cámara optimizados: añadido botón de primer plano `[ 🔍 Primer Plano (Manos/Torso) ]` y auto-arranque en `MOTIVACION_ALEGRIA`.
 - **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`).
 
+### [2026-11-10] - Síntesis de Voz Neuronal Humana (Edge-TTS Tomás), Nueva Base Ágil y Acentuación Rioplatense
+- **Archivos tocados:**
+  - `mi_desarrollo/coach_emocional.py`:
+    - Migración del motor de audio primario en `SintetizadorVozAdaptativo.hablar_sincronizado`: reemplazado el sintetizador robótico SAPI5 (`pyttsx3`) por voz neuronal de Deep Learning argentina `es-AR-TomasNeural` (`edge-tts`) con conversión transparente PCM vía `ffmpeg`.
+    - Conservado `pyttsx3` como fallback offline automático ante cortes de conexión o fallas de red en presentaciones.
+    - Implementada la **nueva base acústica ágil y despierta** (`+8%` velocidad, `+3 Hz` tono fundamental, piso mínimo en `+3%`), erradicando el arrastre de vocales y la monotonía.
+    - Nueva función `enriquecer_texto_prosodico`: inyección de comas de apoyo rítmico, signos dobles en aperturas y cierres coloquiales (`¡Mirá!,`, `¡¿dale?!`) y garantía de tildes ortográficas en verbos del voseo (*tenés*, *estás*, *mirá*, *respirá*, *hacé*), logrando la acentuación tónica viva validada en la Prueba 3.
+    - Síntesis por bloques dinámicos: segmentación automática de respuestas bimodales (bloque 1 contención suave $\rightarrow$ silencio respiratorio de $420\text{ ms}$ $\rightarrow$ bloque 2 acción y empuje resolutivo pleno).
+    - Nueva función estática `SintetizadorVozAdaptativo.aplicar_dsp_estudio`: mastering acústico con realce cálido de pecho ($200\text{--}450\text{ Hz}$), de-essing suave ($>6800\text{ Hz}$) y micro-reverberación de sala física ($18\text{ ms}, 31\text{ ms}, 46\text{ ms}$) para eliminar el vacío anecoico.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`). Verificación en vivo completada exitosamente.

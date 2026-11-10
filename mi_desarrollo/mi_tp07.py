@@ -692,13 +692,13 @@ def main() -> int:
         return 0
 
     # Intentar conectar con el simulador MuJoCo (si no está abierto, ofrece seguir en modo vista previa)
-    robot_inst = Robot()
     conectado_sim = False
     try:
+        robot_inst = Robot()
         robot_inst.conectar()
         conectado_sim = True
         print("  [OK] Conectado al simulador MuJoCo / Unitree G1.")
-    except NoHaySimulador:
+    except (NoHaySimulador, Exception):
         print("  [INFO] Simulador MuJoCo no detectado en 127.0.0.1:8765.")
         print("         Continuando con Cuerpo Mock + Rostro Animado + Voz TTS.")
         robot_inst = _RobotMockSilencioso()
