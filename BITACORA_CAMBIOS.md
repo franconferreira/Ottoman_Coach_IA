@@ -63,3 +63,22 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
     - Síntesis por bloques dinámicos: segmentación automática de respuestas bimodales (bloque 1 contención suave $\rightarrow$ silencio respiratorio de $420\text{ ms}$ $\rightarrow$ bloque 2 acción y empuje resolutivo pleno).
     - Nueva función estática `SintetizadorVozAdaptativo.aplicar_dsp_estudio`: mastering acústico con realce cálido de pecho ($200\text{--}450\text{ Hz}$), de-essing suave ($>6800\text{ Hz}$) y micro-reverberación de sala física ($18\text{ ms}, 31\text{ ms}, 46\text{ ms}$) para eliminar el vacío anecoico.
 - **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`). Verificación en vivo completada exitosamente.
+
+### [2026-11-10] - Catálogo Multivariante de Emotes, Fin de Bucle 3D, STT Humano y Memoria Anti-Repetición
+- **Archivos tocados:**
+  - `mi_desarrollo/coach_emocional.py`:
+    - Incorporación de catálogo de **2 a 3 variantes de emotes teatrales por estado emocional**: Alegría (Victoria / Apertura cálida / Complicidad aliento), Tristeza (Contención íntima / Acogida apoyo / Acompañamiento silencioso), Enojo (Barrera freno / Escucha aplomo / Canalización tierra), Ansiedad (Metrónomo respiratorio 4-4 / Grounding a tierra / Pausa sosiego), Duda (Balanza socrática / Indagación reflexiva) y Neutro (Atención izquierda / derecha / Escucha abierta).
+    - Rotación dinámica sin repetición inmediata o por intensidad en `CoreografoPosturalG1.obtener_coreografia`.
+    - Detección explícita de bloqueos reflexivos ("no sé qué decirte", "me quedé en blanco", "no sé") con respuesta cálida descompresiva.
+    - Ampliación de plantillas de 3 a 6 por emoción con filtro activo anti-repetición en historial de chat.
+  - `mi_desarrollo/rostro_ottoman.py`:
+    - Fin del bucle infinito de animación: la coreografía se ejecuta una única vez a lo largo de su arco y transiciona limpiamente a `quieto` o gesticulación de habla viva (`hablando`).
+    - Posturas base con palmas hacia el cuerpo (`left_wrist_roll: -1.25`, `right_wrist_roll: 1.25`) por defecto.
+  - `mi_desarrollo/demo_posturas_3d.py`:
+    - Transición a reposo continuo al finalizar la coreografía en vez de ciclar en loop. Cada clic sobre el botón de emoción dispara una variante distinta del catálogo.
+  - `mi_desarrollo/speech_to_text.py`:
+    - Calibración humana de escucha: `pause_threshold = 2.0s` (no te corta al respirar o pensar), `phrase_time_limit = 40s` (permite desahogos largos) y `non_speaking_duration = 0.8s`.
+  - `mi_desarrollo/percepcion_multimodal.py`:
+    - Patrones léxicos para expresiones de bloqueo y vacilación en `DUDA_INSEGURIDAD`.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`).
+

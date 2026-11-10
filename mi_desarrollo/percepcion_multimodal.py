@@ -618,6 +618,7 @@ class AnalizadorLexicoAfectivo:
             -0.28,
             +0.12,
             [
+                r"\bno se que decir\w*\b", r"\bme quede en blanco\b", r"\bno se me ocurre\b", r"\bno tengo palabras\b",
                 r"\bno se que hacer\b", r"\bindecis[oa]\b", r"\bduda\w*\b",
                 r"\binsegur[oa]\b", r"\bmiedo a equivocarme\b", r"\bmiedo a fallar\b",
                 r"\bconfundid[oa]\b", r"\bperdid[oa]\b", r"\bno me animo\b",

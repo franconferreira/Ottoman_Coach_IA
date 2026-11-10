@@ -337,7 +337,69 @@ class RepertorioAnimatronicoG1:
                     **_mano_puno_victoria("left"),
                     **_mano_pulgar_arriba("right"),
                 },
+                "D_apertura_calida": {
+                    # Apertura amplia cordial al frente y leve asentimiento
+                    "waist_pitch": -0.04,
+                    "waist_yaw": 0.0,
+                    "waist_roll": 0.0,
+                    "left_shoulder_pitch": 0.02,
+                    "right_shoulder_pitch": 0.02,
+                    "left_shoulder_roll": 0.42,
+                    "right_shoulder_roll": -0.42,
+                    "left_elbow": 0.52,
+                    "right_elbow": 0.52,
+                    "left_wrist_roll": -0.40,
+                    "right_wrist_roll": 0.40,
+                    "left_knee": 0.38,
+                    "right_knee": 0.38,
+                    "left_hip_pitch": -0.19,
+                    "right_hip_pitch": -0.19,
+                    "left_ankle_pitch": -0.19,
+                    "right_ankle_pitch": -0.19,
+                    **_mano_declamatoria("left"),
+                    **_mano_declamatoria("right"),
+                },
             },
+            "variantes": [
+                # Variante 0: Victoria y Pulgar Triunfal (Alta energía)
+                [
+                    {
+                        "waist_pitch": -0.10, "left_shoulder_pitch": -0.65, "right_shoulder_pitch": -0.65,
+                        "left_shoulder_roll": 0.70, "right_shoulder_roll": -0.70, "left_elbow": 0.45, "right_elbow": 0.45,
+                        "left_wrist_roll": 0.35, "right_wrist_roll": -0.35, "left_knee": 0.36, "right_knee": 0.36,
+                        "left_hip_pitch": -0.18, "right_hip_pitch": -0.18, "left_ankle_pitch": -0.18, "right_ankle_pitch": -0.18,
+                        **_mano_declamatoria("left"), **_mano_declamatoria("right"),
+                    },
+                    {
+                        "waist_pitch": -0.06, "left_shoulder_pitch": 0.08, "left_shoulder_roll": 0.35, "left_elbow": 0.85,
+                        "left_wrist_roll": -0.80, "right_shoulder_pitch": -0.52, "right_shoulder_roll": -0.22, "right_elbow": 0.88,
+                        "right_wrist_roll": 0.0, "left_knee": 0.34, "right_knee": 0.44, "left_hip_pitch": -0.17, "right_hip_pitch": -0.22,
+                        "left_ankle_pitch": -0.17, "right_ankle_pitch": -0.22,
+                        **_mano_puno_victoria("left"), **_mano_pulgar_arriba("right"),
+                    },
+                ],
+                # Variante 1: Apertura Cálida y Felicitación
+                [
+                    {
+                        "waist_pitch": -0.04, "left_shoulder_pitch": 0.02, "right_shoulder_pitch": 0.02,
+                        "left_shoulder_roll": 0.42, "right_shoulder_roll": -0.42, "left_elbow": 0.52, "right_elbow": 0.52,
+                        "left_wrist_roll": -0.40, "right_wrist_roll": 0.40, "left_knee": 0.38, "right_knee": 0.38,
+                        "left_hip_pitch": -0.19, "right_hip_pitch": -0.19, "left_ankle_pitch": -0.19, "right_ankle_pitch": -0.19,
+                        **_mano_declamatoria("left"), **_mano_declamatoria("right"),
+                    },
+                ],
+                # Variante 2: Complicidad y Señalamiento Dinámico
+                [
+                    {
+                        "waist_pitch": 0.04, "waist_yaw": 0.18, "waist_roll": -0.05,
+                        "left_shoulder_pitch": 0.38, "left_shoulder_roll": 0.08, "left_elbow": 0.18, "left_wrist_roll": -1.25,
+                        "right_shoulder_pitch": -0.48, "right_shoulder_roll": -0.18, "right_elbow": 0.38, "right_wrist_pitch": 0.20,
+                        "right_wrist_roll": 0.10, "left_knee": 0.50, "right_knee": 0.26, "left_hip_pitch": -0.25, "right_hip_pitch": -0.13,
+                        "left_ankle_pitch": -0.25, "right_ankle_pitch": -0.13,
+                        **_mano_relajada_organica("left"), **_mano_senalamiento("right"),
+                    },
+                ],
+            ],
         },
         "TRISTEZA_DESANIMO": {
             "nombre": "Contenedor Empático",
@@ -410,7 +472,74 @@ class RepertorioAnimatronicoG1:
                     **_mano_relajada_organica("left"),
                     **_mano_declamatoria("right"),
                 },
+                "C_acompanamiento_silencioso": {
+                    # Manos bajas al frente en bajo vientre, postura empática reflexiva
+                    "waist_pitch": 0.14,
+                    "waist_roll": 0.0,
+                    "waist_yaw": 0.0,
+                    "left_shoulder_pitch": 0.32,
+                    "right_shoulder_pitch": 0.32,
+                    "left_shoulder_roll": 0.12,
+                    "right_shoulder_roll": -0.12,
+                    "left_elbow": 0.48,
+                    "right_elbow": 0.48,
+                    "left_wrist_roll": -0.65,
+                    "right_wrist_roll": 0.65,
+                    "left_wrist_pitch": 0.15,
+                    "right_wrist_pitch": 0.15,
+                    "left_knee": 0.42,
+                    "right_knee": 0.42,
+                    "left_hip_pitch": -0.21,
+                    "right_hip_pitch": -0.21,
+                    "left_ankle_pitch": -0.21,
+                    "right_ankle_pitch": -0.21,
+                    **_mano_relajada_organica("left"),
+                    **_mano_relajada_organica("right"),
+                },
             },
+            "variantes": [
+                # Variante 0: Contención Íntima (Mano al corazón)
+                [
+                    {
+                        "waist_pitch": 0.15, "waist_roll": 0.05, "waist_yaw": 0.04,
+                        "left_shoulder_pitch": 0.40, "left_shoulder_roll": 0.06, "left_elbow": 0.16, "left_wrist_roll": -1.25,
+                        "right_shoulder_pitch": 0.20, "right_shoulder_roll": -0.15, "right_shoulder_yaw": -0.35, "right_elbow": 1.15,
+                        "right_wrist_pitch": 0.35, "right_wrist_roll": -0.20, "left_knee": 0.40, "right_knee": 0.40,
+                        "left_hip_pitch": -0.20, "right_hip_pitch": -0.20, "left_ankle_pitch": -0.20, "right_ankle_pitch": -0.20,
+                        **_mano_relajada_organica("left"), **_mano_empatica_pecho("right"),
+                    },
+                ],
+                # Variante 1: Acogida y Apoyo en Dos Tiempos
+                [
+                    {
+                        "waist_pitch": 0.15, "waist_roll": 0.04, "waist_yaw": 0.04,
+                        "left_shoulder_pitch": 0.40, "left_shoulder_roll": 0.06, "left_elbow": 0.16, "left_wrist_roll": -1.25,
+                        "right_shoulder_pitch": 0.20, "right_shoulder_roll": -0.15, "right_elbow": 1.15,
+                        "right_wrist_pitch": 0.35, "right_wrist_roll": -0.20, "left_knee": 0.40, "right_knee": 0.40,
+                        "left_hip_pitch": -0.20, "right_hip_pitch": -0.20, "left_ankle_pitch": -0.20, "right_ankle_pitch": -0.20,
+                        **_mano_relajada_organica("left"), **_mano_empatica_pecho("right"),
+                    },
+                    {
+                        "waist_pitch": 0.14, "waist_roll": 0.03, "waist_yaw": -0.05,
+                        "left_shoulder_pitch": 0.40, "left_shoulder_roll": 0.06, "left_elbow": 0.16, "left_wrist_roll": -1.25,
+                        "right_shoulder_pitch": -0.10, "right_shoulder_roll": -0.20, "right_elbow": 0.45,
+                        "right_wrist_pitch": 0.15, "right_wrist_roll": 0.20, "left_knee": 0.44, "right_knee": 0.34,
+                        "left_hip_pitch": -0.22, "right_hip_pitch": -0.17, "left_ankle_pitch": -0.22, "right_ankle_pitch": -0.17,
+                        **_mano_relajada_organica("left"), **_mano_declamatoria("right"),
+                    },
+                ],
+                # Variante 2: Acompañamiento Silencioso y Reflexivo
+                [
+                    {
+                        "waist_pitch": 0.14, "waist_roll": 0.0, "waist_yaw": 0.0,
+                        "left_shoulder_pitch": 0.32, "right_shoulder_pitch": 0.32, "left_shoulder_roll": 0.12, "right_shoulder_roll": -0.12,
+                        "left_elbow": 0.48, "right_elbow": 0.48, "left_wrist_roll": -0.65, "right_wrist_roll": 0.65,
+                        "left_wrist_pitch": 0.15, "right_wrist_pitch": 0.15, "left_knee": 0.42, "right_knee": 0.42,
+                        "left_hip_pitch": -0.21, "right_hip_pitch": -0.21, "left_ankle_pitch": -0.21, "right_ankle_pitch": -0.21,
+                        **_mano_relajada_organica("left"), **_mano_relajada_organica("right"),
+                    },
+                ],
+            ],
         },
         "ENOJO_FRUSTRACION": {
             "nombre": "Pacificador / Desescalada",
@@ -485,7 +614,65 @@ class RepertorioAnimatronicoG1:
                     **_mano_relajada_organica("left"),
                     **_mano_pacificador("right"),
                 },
+                "C_canalizar_a_tierra": {
+                    # Brazo derecho extendido en diagonal baja indicando espacio neutro ("bajemos a tierra")
+                    "waist_pitch": -0.02,
+                    "waist_roll": 0.03,
+                    "waist_yaw": -0.06,
+                    "left_shoulder_pitch": 0.38,
+                    "left_shoulder_roll": 0.08,
+                    "left_elbow": 0.16,
+                    "left_wrist_roll": -1.25,
+                    "right_shoulder_pitch": 0.12,
+                    "right_shoulder_roll": -0.20,
+                    "right_elbow": 0.35,
+                    "right_wrist_pitch": -0.20,
+                    "right_wrist_roll": 0.25,
+                    "left_knee": 0.46,
+                    "right_knee": 0.46,
+                    "left_hip_pitch": -0.23,
+                    "right_hip_pitch": -0.23,
+                    "left_ankle_pitch": -0.23,
+                    "right_ankle_pitch": -0.23,
+                    **_mano_relajada_organica("left"),
+                    **_mano_pacificador("right"),
+                },
             },
+            "variantes": [
+                # Variante 0: Barrera Pacificadora Frontal
+                [
+                    {
+                        "waist_pitch": -0.04, "waist_roll": 0.0, "waist_yaw": 0.0,
+                        "left_shoulder_pitch": 0.18, "right_shoulder_pitch": 0.18, "left_shoulder_roll": 0.30, "right_shoulder_roll": -0.30,
+                        "left_elbow": 0.58, "right_elbow": 0.58, "left_wrist_pitch": -0.30, "right_wrist_pitch": -0.30,
+                        "left_wrist_roll": -0.40, "right_wrist_roll": 0.40, "left_knee": 0.52, "right_knee": 0.52,
+                        "left_hip_pitch": -0.26, "right_hip_pitch": -0.26, "left_ankle_pitch": -0.26, "right_ankle_pitch": -0.26,
+                        **_mano_pacificador("left"), **_mano_pacificador("right"),
+                    },
+                ],
+                # Variante 1: Escucha con Aplomo y Firmeza
+                [
+                    {
+                        "waist_pitch": -0.02, "waist_roll": -0.04, "waist_yaw": 0.08,
+                        "left_shoulder_pitch": 0.40, "left_shoulder_roll": 0.06, "left_elbow": 0.16, "left_wrist_roll": -1.25,
+                        "right_shoulder_pitch": 0.18, "right_shoulder_roll": -0.26, "right_elbow": 0.50, "right_wrist_pitch": -0.25,
+                        "right_wrist_roll": 0.30, "left_knee": 0.44, "right_knee": 0.50, "left_hip_pitch": -0.22, "right_hip_pitch": -0.25,
+                        "left_ankle_pitch": -0.22, "right_ankle_pitch": -0.25,
+                        **_mano_relajada_organica("left"), **_mano_pacificador("right"),
+                    },
+                ],
+                # Variante 2: Canalización a Tierra
+                [
+                    {
+                        "waist_pitch": -0.02, "waist_roll": 0.03, "waist_yaw": -0.06,
+                        "left_shoulder_pitch": 0.38, "left_shoulder_roll": 0.08, "left_elbow": 0.16, "left_wrist_roll": -1.25,
+                        "right_shoulder_pitch": 0.12, "right_shoulder_roll": -0.20, "right_elbow": 0.35, "right_wrist_pitch": -0.20,
+                        "right_wrist_roll": 0.25, "left_knee": 0.46, "right_knee": 0.46, "left_hip_pitch": -0.23, "right_hip_pitch": -0.23,
+                        "left_ankle_pitch": -0.23, "right_ankle_pitch": -0.23,
+                        **_mano_relajada_organica("left"), **_mano_pacificador("right"),
+                    },
+                ],
+            ],
         },
         "ANSIEDAD_ESTRES": {
             "nombre": "Guía de Respiración y Sosiego",
@@ -511,7 +698,7 @@ class RepertorioAnimatronicoG1:
             },
             "ademanes": {
                 "A_inhalacion_profunda": {
-                    # Expansión torácica y elevación vertical (rodillas se estiran ligeramente a 0.20 rad)
+                    # Expansión torácica y elevación vertical (rodillas se estiran ligeramente a 0.22 rad)
                     "waist_pitch": -0.06,
                     "left_knee": 0.22,
                     "right_knee": 0.22,
@@ -554,7 +741,96 @@ class RepertorioAnimatronicoG1:
                     **_mano_relajada_organica("left"),
                     **_mano_relajada_organica("right"),
                 },
+                "C_anclaje_a_tierra": {
+                    # Ambas manos abiertas descendiendo lentamente hacia el piso marcando contacto con el suelo
+                    "waist_pitch": 0.02,
+                    "waist_roll": 0.0,
+                    "waist_yaw": 0.0,
+                    "left_shoulder_pitch": 0.20,
+                    "right_shoulder_pitch": 0.20,
+                    "left_shoulder_roll": 0.24,
+                    "right_shoulder_roll": -0.24,
+                    "left_elbow": 0.38,
+                    "right_elbow": 0.38,
+                    "left_wrist_pitch": -0.20,
+                    "right_wrist_pitch": -0.20,
+                    "left_wrist_roll": -0.50,
+                    "right_wrist_roll": 0.50,
+                    "left_knee": 0.42,
+                    "right_knee": 0.42,
+                    "left_hip_pitch": -0.21,
+                    "right_hip_pitch": -0.21,
+                    "left_ankle_pitch": -0.21,
+                    "right_ankle_pitch": -0.21,
+                    **_mano_pacificador("left"),
+                    **_mano_pacificador("right"),
+                },
+                "D_pausa_y_sosiego": {
+                    # Mano derecha al esternón/plexo solar, izquierda en pausa serena pidiendo un respiro
+                    "waist_pitch": 0.02,
+                    "waist_roll": -0.03,
+                    "waist_yaw": 0.05,
+                    "left_shoulder_pitch": 0.26,
+                    "left_shoulder_roll": 0.18,
+                    "left_elbow": 0.32,
+                    "left_wrist_pitch": -0.15,
+                    "left_wrist_roll": -0.60,
+                    "right_shoulder_pitch": 0.24,
+                    "right_shoulder_roll": -0.12,
+                    "right_elbow": 0.95,
+                    "right_wrist_pitch": 0.20,
+                    "right_wrist_roll": -0.15,
+                    "left_knee": 0.38,
+                    "right_knee": 0.38,
+                    "left_hip_pitch": -0.19,
+                    "right_hip_pitch": -0.19,
+                    "left_ankle_pitch": -0.19,
+                    "right_ankle_pitch": -0.19,
+                    **_mano_pacificador("left"),
+                    **_mano_empatica_pecho("right"),
+                },
             },
+            "variantes": [
+                # Variante 0: Metrónomo Respiratorio (Inhalación y Exhalación)
+                [
+                    {
+                        "waist_pitch": -0.06, "left_knee": 0.22, "right_knee": 0.22, "left_hip_pitch": -0.11, "right_hip_pitch": -0.11,
+                        "left_ankle_pitch": -0.11, "right_ankle_pitch": -0.11, "left_shoulder_pitch": 0.10, "right_shoulder_pitch": 0.10,
+                        "left_shoulder_roll": 0.35, "right_shoulder_roll": -0.35, "left_elbow": 0.45, "right_elbow": 0.45,
+                        "left_wrist_pitch": 0.18, "right_wrist_pitch": 0.18, "left_wrist_roll": -0.60, "right_wrist_roll": 0.60,
+                        **_mano_declamatoria("left"), **_mano_declamatoria("right"),
+                    },
+                    {
+                        "waist_pitch": 0.03, "left_knee": 0.44, "right_knee": 0.44, "left_hip_pitch": -0.22, "right_hip_pitch": -0.22,
+                        "left_ankle_pitch": -0.22, "right_ankle_pitch": -0.22, "left_shoulder_pitch": 0.40, "right_shoulder_pitch": 0.40,
+                        "left_shoulder_roll": 0.06, "right_shoulder_roll": -0.06, "left_elbow": 0.16, "right_elbow": 0.16,
+                        "left_wrist_pitch": 0.0, "right_wrist_pitch": 0.0, "left_wrist_roll": -1.25, "right_wrist_roll": 1.25,
+                        **_mano_relajada_organica("left"), **_mano_relajada_organica("right"),
+                    },
+                ],
+                # Variante 1: Anclaje a Tierra / Grounding
+                [
+                    {
+                        "waist_pitch": 0.02, "waist_roll": 0.0, "waist_yaw": 0.0, "left_shoulder_pitch": 0.20, "right_shoulder_pitch": 0.20,
+                        "left_shoulder_roll": 0.24, "right_shoulder_roll": -0.24, "left_elbow": 0.38, "right_elbow": 0.38,
+                        "left_wrist_pitch": -0.20, "right_wrist_pitch": -0.20, "left_wrist_roll": -0.50, "right_wrist_roll": 0.50,
+                        "left_knee": 0.42, "right_knee": 0.42, "left_hip_pitch": -0.21, "right_hip_pitch": -0.21,
+                        "left_ankle_pitch": -0.21, "right_ankle_pitch": -0.21,
+                        **_mano_pacificador("left"), **_mano_pacificador("right"),
+                    },
+                ],
+                # Variante 2: Pausa y Sosiego
+                [
+                    {
+                        "waist_pitch": 0.02, "waist_roll": -0.03, "waist_yaw": 0.05, "left_shoulder_pitch": 0.26, "left_shoulder_roll": 0.18,
+                        "left_elbow": 0.32, "left_wrist_pitch": -0.15, "left_wrist_roll": -0.60, "right_shoulder_pitch": 0.24,
+                        "right_shoulder_roll": -0.12, "right_elbow": 0.95, "right_wrist_pitch": 0.20, "right_wrist_roll": -0.15,
+                        "left_knee": 0.38, "right_knee": 0.38, "left_hip_pitch": -0.19, "right_hip_pitch": -0.19,
+                        "left_ankle_pitch": -0.19, "right_ankle_pitch": -0.19,
+                        **_mano_pacificador("left"), **_mano_empatica_pecho("right"),
+                    },
+                ],
+            ],
         },
         "DUDA_INSEGURIDAD": {
             "nombre": "Andamiaje y Diálogo Socrático",
@@ -618,7 +894,60 @@ class RepertorioAnimatronicoG1:
                     **_mano_relajada_organica("left"),
                     **_mano_declamatoria("right"),
                 },
+                "C_indagacion_reflexiva": {
+                    # Mano derecha en postura de reflexión socrática, izquierda al muslo
+                    "waist_pitch": 0.04,
+                    "waist_roll": 0.02,
+                    "waist_yaw": 0.05,
+                    "left_shoulder_pitch": 0.38,
+                    "left_shoulder_roll": 0.06,
+                    "left_elbow": 0.16,
+                    "left_wrist_roll": -1.25,
+                    "right_shoulder_pitch": 0.15,
+                    "right_shoulder_roll": -0.14,
+                    "right_elbow": 0.85,
+                    "right_wrist_pitch": 0.25,
+                    "right_wrist_roll": 0.10,
+                    "left_knee": 0.38,
+                    "right_knee": 0.34,
+                    "left_hip_pitch": -0.19,
+                    "right_hip_pitch": -0.17,
+                    "left_ankle_pitch": -0.19,
+                    "right_ankle_pitch": -0.17,
+                    **_mano_relajada_organica("left"),
+                    **_mano_empatica_pecho("right"),
+                },
             },
+            "variantes": [
+                # Variante 0: Sopesar Opciones en Balanza
+                [
+                    {
+                        "waist_yaw": 0.15, "waist_roll": -0.04, "left_shoulder_pitch": 0.12, "left_shoulder_roll": 0.32,
+                        "left_elbow": 0.50, "left_wrist_roll": -0.30, "right_shoulder_pitch": 0.40, "right_shoulder_roll": -0.06,
+                        "right_elbow": 0.16, "right_wrist_roll": 1.25, "left_knee": 0.44, "right_knee": 0.28,
+                        "left_hip_pitch": -0.22, "right_hip_pitch": -0.14, "left_ankle_pitch": -0.22, "right_ankle_pitch": -0.14,
+                        **_mano_declamatoria("left"), **_mano_relajada_organica("right"),
+                    },
+                    {
+                        "waist_yaw": -0.15, "waist_roll": 0.04, "right_shoulder_pitch": 0.12, "right_shoulder_roll": -0.32,
+                        "right_elbow": 0.50, "right_wrist_roll": 0.30, "left_shoulder_pitch": 0.40, "left_shoulder_roll": 0.06,
+                        "left_elbow": 0.16, "left_wrist_roll": -1.25, "left_knee": 0.28, "right_knee": 0.44,
+                        "left_hip_pitch": -0.14, "right_hip_pitch": -0.22, "left_ankle_pitch": -0.14, "right_ankle_pitch": -0.22,
+                        **_mano_relajada_organica("left"), **_mano_declamatoria("right"),
+                    },
+                ],
+                # Variante 1: Indagación Reflexiva Socrática
+                [
+                    {
+                        "waist_pitch": 0.04, "waist_roll": 0.02, "waist_yaw": 0.05, "left_shoulder_pitch": 0.38,
+                        "left_shoulder_roll": 0.06, "left_elbow": 0.16, "left_wrist_roll": -1.25, "right_shoulder_pitch": 0.15,
+                        "right_shoulder_roll": -0.14, "right_elbow": 0.85, "right_wrist_pitch": 0.25, "right_wrist_roll": 0.10,
+                        "left_knee": 0.38, "right_knee": 0.34, "left_hip_pitch": -0.19, "right_hip_pitch": -0.17,
+                        "left_ankle_pitch": -0.19, "right_ankle_pitch": -0.17,
+                        **_mano_relajada_organica("left"), **_mano_empatica_pecho("right"),
+                    },
+                ],
+            ],
         },
         "NEUTRO": {
             "nombre": "Atento y Conversacional",
@@ -680,7 +1009,61 @@ class RepertorioAnimatronicoG1:
                     **_mano_relajada_organica("left"),
                     **_mano_declamatoria("right"),
                 },
+                "C_escucha_abierta": {
+                    "waist_pitch": 0.01,
+                    "waist_roll": 0.0,
+                    "waist_yaw": 0.0,
+                    "left_shoulder_pitch": 0.28,
+                    "right_shoulder_pitch": 0.28,
+                    "left_shoulder_roll": 0.14,
+                    "right_shoulder_roll": -0.14,
+                    "left_elbow": 0.30,
+                    "right_elbow": 0.30,
+                    "left_wrist_roll": -0.75,
+                    "right_wrist_roll": 0.75,
+                    "left_knee": 0.34,
+                    "right_knee": 0.34,
+                    "left_hip_pitch": -0.17,
+                    "right_hip_pitch": -0.17,
+                    "left_ankle_pitch": -0.17,
+                    "right_ankle_pitch": -0.17,
+                    **_mano_relajada_organica("left"),
+                    **_mano_relajada_organica("right"),
+                },
             },
+            "variantes": [
+                # Variante 0: Giro de Atención Receptiva Izquierda
+                [
+                    {
+                        "waist_pitch": 0.02, "waist_yaw": 0.08, "left_shoulder_pitch": 0.24, "left_shoulder_roll": 0.20,
+                        "left_elbow": 0.38, "left_wrist_roll": -0.50, "right_shoulder_pitch": 0.38, "right_elbow": 0.16,
+                        "right_wrist_roll": 1.25, "left_knee": 0.40, "right_knee": 0.28, "left_hip_pitch": -0.20,
+                        "right_hip_pitch": -0.14, "left_ankle_pitch": -0.20, "right_ankle_pitch": -0.14,
+                        **_mano_declamatoria("left"), **_mano_relajada_organica("right"),
+                    },
+                ],
+                # Variante 1: Giro de Atención Receptiva Derecha
+                [
+                    {
+                        "waist_pitch": 0.02, "waist_yaw": -0.08, "right_shoulder_pitch": 0.24, "right_shoulder_roll": -0.20,
+                        "right_elbow": 0.38, "right_wrist_roll": 0.50, "left_shoulder_pitch": 0.38, "left_elbow": 0.16,
+                        "left_wrist_roll": -1.25, "left_knee": 0.28, "right_knee": 0.40, "left_hip_pitch": -0.14,
+                        "right_hip_pitch": -0.20, "left_ankle_pitch": -0.14, "right_ankle_pitch": -0.20,
+                        **_mano_relajada_organica("left"), **_mano_declamatoria("right"),
+                    },
+                ],
+                # Variante 2: Escucha Abierta y Atenta
+                [
+                    {
+                        "waist_pitch": 0.01, "waist_roll": 0.0, "waist_yaw": 0.0, "left_shoulder_pitch": 0.28,
+                        "right_shoulder_pitch": 0.28, "left_shoulder_roll": 0.14, "right_shoulder_roll": -0.14,
+                        "left_elbow": 0.30, "right_elbow": 0.30, "left_wrist_roll": -0.75, "right_wrist_roll": 0.75,
+                        "left_knee": 0.34, "right_knee": 0.34, "left_hip_pitch": -0.17, "right_hip_pitch": -0.17,
+                        "left_ankle_pitch": -0.17, "right_ankle_pitch": -0.17,
+                        **_mano_relajada_organica("left"), **_mano_relajada_organica("right"),
+                    },
+                ],
+            ],
         },
         "CRISIS_RIESGO": {
             "nombre": "Contención Ética",
@@ -722,6 +1105,17 @@ class RepertorioAnimatronicoG1:
                     **_mano_relajada_organica("right"),
                 },
             },
+            "variantes": [
+                [
+                    {
+                        "waist_pitch": 0.04, "left_shoulder_pitch": 0.34, "right_shoulder_pitch": 0.34,
+                        "left_elbow": 0.22, "right_elbow": 0.22, "left_wrist_roll": -1.20, "right_wrist_roll": 1.20,
+                        "left_knee": 0.36, "right_knee": 0.36, "left_hip_pitch": -0.18, "right_hip_pitch": -0.18,
+                        "left_ankle_pitch": -0.18, "right_ankle_pitch": -0.18,
+                        **_mano_relajada_organica("left"), **_mano_relajada_organica("right"),
+                    },
+                ],
+            ],
         },
     }
 
@@ -811,6 +1205,8 @@ class CoreografoPosturalG1:
             salida.append(nueva)
         return salida
 
+    _rotador_variantes: dict[str, int] = {}
+
     @classmethod
     def obtener_coreografia(
         cls,
@@ -818,6 +1214,7 @@ class CoreografoPosturalG1:
         valencia: Optional[float] = None,
         arousal: Optional[float] = None,
         intensidad: float = 0.6,
+        variante_idx: Optional[int] = None,
     ) -> tuple[list[dict[str, float]], float, float, float]:
         """Devuelve (secuencia_poses, duracion_step_s, proxemica_m, vel_proxemica_ms)."""
         base = _pose_neutra_suave()
@@ -827,12 +1224,27 @@ class CoreografoPosturalG1:
             emocion, RepertorioAnimatronicoG1.ROLES["NEUTRO"]
         )
 
+        variantes = rol.get("variantes")
+        if not variantes:
+            variantes = [list(rol.get("ademanes", {}).values())]
+
+        if variante_idx is not None:
+            v_idx = variante_idx % len(variantes)
+        elif intensidad > 0.75:
+            # Alta intensidad: variante 0 (más enérgica / expansiva)
+            v_idx = 0
+        else:
+            # Rotación sin repetición inmediata
+            v_idx = cls._rotador_variantes.get(emocion, 0) % len(variantes)
+            cls._rotador_variantes[emocion] = (v_idx + 1) % len(variantes)
+
+        pasos_ademan = variantes[v_idx]
         sec = []
-        for ademan_dict in rol["ademanes"].values():
+        for ademan_dict in pasos_ademan:
             pose = dict(base)
             pose.update(rol["base"])
             pose.update(ademan_dict)
-            if emocion == "MOTIVACION_ALEGRIA" and "C_celebracion_pulgar" in rol["ademanes"]:
+            if emocion == "MOTIVACION_ALEGRIA" and "C_celebracion_pulgar" in rol.get("ademanes", {}):
                 if ademan_dict == rol["ademanes"]["C_celebracion_pulgar"]:
                     pose.update(_pulgar_arriba_derecho())
             sec.append(pose)
@@ -999,6 +1411,9 @@ class MotorRespuestaCoach:
                 "Paremos un segundo acá. Inhalá suave conmigo mientras subo los brazos... y soltá el aire despacio. No tenés que resolver todo al mismo tiempo; elijamos una sola cosa chiquita para los próximos diez minutos.",
                 "Estás a salvo en este momento, bajemos un cambio juntos. Sentí el apoyo de los pies en el piso y tomá aire lento. Cuando la mente va a mil, frenar treinta segundos ordena todo el panorama.",
                 "Te escucho y noto la presión que tenés encima. Hagamos una respiración profunda juntos ahora mismo... Eso es. Vamos paso a paso, sin exigirte perfección.",
+                "Tranquilo, aflojá los hombros y la mandíbula un instante. La urgencia muchas veces es una ilusión de la cabeza; frenemos acá y ordenemos una sola prioridad.",
+                "Tomate este minuto como una pausa protegida. No tenés que demostrarle nada a nadie en este segundo. Inhalá profundo, exhalá largo y después seguimos.",
+                "Acá estoy con vos. Cuando el cuerpo se tensiona así, ayuda anclar la atención en lo concreto. ¿Qué es lo primero y más simple que está bajo tu control ahora?",
             ],
         ),
         "TRISTEZA_DESANIMO": (
@@ -1017,6 +1432,9 @@ class MotorRespuestaCoach:
                 "Te escucho de verdad, y es totalmente válido que hoy te sientas agotado o triste. Un tropiezo no borra todo el esfuerzo que venís haciendo. Hoy date permiso para descansar un poco; acá estoy acompañándote.",
                 "Lamento que estés pasando este momento pesado. No tenés que poder con todo hoy ni forzar estar bien. Si querés, contame qué fue lo que más te dolió y lo pensamos sin apuro.",
                 "Es humano sentirse sin fuerzas cuando algo no sale como esperabas. Tratate con la misma paciencia con la que tratarías a un buen amigo. Cuando estés listo, damos el próximo paso juntos.",
+                "Abrazá este momento sin juzgarte; los días grises también forman parte del camino. No hay nada malo en necesitar una pausa y bajar las exigencias hoy.",
+                "Sé que pesa mucho cuando las cosas no se dan como querías. No estás solo con esto; descansá la cabeza hoy y mañana lo miramos con ojos frescos.",
+                "A veces el acto más valiente es simplemente frenar y respirar. Acá me quedo haciéndote el aguante en silencio o charlando de lo que te haga bien.",
             ],
         ),
         "ENOJO_FRUSTRACION": (
@@ -1035,6 +1453,9 @@ class MotorRespuestaCoach:
                 "Entiendo perfectamente tu bronca; cualquiera estaría frustrado en esa situación. Te doy tu espacio para descargar. Cuando quieras, separamos lo que no depende de vos de lo que sí podemos destrabar hoy.",
                 "Tiene sentido que te dé impotencia cuando algo se traba así. Tomemos aire un instante para no decidir en caliente. Decime cuál es el obstáculo principal y lo atacamos de forma concreta.",
                 "Escucho tu frustración y no te voy a pedir que la ignores. Usemos esa energía a tu favor: identifiquemos qué parte puntual falló y armemos un plan directo para corregirlo.",
+                "Comprendo la calentura, es totalmente lógica. Descargá tranquilo. Cuando baje un poco el calor, vemos cómo dar vuelta la situación a tu favor con calma y precisión.",
+                "Frenemos la pelota un segundo. La bronca te da energía, pero no dejemos que te nuble el criterio. ¿Cuál es el núcleo del problema que querés destrabar?",
+                "Te escucho con total respeto. No te voy a decir que te calmes porque tenés motivos para estar molesto; enfoquemos esa fuerza en resolver lo que depende de vos.",
             ],
         ),
         "DUDA_INSEGURIDAD": (
@@ -1053,6 +1474,9 @@ class MotorRespuestaCoach:
                 "Cuando una decisión parece enorme, ayuda dividirla en dos caminos claros. Por un lado, pensá qué es lo peor realista que podría pasar; por el otro, qué aprenderías si sale bien. ¿Cuál opción te da más curiosidad que miedo?",
                 "Es normal dudar cuando algo te importa. En vez de buscar la decisión perfecta de entrada, hagamos una prueba chiquita y reversible hoy. ¿Cuál sería el primer paso más simple para probar?",
                 "Ordenemos las ideas juntos. Si tuvieras que aconsejar a un compañero en tu misma situación con los datos que hoy tenés en la mano, ¿qué camino le sugerirías elegir primero?",
+                "La duda es señal de que estás cuidando el resultado. Si tuvieras garantizado que no vas a fallar, ¿qué camino tomarías sin dudarlo un segundo?",
+                "A veces el análisis excesivo paraliza. Elijamos la opción que más puertas te deje abiertas para rectificar sobre la marcha. ¿Cuál sentís más flexible?",
+                "Bajar la incertidumbre se logra con pequeñas acciones, no pensando en bucle. ¿Qué dato concreto te falta hoy para sentirte un diez por ciento más seguro?",
             ],
         ),
         "MOTIVACION_ALEGRIA": (
@@ -1071,6 +1495,9 @@ class MotorRespuestaCoach:
                 "¡Qué alegría enorme escuchar eso! Te lo ganaste con constancia y dedicación. Guardate bien esta sensación de logro para recordar de todo lo que sos capaz en el próximo desafío.",
                 "¡Excelente noticia, felicitaciones! Disfrutá este resultado porque es fruto directo de tu trabajo. ¿Cuál es el próximo objetivo que te entusiasma encarar con este envión?",
                 "¡Increíble avance! Me encanta ver esa energía. Reconocer tus propios logros fortalece tu confianza; celebralo hoy como corresponde.",
+                "¡Golazo total! Esas son las noticias que dan gusto escuchar. Aprovechá este envión anímico que te deja la vara altísima.",
+                "¡Brillante lo que lograste! Qué satisfacción da ver cuando el esfuerzo rinde sus frutos. Festejalo con ganas que te lo re merecés.",
+                "¡Qué gran momento! Mirá hacia atrás un segundo y fijate todo lo que tuviste que superar para llegar hasta acá. ¡A seguir con todo!",
             ],
         ),
         "CRISIS_RIESGO": (
@@ -1105,6 +1532,9 @@ class MotorRespuestaCoach:
                 "Acá estoy atento escuchándote. Contame cómo te venís sintiendo hoy o qué tema tenés en mente y me adapto a tu ritmo.",
                 "Te escucho con atención. Contame un poco más sobre eso o cómo te hace sentir para poder acompañarte mejor.",
                 "Claro, te sigo. ¿Y cómo venís llevando ese tema hoy? Si querés lo charlamos paso a paso.",
+                "Entiendo perfectamente lo que me decís. ¿Qué aspecto de eso sentís que es el más relevante ahora mismo?",
+                "Te voy siguiendo. A veces poner las ideas en palabras aclara el panorama. Contame un poco más y lo pensamos juntos.",
+                "Acá me tenés disponible para lo que necesites, ya sea charlar de cualquier cosa o probar algún movimiento en el robot.",
             ],
         ),
     }
@@ -1188,6 +1618,23 @@ class MotorRespuestaCoach:
                 "¡Hasta luego! Que tengas un excelente resto del día y muchos éxitos con todo. ¡Nos vemos pronto!",
             )
 
+        # 7. Usuario no sabe qué decir / bloqueo reflexivo / momento de silencio
+        if re.search(
+            r"\b(?:no\s+se\s+que\s+decir(?:te)?|no\s+tengo\s+palabras|me\s+quede\s+en\s+blanco|no\s+se\s+me\s+ocurre)\b|^no\s+se[!?.]*$",
+            t,
+        ):
+            respuestas_bloqueo = [
+                "Está perfecto no saber qué decir. No hay ningún apuro acá ni tenés que tener todo resuelto hoy. Podemos quedarnos un momento tranquilos o empezar por lo más chiquito que se te cruce por la mente. ¿Querés?",
+                "Tranquilo, tomarse un momento para pensar o no tener palabras claras es parte del proceso. Respiremos un segundo sin presiones. Acá estoy acompañándote a tu ritmo.",
+                "No te preocupes en absoluto. A veces frenar y no decir nada dice un montón. Tomate tu tiempo; cuando sientas ganas de retomar, decime.",
+            ]
+            import random
+            return (
+                "Contención y Descompresión Reflexiva",
+                "ANSIEDAD_ESTRES",
+                random.choice(respuestas_bloqueo),
+            )
+
         return None
 
     def planificar(
@@ -1203,7 +1650,7 @@ class MotorRespuestaCoach:
 
         conv_basica = (
             self._responder_conversacion_basica(texto_usuario, estado)
-            if emo in ("NEUTRO", "MOTIVACION_ALEGRIA")
+            if emo in ("NEUTRO", "MOTIVACION_ALEGRIA", "ANSIEDAD_ESTRES")
             else None
         )
         if conv_basica is not None:
@@ -1238,9 +1685,27 @@ class MotorRespuestaCoach:
                 respuesta = respuesta_conv
                 origen = "CONV_RAPIDA"
             else:
-                idx = self._contadores_rotacion.get(emo, 0) % len(plantillas)
-                self._contadores_rotacion[emo] = idx + 1
-                respuesta = plantillas[idx]
+                # Anti-repetición: evitar frases idénticas o muy similares de los últimos turnos del asistente
+                respuestas_recientes = [
+                    m["content"].strip().lower()
+                    for m in list(self.historial_chat)[-8:]
+                    if m.get("role") == "assistant"
+                ]
+                candidatas = list(plantillas)
+                seleccionada = None
+                start_idx = self._contadores_rotacion.get(emo, 0)
+                for offset in range(len(candidatas)):
+                    p_cand = candidatas[(start_idx + offset) % len(candidatas)]
+                    prefijo = p_cand[:32].strip().lower()
+                    if not any(prefijo in r for r in respuestas_recientes):
+                        seleccionada = p_cand
+                        self._contadores_rotacion[emo] = (start_idx + offset + 1) % len(candidatas)
+                        break
+                if not seleccionada:
+                    idx = start_idx % len(plantillas)
+                    self._contadores_rotacion[emo] = (idx + 1) % len(plantillas)
+                    seleccionada = plantillas[idx]
+                respuesta = seleccionada
 
         # Retroproyección afectiva semántica: si el texto del usuario no tenía palabras clave
         # explícitas (NEUTRO sin cámara/micrófono) pero el LLM detectó alegría/tristeza/estrés

@@ -455,17 +455,27 @@ class SimuladorEmbebidoG1:
                             actual = float(self._data.qpos[adr])
                             self._data.qpos[adr] = actual + (v_obj - actual) * min(1.0, dt * 7.0)
                 elif self.accion == "animacion":
-                    # Show Action Sequencing (Teatral)
-                    if time.monotonic() - self._ultimo_tiempo_pose > self._duracion_step:
-                        self._idx_secuencia = (self._idx_secuencia + 1) % len(self._secuencia_actual)
-                        self._ultimo_tiempo_pose = time.monotonic()
-                    
-                    target = self._secuencia_actual[self._idx_secuencia]
-                    for k, v_obj in target.items():
-                        if k in self._jmap:
-                            adr = self._jmap[k]
-                            actual = float(self._data.qpos[adr])
-                            self._data.qpos[adr] = actual + (v_obj - actual) * min(1.0, dt * 8.5)
+                    # Show Action Sequencing (Teatral de ciclo único)
+                    if self._secuencia_actual:
+                        if time.monotonic() - self._ultimo_tiempo_pose > self._duracion_step:
+                            self._idx_secuencia += 1
+                            if self._idx_secuencia >= len(self._secuencia_actual):
+                                # Secuencia teatral completa -> transición a quieto o gesticulación de habla
+                                self.accion = "quieto"
+                                self._secuencia_actual = []
+                                self._idx_secuencia = 0
+                            else:
+                                self._ultimo_tiempo_pose = time.monotonic()
+
+                        if self._secuencia_actual and self._idx_secuencia < len(self._secuencia_actual):
+                            target = self._secuencia_actual[self._idx_secuencia]
+                            for k, v_obj in target.items():
+                                if k in self._jmap:
+                                    adr = self._jmap[k]
+                                    actual = float(self._data.qpos[adr])
+                                    self._data.qpos[adr] = actual + (v_obj - actual) * min(1.0, dt * 8.5)
+                    else:
+                        self.accion = "quieto"
                 else:
                     # Cinemática Afectiva Continua de Cuerpo Completo (Laban + Lecoq + McNeill)
                     # 1. Definir Postura Base objetivo f(V, A)
@@ -483,8 +493,8 @@ class SimuladorEmbebidoG1:
                             "right_shoulder_roll": -0.06,
                             "left_elbow": 0.24,
                             "right_elbow": 0.24,
-                            "left_wrist_roll": 0.0,
-                            "right_wrist_roll": 0.0,
+                            "left_wrist_roll": -1.25,
+                            "right_wrist_roll": 1.25,
                             "manos": 0.04,
                         }
                     elif v > 0.25:
@@ -499,8 +509,8 @@ class SimuladorEmbebidoG1:
                             "right_shoulder_roll": -0.16,
                             "left_elbow": 0.38,
                             "right_elbow": 0.38,
-                            "left_wrist_roll": 0.15,
-                            "right_wrist_roll": -0.15,
+                            "left_wrist_roll": -1.15,
+                            "right_wrist_roll": 1.15,
                             "manos": 0.18,
                         }
                     elif a > 0.30:
@@ -515,12 +525,12 @@ class SimuladorEmbebidoG1:
                             "right_shoulder_roll": -0.12,
                             "left_elbow": 0.34,
                             "right_elbow": 0.34,
-                            "left_wrist_roll": -0.08,
-                            "right_wrist_roll": 0.08,
+                            "left_wrist_roll": -1.25,
+                            "right_wrist_roll": 1.25,
                             "manos": 0.08,
                         }
                     else:
-                        # Neutro: reposo anatómico natural
+                        # Neutro: reposo anatómico natural (palmas hacia los muslos)
                         base_obj = {
                             "waist_pitch": 0.0,
                             "waist_roll": 0.0,
@@ -531,8 +541,8 @@ class SimuladorEmbebidoG1:
                             "right_shoulder_roll": -0.08,
                             "left_elbow": 0.28,
                             "right_elbow": 0.28,
-                            "left_wrist_roll": 0.0,
-                            "right_wrist_roll": 0.0,
+                            "left_wrist_roll": -1.25,
+                            "right_wrist_roll": 1.25,
                             "manos": 0.05,
                         }
 

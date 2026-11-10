@@ -13,7 +13,7 @@ from percepcion_multimodal import AnalizadorAcusticoVoz, MetricasAcusticasVoz
 class ReconocedorVozMultimodal:
     """Captura audio del micrófono y devuelve (texto, MetricasAcusticasVoz)."""
 
-    def __init__(self, idioma: str = "es-AR", pausa_silencio: float = 0.85):
+    def __init__(self, idioma: str = "es-AR", pausa_silencio: float = 2.0):
         try:
             import speech_recognition as sr
         except ImportError as exc:
@@ -24,6 +24,7 @@ class ReconocedorVozMultimodal:
         self._sr = sr
         self._reconocedor = sr.Recognizer()
         self._reconocedor.pause_threshold = pausa_silencio
+        self._reconocedor.non_speaking_duration = 0.8
         self._analizador_acustico = AnalizadorAcusticoVoz()
         self.idioma = idioma
         self.microfono_disponible = False
@@ -61,7 +62,7 @@ class ReconocedorVozMultimodal:
         print("\n  Hablá ahora con Ottoman (o decí 'salir' para terminar)...")
         try:
             with self._microfono as fuente:
-                audio = self._reconocedor.listen(fuente, timeout=6, phrase_time_limit=14)
+                audio = self._reconocedor.listen(fuente, timeout=8, phrase_time_limit=40)
         except self._sr.WaitTimeoutError:
             print("  [MIC] No se detectó voz a tiempo.")
             return "", MetricasAcusticasVoz(audio_analizado=False)

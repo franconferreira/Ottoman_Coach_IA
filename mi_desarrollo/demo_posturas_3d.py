@@ -329,18 +329,25 @@ class DemoPosturasG1:
         self._ultimo_tiempo = ahora
 
         if self.modo_teatral and self._secuencia_actual:
-            # Secuenciador teatral: transiciona entre poses de gran arco cada duracion_step segundos
+            # Secuenciador teatral: transiciona a lo largo del arco de ademanes y culmina en postura continua
             if ahora - self._ultimo_tiempo_pose > self._duracion_step:
-                self._idx_secuencia = (self._idx_secuencia + 1) % len(self._secuencia_actual)
-                self._ultimo_tiempo_pose = ahora
-                self._actualizar_telemetria()
+                self._idx_secuencia += 1
+                if self._idx_secuencia >= len(self._secuencia_actual):
+                    self.modo_teatral = False
+                    self._secuencia_actual = []
+                    self._idx_secuencia = 0
+                    self._actualizar_telemetria()
+                else:
+                    self._ultimo_tiempo_pose = ahora
+                    self._actualizar_telemetria()
 
-            target_pose = self._secuencia_actual[self._idx_secuencia]
-            for art, val in target_pose.items():
-                if art in self.jmap:
-                    adr = self.jmap[art]
-                    actual = float(self.data.qpos[adr])
-                    self.data.qpos[adr] = actual + (val - actual) * min(1.0, dt * 8.5)
+            if self.modo_teatral and self._secuencia_actual and self._idx_secuencia < len(self._secuencia_actual):
+                target_pose = self._secuencia_actual[self._idx_secuencia]
+                for art, val in target_pose.items():
+                    if art in self.jmap:
+                        adr = self.jmap[art]
+                        actual = float(self.data.qpos[adr])
+                        self.data.qpos[adr] = actual + (val - actual) * min(1.0, dt * 8.5)
         else:
             # Cinemática continua
             if self.hablando:
