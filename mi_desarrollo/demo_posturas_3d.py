@@ -1,15 +1,16 @@
 """Demo Standalone: Simulación 3D de Posturas y Gesticulación del Humanoide Unitree G1.
 
 Permite experimentar visualmente y en tiempo real:
-  1. Postura Base Neutra vs Otras actitudes emocionales (Alegría, Tristeza, Ansiedad).
-  2. Idle Breathing: Respiración sutil continua cuando el robot está en reposo.
-  3. Co-Speech Gestures: Gesticulación coordinada de brazos, codos, muñecas y dedos
-     cuando el robot está hablando (con velocidad y amplitud moduladas).
+  1. Postura Base Neutra vs Otras actitudes emocionales (Alegría, Tristeza, Ansiedad, Enojo).
+  2. Idle Breathing: Respiración sutil diafragmática continua cuando el robot está en reposo.
+  3. Co-Speech Gestures: Gesticulación coordinada con desfasaje Center-Out (torso precede a hombros y codos).
+  4. Sliders continuos de Valencia y Arousal en tiempo real.
 """
 
 from __future__ import annotations
 
 import math
+import sys
 import time
 import tkinter as tk
 from pathlib import Path
@@ -18,14 +19,22 @@ from typing import Optional
 import mujoco
 from PIL import Image, ImageTk
 
+# Importar lógica postural y afectiva del coach
+_dir_actual = Path(__file__).resolve().parent
+if str(_dir_actual) not in sys.path:
+    sys.path.insert(0, str(_dir_actual))
+from coach_emocional import CoreografoPosturalG1
+
 
 class DemoPosturasG1:
     def __init__(self):
         self.ancho_render = 560
-        self.alto_render = 480
+        self.alto_render = 450
 
-        # Estado cinemático
+        # Estado cinemático y afectivo
         self.emocion_actual = "NEUTRO"
+        self.valencia = 0.0
+        self.arousal = 0.0
         self.hablando = False
         self.multiplicador_energia = 1.0   # 0.5 (calmo) .. 1.0 (medio) .. 1.8 (vivo)
 
@@ -34,8 +43,8 @@ class DemoPosturasG1:
 
         # Construir Interfaz Gráfica Tkinter
         self.root = tk.Tk()
-        self.root.title("Demo 3D — Posturas y Gesticulación Humanoide Unitree G1")
-        self.root.geometry("820x680")
+        self.root.title("Demo 3D — Posturas y Gesticulación Humanoide Unitree G1 (Laban / Lecoq / McNeill)")
+        self.root.geometry("860x730")
         self.root.configure(bg="#070B14")
         self.root.resizable(False, False)
 
@@ -82,27 +91,12 @@ class DemoPosturasG1:
         self.camera.elevation = -10.0
         self.camera.azimuth = 162.0
 
-        # Poses objetivo actuales (para lerp suave) — Postura natural humana
-        self.pose_actual = {
-            "waist_pitch": 0.0,
-            "waist_yaw": 0.0,
-            "left_shoulder_pitch": 0.42,
-            "right_shoulder_pitch": 0.42,
-            "left_shoulder_roll": 0.08,
-            "right_shoulder_roll": -0.08,
-            "left_elbow": 0.28,
-            "right_elbow": 0.28,
-            "left_wrist_roll": 0.0,
-            "right_wrist_roll": 0.0,
-            "manos": 0.05,
-        }
-
     def _construir_ui(self):
         # Título superior
         lbl_titulo = tk.Label(
             self.root,
-            text="UNITREE G1 — DEMO DE POSTURA Y GESTICULACIÓN AL HABLAR",
-            bg="#070B14", fg="#38BDF8", font=("Segoe UI", 11, "bold"), pady=8
+            text="UNITREE G1 — EXPRESIVIDAD CORPORAL COMPLETA Y GESTOS CO-VERBALES",
+            bg="#070B14", fg="#38BDF8", font=("Segoe UI", 11, "bold"), pady=6
         )
         lbl_titulo.pack()
 
@@ -111,34 +105,34 @@ class DemoPosturasG1:
             self.root, width=self.ancho_render, height=self.alto_render,
             bg="#060911", highlightbackground="#1E293B", highlightthickness=2
         )
-        self.canvas.pack(pady=4)
+        self.canvas.pack(pady=2)
 
         # Barra de telemetría en vivo
         self.lbl_telemetria = tk.Label(
             self.root,
-            text="Modo: NEUTRO | Estado: EN REPOSO (Idle Breathing 0.25 Hz)",
+            text="Modo: NEUTRO (V=+0.00, A=+0.00) | EN REPOSO (Idle Breathing 0.25 Hz)",
             bg="#0D1322", fg="#A7F3D0", font=("Consolas", 9, "bold"),
             padx=12, pady=4, relief="ridge"
         )
-        self.lbl_telemetria.pack(fill="x", padx=40, pady=4)
+        self.lbl_telemetria.pack(fill="x", padx=40, pady=3)
 
         # Panel de controles interactivos
-        frame_controles = tk.Frame(self.root, bg="#070B14", pady=4)
+        frame_controles = tk.Frame(self.root, bg="#070B14", pady=2)
         frame_controles.pack()
 
         # Botón Toggle Hablando
         self.btn_hablar = tk.Button(
             frame_controles,
             text="🗣️ HABLANDO: NO (En Reposo)",
-            bg="#1E293B", fg="#F8FAFC", font=("Segoe UI", 10, "bold"),
-            padx=16, pady=6, relief="flat", cursor="hand2",
+            bg="#1E293B", fg="#F8FAFC", font=("Segoe UI", 9, "bold"),
+            padx=14, pady=4, relief="flat", cursor="hand2",
             command=self._toggle_hablando
         )
-        self.btn_hablar.grid(row=0, column=0, columnspan=2, padx=8, pady=4)
+        self.btn_hablar.grid(row=0, column=0, padx=8, pady=2)
 
         # Selector de Velocidad / Energía
         frame_energia = tk.Frame(frame_controles, bg="#070B14")
-        frame_energia.grid(row=0, column=2, columnspan=3, padx=8, pady=4)
+        frame_energia.grid(row=0, column=1, padx=8, pady=2)
         tk.Label(frame_energia, text="Energía Gestual:", bg="#070B14", fg="#94A3B8", font=("Segoe UI", 8, "bold")).pack(side="left", padx=4)
 
         def _set_energia(val: float, nombre: str):
@@ -152,22 +146,45 @@ class DemoPosturasG1:
         tk.Button(frame_energia, text="Enérgico (2.6 Hz)", bg="#1E293B", fg="#FDE047", font=("Segoe UI", 8),
                   command=lambda: _set_energia(1.65, "Enérgico")).pack(side="left", padx=2)
 
+        # Fila de Sliders Continuos de Valencia y Arousal
+        frame_sliders = tk.Frame(self.root, bg="#070B14", pady=2)
+        frame_sliders.pack()
+
+        tk.Label(frame_sliders, text="Valencia (Displacer ↔ Placer):", bg="#070B14", fg="#94A3B8", font=("Segoe UI", 8)).grid(row=0, column=0, padx=6)
+        self.scale_valencia = tk.Scale(
+            frame_sliders, from_=-1.0, to=1.0, resolution=0.05, orient="horizontal",
+            length=180, bg="#0D1322", fg="#38BDF8", highlightthickness=0,
+            command=lambda v: self._al_cambiar_slider()
+        )
+        self.scale_valencia.set(0.0)
+        self.scale_valencia.grid(row=0, column=1, padx=6)
+
+        tk.Label(frame_sliders, text="Arousal (Calma ↔ Activación):", bg="#070B14", fg="#94A3B8", font=("Segoe UI", 8)).grid(row=0, column=2, padx=6)
+        self.scale_arousal = tk.Scale(
+            frame_sliders, from_=-1.0, to=1.0, resolution=0.05, orient="horizontal",
+            length=180, bg="#0D1322", fg="#FBBF24", highlightthickness=0,
+            command=lambda v: self._al_cambiar_slider()
+        )
+        self.scale_arousal.set(0.0)
+        self.scale_arousal.grid(row=0, column=3, padx=6)
+
         # Fila de Presets Emocionales
-        frame_emociones = tk.Frame(self.root, bg="#070B14", pady=4)
+        frame_emociones = tk.Frame(self.root, bg="#070B14", pady=3)
         frame_emociones.pack()
-        tk.Label(frame_emociones, text="Actitud Emocional:", bg="#070B14", fg="#94A3B8", font=("Segoe UI", 8, "bold")).pack(side="left", padx=6)
+        tk.Label(frame_emociones, text="Presets Emocionales:", bg="#070B14", fg="#94A3B8", font=("Segoe UI", 8, "bold")).pack(side="left", padx=6)
 
         emociones = [
-            ("🔵 NEUTRO", "NEUTRO", "#38BDF8"),
-            ("🟡 ALEGRÍA", "MOTIVACION_ALEGRIA", "#FBBF24"),
-            ("🟠 TRISTEZA", "TRISTEZA_DESANIMO", "#93C5FD"),
-            ("🟢 ANSIEDAD", "ANSIEDAD_ESTRES", "#6EE7B7"),
+            ("🔵 NEUTRO", "NEUTRO", 0.0, 0.0, "#38BDF8"),
+            ("🟡 ALEGRÍA", "MOTIVACION_ALEGRIA", 0.70, 0.60, "#FBBF24"),
+            ("🟠 TRISTEZA", "TRISTEZA_DESANIMO", -0.65, -0.45, "#93C5FD"),
+            ("🟢 ANSIEDAD", "ANSIEDAD_ESTRES", -0.35, 0.65, "#6EE7B7"),
+            ("🔴 ENOJO", "ENOJO_FRUSTRACION", -0.70, 0.75, "#F87171"),
         ]
-        for txt_b, emo_clave, col_b in emociones:
+        for txt_b, emo_clave, v_p, a_p, col_b in emociones:
             b = tk.Button(
                 frame_emociones, text=txt_b, bg="#0F172A", fg=col_b,
-                font=("Segoe UI", 8, "bold"), padx=10, pady=3, relief="flat", cursor="hand2",
-                command=lambda e=emo_clave: self._set_emocion(e)
+                font=("Segoe UI", 8, "bold"), padx=9, pady=3, relief="flat", cursor="hand2",
+                command=lambda e=emo_clave, v=v_p, a=a_p: self._set_emocion_preset(e, v, a)
             )
             b.pack(side="left", padx=3)
 
@@ -175,7 +192,7 @@ class DemoPosturasG1:
         self.hablando = not self.hablando
         if self.hablando:
             self.btn_hablar.config(
-                text="🗣️ HABLANDO: SÍ (Gesticulando al compás)",
+                text="🗣️ HABLANDO: SÍ (Co-speech Gestures)",
                 bg="#0284C7", fg="#FFFFFF"
             )
         else:
@@ -185,15 +202,24 @@ class DemoPosturasG1:
             )
         self._actualizar_telemetria()
 
-    def _set_emocion(self, emo: str):
+    def _set_emocion_preset(self, emo: str, val: float, aro: float):
         self.emocion_actual = emo
+        self.valencia = val
+        self.arousal = aro
+        self.scale_valencia.set(val)
+        self.scale_arousal.set(aro)
+        self._actualizar_telemetria()
+
+    def _al_cambiar_slider(self):
+        self.valencia = float(self.scale_valencia.get())
+        self.arousal = float(self.scale_arousal.get())
         self._actualizar_telemetria()
 
     def _actualizar_telemetria(self):
-        estado_h = "HABLANDO (Co-speech Gestures activos)" if self.hablando else "EN REPOSO (Idle Breathing)"
-        freq = 0.25 if not self.hablando else (1.6 * self.multiplicador_energia)
+        estado_h = "HABLANDO (Co-speech Gestures)" if self.hablando else "EN REPOSO (Idle Breathing)"
+        freq = 0.25 if not self.hablando else ((1.4 + 0.8 * max(0.0, self.arousal)) * self.multiplicador_energia)
         self.lbl_telemetria.config(
-            text=f"Modo: {self.emocion_actual} | {estado_h} | Cadencia: {freq:.2f} Hz | Energía: x{self.multiplicador_energia:.1f}"
+            text=f"Modo: {self.emocion_actual} (V={self.valencia:+.2f}, A={self.arousal:+.2f}) | {estado_h} | Cadencia: {freq:.2f} Hz"
         )
 
     def loop(self):
@@ -201,129 +227,34 @@ class DemoPosturasG1:
         dt = min(0.06, max(0.001, ahora - self._ultimo_tiempo))
         self._ultimo_tiempo = ahora
 
-        # 1. Definir Postura Base objetivo según la emoción elegida (Posturas Naturales Humanoides)
-        if self.emocion_actual == "MOTIVACION_ALEGRIA":
-            # Torso erguido, apertura natural y entusiasmo moderado
-            base_obj = {
-                "waist_pitch": -0.03,
-                "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.30,
-                "right_shoulder_pitch": 0.30,
-                "left_shoulder_roll": 0.16,
-                "right_shoulder_roll": -0.16,
-                "left_elbow": 0.38,
-                "right_elbow": 0.38,
-                "left_wrist_roll": 0.15,
-                "right_wrist_roll": -0.15,
-                "manos": 0.20,
-            }
-        elif self.emocion_actual == "TRISTEZA_DESANIMO":
-            # Inclinación empática de torso (+0.14 rad), brazos relajados hacia abajo
-            base_obj = {
-                "waist_pitch": 0.14,
-                "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.45,
-                "right_shoulder_pitch": 0.45,
-                "left_shoulder_roll": 0.06,
-                "right_shoulder_roll": -0.06,
-                "left_elbow": 0.24,
-                "right_elbow": 0.24,
-                "left_wrist_roll": 0.0,
-                "right_wrist_roll": 0.0,
-                "manos": 0.04,
-            }
-        elif self.emocion_actual == "ANSIEDAD_ESTRES":
-            # Co-regulación: torso templado, brazos en actitud de sosiego
-            base_obj = {
-                "waist_pitch": 0.01,
-                "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.38,
-                "right_shoulder_pitch": 0.38,
-                "left_shoulder_roll": 0.10,
-                "right_shoulder_roll": -0.10,
-                "left_elbow": 0.32,
-                "right_elbow": 0.32,
-                "left_wrist_roll": -0.10,
-                "right_wrist_roll": 0.10,
-                "manos": 0.08,
-            }
-        else:  # NEUTRO
-            # Postura canónica relajada de descanso
-            base_obj = {
-                "waist_pitch": 0.0,
-                "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.42,
-                "right_shoulder_pitch": 0.42,
-                "left_shoulder_roll": 0.08,
-                "right_shoulder_roll": -0.08,
-                "left_elbow": 0.28,
-                "right_elbow": 0.28,
-                "left_wrist_roll": 0.0,
-                "right_wrist_roll": 0.0,
-                "manos": 0.05,
-            }
-
-        # Transición suave (lerp) hacia la postura base
-        vel_lerp = 4.0 * dt
-        for k, v in base_obj.items():
-            self.pose_actual[k] += (v - self.pose_actual[k]) * min(1.0, vel_lerp)
-
-        # 2. Modulación armónica continua
+        # Avanzar fase gestual armónica
         if self.hablando:
-            # Co-speech gesture: gesticulación natural a la altura del abdomen / pecho medio
-            vel_onda = (3.2 * self.multiplicador_energia)
+            vel_onda = (3.0 + 1.2 * max(0.0, self.arousal)) * self.multiplicador_energia
             self._fase_gesto = (self._fase_gesto + dt * vel_onda) % (2.0 * math.pi)
-            f = self._fase_gesto
-
-            amp_sh = 0.08 * self.multiplicador_energia
-            amp_el = 0.12 * self.multiplicador_energia
-
-            mod_l_sh = -0.08 + amp_sh * math.sin(f)
-            mod_r_sh = -0.08 + amp_sh * math.sin(f + 0.9)
-            mod_l_el = 0.18 + amp_el * math.cos(f)
-            mod_r_el = 0.18 + amp_el * math.cos(f + 0.9)
-            mod_dedos = 0.16 * abs(math.sin(f * 0.8))
-            mod_torso = 0.012 * math.sin(f * 0.5)
+            fase = self._fase_gesto
         else:
-            # Idle breathing: brazos naturalmente descansados a los costados con respiración sutil
-            f_resp = ahora * 1.57  # ~4 segundos por ciclo respiratorio
-            mod_torso = 0.015 * math.sin(f_resp)
-            mod_l_sh = 0.012 * math.sin(f_resp)
-            mod_r_sh = 0.012 * math.sin(f_resp)
-            mod_l_el = 0.010 * math.cos(f_resp)
-            mod_r_el = 0.010 * math.cos(f_resp)
-            mod_dedos = 0.02 * (1.0 + math.sin(f_resp))
+            fase = ahora * 1.57  # ~0.25 Hz respiración diafragmática
 
-        # 3. Aplicar articulaciones resultantes en MuJoCo
-        p = self.pose_actual
-        if "waist_pitch" in self.jmap:
-            self.data.qpos[self.jmap["waist_pitch"]] = p["waist_pitch"] + mod_torso
-        if "left_shoulder_pitch" in self.jmap:
-            self.data.qpos[self.jmap["left_shoulder_pitch"]] = p["left_shoulder_pitch"] + mod_l_sh
-        if "right_shoulder_pitch" in self.jmap:
-            self.data.qpos[self.jmap["right_shoulder_pitch"]] = p["right_shoulder_pitch"] + mod_r_sh
-        if "left_shoulder_roll" in self.jmap:
-            self.data.qpos[self.jmap["left_shoulder_roll"]] = p["left_shoulder_roll"]
-        if "right_shoulder_roll" in self.jmap:
-            self.data.qpos[self.jmap["right_shoulder_roll"]] = p["right_shoulder_roll"]
-        if "left_elbow" in self.jmap:
-            self.data.qpos[self.jmap["left_elbow"]] = p["left_elbow"] + mod_l_el
-        if "right_elbow" in self.jmap:
-            self.data.qpos[self.jmap["right_elbow"]] = p["right_elbow"] + mod_r_el
-        if "left_wrist_roll" in self.jmap:
-            self.data.qpos[self.jmap["left_wrist_roll"]] = p["left_wrist_roll"]
-        if "right_wrist_roll" in self.jmap:
-            self.data.qpos[self.jmap["right_wrist_roll"]] = p["right_wrist_roll"]
+        # Calcular articulaciones continuas de cuerpo completo mediante CoreografoPosturalG1
+        pose_continua = CoreografoPosturalG1.generar_postura_continua(
+            valencia=self.valencia,
+            arousal=self.arousal,
+            fase_tiempo=fase,
+            hablando=self.hablando,
+            energia=self.multiplicador_energia,
+        )
 
-        # Dedos Inspire RH56 (apertura / flexión armónica)
-        apertura_dedos = max(0.02, min(1.2, p["manos"] + mod_dedos))
-        for lado in ("left", "right"):
-            for dedo in ("index", "middle", "ring", "pinky"):
-                k_dedo = f"{lado}_hand_{dedo}"
-                if k_dedo in self.jmap:
-                    self.data.qpos[self.jmap[k_dedo]] = apertura_dedos
+        # Aplicar al estado físico de MuJoCo
+        for art, val in pose_continua.items():
+            if art in self.jmap:
+                self.data.qpos[self.jmap[art]] = val
 
-        # 4. Renderizar escena offscreen en el hilo principal
+        # Piernas en posición de pie firme
+        for leg in ("left_hip_pitch", "right_hip_pitch", "left_knee", "right_knee"):
+            if leg in self.jmap:
+                self.data.qpos[self.jmap[leg]] = 0.0
+
+        # Renderizar escena offscreen en el hilo principal
         mujoco.mj_forward(self.model, self.data)
         self.renderer.update_scene(self.data, camera=self.camera)
         rgb = self.renderer.render()

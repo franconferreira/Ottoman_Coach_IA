@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections import deque
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -111,21 +112,22 @@ def _pulgar_arriba_derecho() -> dict[str, float]:
 
 
 def _pose_neutra_suave() -> dict[str, float]:
+    """Postura canónica neutra y relajada con brazos caídos a los lados (biomecánica humana)."""
     pose = {
         "waist_yaw": 0.0,
         "waist_roll": 0.0,
         "waist_pitch": 0.0,
-        "left_shoulder_pitch": 0.15,
-        "left_shoulder_roll": 0.12,
+        "left_shoulder_pitch": 0.42,
+        "left_shoulder_roll": 0.08,
         "left_shoulder_yaw": 0.0,
-        "left_elbow": -0.25,
+        "left_elbow": 0.28,
         "left_wrist_pitch": 0.0,
         "left_wrist_roll": 0.0,
         "left_wrist_yaw": 0.0,
-        "right_shoulder_pitch": 0.15,
-        "right_shoulder_roll": -0.12,
+        "right_shoulder_pitch": 0.42,
+        "right_shoulder_roll": -0.08,
         "right_shoulder_yaw": 0.0,
-        "right_elbow": -0.25,
+        "right_elbow": 0.28,
         "right_wrist_pitch": 0.0,
         "right_wrist_roll": 0.0,
         "right_wrist_yaw": 0.0,
@@ -203,158 +205,254 @@ class CoreografoPosturalG1:
         base = _pose_neutra_suave()
 
         if emocion == "ANSIEDAD_ESTRES":
-            # Guía de respiración diafragmática: brazos suben acompañando inhalación
-            # y descienden lento acompañando exhalación; torso levemente receptivo.
+            # Co-regulación respiratoria diafragmática: torso receptive, brazos suben
+            # suavemente acompañando inhalación y descienden lento en exhalación.
             inhala = dict(base, **{
-                "waist_pitch": 0.08,
-                "left_shoulder_pitch": -0.78,
-                "left_shoulder_roll": 0.42,
-                "left_elbow": -0.55,
-                "left_wrist_pitch": 0.35,
-                "right_shoulder_pitch": -0.78,
-                "right_shoulder_roll": -0.42,
-                "right_elbow": -0.55,
-                "right_wrist_pitch": 0.35,
+                "waist_pitch": 0.04,
+                "left_shoulder_pitch": 0.32,
+                "left_shoulder_roll": 0.16,
+                "left_elbow": 0.40,
+                "left_wrist_pitch": 0.15,
+                "right_shoulder_pitch": 0.32,
+                "right_shoulder_roll": -0.16,
+                "right_elbow": 0.40,
+                "right_wrist_pitch": 0.15,
             })
             sostener = dict(inhala, **{
-                "left_shoulder_pitch": -0.88,
-                "right_shoulder_pitch": -0.88,
+                "left_shoulder_pitch": 0.30,
+                "right_shoulder_pitch": 0.30,
+                "left_elbow": 0.44,
+                "right_elbow": 0.44,
             })
             exhala = dict(base, **{
-                "waist_pitch": 0.10,
-                "left_shoulder_pitch": -0.22,
-                "left_shoulder_roll": 0.25,
-                "left_elbow": -0.35,
-                "left_wrist_pitch": -0.15,
-                "right_shoulder_pitch": -0.22,
-                "right_shoulder_roll": -0.25,
-                "right_elbow": -0.35,
-                "right_wrist_pitch": -0.15,
+                "waist_pitch": 0.02,
+                "left_shoulder_pitch": 0.40,
+                "left_shoulder_roll": 0.10,
+                "left_elbow": 0.30,
+                "left_wrist_pitch": -0.05,
+                "right_shoulder_pitch": 0.40,
+                "right_shoulder_roll": -0.10,
+                "right_elbow": 0.30,
+                "right_wrist_pitch": -0.05,
             })
             sec, dur, pm, pv = [inhala, sostener, exhala, base], 0.95, 0.0, 0.0
 
         elif emocion == "TRISTEZA_DESANIMO":
-            # Acercamiento proxémico corto (+0.25m), inclinación empática del torso y
-            # mano derecha al pecho/corazón con brazo izquierdo abierto contenedor.
+            # Acercamiento proxémico empático (+0.25m), inclinación empática del torso (+0.14 rad),
+            # mano derecha al pecho/corazón con codo flexionado natural, brazo izquierdo contenedor.
             empatia_1 = dict(base, **{
-                "waist_pitch": 0.16,
-                "waist_roll": 0.12,
-                "right_shoulder_pitch": -0.52,
-                "right_shoulder_roll": 0.18,
-                "right_shoulder_yaw": -0.85,
-                "right_elbow": -0.98,
-                "right_wrist_pitch": 0.25,
-                "left_shoulder_pitch": -0.35,
-                "left_shoulder_roll": 0.38,
-                "left_elbow": -0.45,
+                "waist_pitch": 0.14,
+                "waist_roll": 0.04,
+                "right_shoulder_pitch": 0.30,
+                "right_shoulder_roll": -0.14,
+                "right_shoulder_yaw": -0.30,
+                "right_elbow": 0.50,
+                "right_wrist_pitch": 0.20,
+                "left_shoulder_pitch": 0.40,
+                "left_shoulder_roll": 0.12,
+                "left_elbow": 0.32,
             })
             empatia_2 = dict(empatia_1, **{
-                "waist_pitch": 0.18,
-                "left_shoulder_pitch": -0.45,
-                "left_wrist_pitch": 0.30,
+                "waist_pitch": 0.16,
+                "left_shoulder_pitch": 0.36,
+                "left_wrist_pitch": 0.15,
             })
             sec, dur, pm, pv = [empatia_1, empatia_2, empatia_1, base], 0.85, +0.25, 0.12
 
         elif emocion == "ENOJO_FRUSTRACION":
-            # Proxémica de desescalada: paso corto hacia atrás (-0.25m) respetando espacio,
-            # torso erguido estable, ambas palmas abiertas visibles al frente (no amenaza).
+            # Proxémica de desescalada: paso corto atrás (-0.25m) respetando espacio personal,
+            # torso erguido estable, ambas palmas abiertas hacia el frente (no amenaza).
             calma_1 = dict(base, **{
                 "waist_pitch": 0.0,
                 "waist_roll": 0.0,
-                "left_shoulder_pitch": -0.62,
-                "left_shoulder_roll": 0.32,
-                "left_elbow": -0.72,
-                "left_wrist_pitch": 0.65,
-                "right_shoulder_pitch": -0.62,
-                "right_shoulder_roll": -0.32,
-                "right_elbow": -0.72,
-                "right_wrist_pitch": 0.65,
+                "left_shoulder_pitch": 0.34,
+                "left_shoulder_roll": 0.16,
+                "left_elbow": 0.44,
+                "left_wrist_pitch": 0.30,
+                "right_shoulder_pitch": 0.34,
+                "right_shoulder_roll": -0.16,
+                "right_elbow": 0.44,
+                "right_wrist_pitch": 0.30,
             })
             calma_2 = dict(calma_1, **{
-                "left_shoulder_pitch": -0.48,
-                "right_shoulder_pitch": -0.48,
-                "left_wrist_pitch": 0.45,
-                "right_wrist_pitch": 0.45,
+                "left_shoulder_pitch": 0.38,
+                "right_shoulder_pitch": 0.38,
+                "left_elbow": 0.36,
+                "right_elbow": 0.36,
+                "left_wrist_pitch": 0.18,
+                "right_wrist_pitch": 0.18,
             })
             sec, dur, pm, pv = [calma_1, calma_2, base], 0.80, -0.25, 0.12
 
         elif emocion == "DUDA_INSEGURIDAD":
-            # Gesto socrático: presenta primera alternativa con mano izquierda abierta y
-            # segunda alternativa con mano derecha abierta; torso atento.
+            # Gesto socrático: presenta primera opción con mano izquierda abierta y
+            # segunda opción con mano derecha abierta; torso atento con leve rotación.
             opcion_a = dict(base, **{
-                "waist_yaw": 0.12,
-                "waist_pitch": 0.06,
-                "left_shoulder_pitch": -0.70,
-                "left_shoulder_roll": 0.45,
-                "left_elbow": -0.55,
-                "left_wrist_roll": 0.45,
+                "waist_yaw": 0.10,
+                "waist_pitch": 0.04,
+                "left_shoulder_pitch": 0.32,
+                "left_shoulder_roll": 0.20,
+                "left_elbow": 0.42,
+                "left_wrist_roll": 0.20,
             })
             opcion_b = dict(base, **{
-                "waist_yaw": -0.12,
-                "waist_pitch": 0.06,
-                "right_shoulder_pitch": -0.70,
-                "right_shoulder_roll": -0.45,
-                "right_elbow": -0.55,
-                "right_wrist_roll": -0.45,
+                "waist_yaw": -0.10,
+                "waist_pitch": 0.04,
+                "right_shoulder_pitch": 0.32,
+                "right_shoulder_roll": -0.20,
+                "right_elbow": 0.42,
+                "right_wrist_roll": -0.20,
             })
             sintesis = dict(base, **{
                 "waist_yaw": 0.0,
-                "left_shoulder_pitch": -0.50,
-                "right_shoulder_pitch": -0.50,
-                "left_elbow": -0.50,
-                "right_elbow": -0.50,
+                "left_shoulder_pitch": 0.36,
+                "right_shoulder_pitch": 0.36,
+                "left_elbow": 0.36,
+                "right_elbow": 0.36,
             })
             sec, dur, pm, pv = [opcion_a, opcion_b, sintesis, base], 0.65, 0.0, 0.0
 
         elif emocion == "MOTIVACION_ALEGRIA":
-            # Postura expansiva celebratoria + gesto de pulgar arriba con mano Inspire.
+            # Postura expansiva celebratoria + pulgar arriba Inspire RH56 con brazos abiertos y vivos.
             apertura = dict(base, **{
                 "waist_pitch": -0.04,
-                "left_shoulder_pitch": -1.15,
-                "left_shoulder_roll": 0.65,
-                "left_elbow": -0.40,
-                "right_shoulder_pitch": -1.15,
-                "right_shoulder_roll": -0.65,
-                "right_elbow": -0.40,
+                "left_shoulder_pitch": 0.26,
+                "left_shoulder_roll": 0.24,
+                "left_elbow": 0.42,
+                "right_shoulder_pitch": 0.26,
+                "right_shoulder_roll": -0.24,
+                "right_elbow": 0.42,
             })
             pulgar = dict(base, **{
-                "right_shoulder_pitch": -0.95,
-                "right_shoulder_roll": -0.25,
-                "right_elbow": -0.75,
-                "right_wrist_roll": -0.35,
+                "waist_pitch": -0.03,
+                "right_shoulder_pitch": 0.28,
+                "right_shoulder_roll": -0.16,
+                "right_elbow": 0.46,
+                "right_wrist_roll": -0.20,
             })
             pulgar.update(_pulgar_arriba_derecho())
             sec, dur, pm, pv = [apertura, pulgar, pulgar, base], 0.50, 0.0, 0.0
 
         else:
-            # NEUTRO o CRISIS_RIESGO: gesticulación conversacional abierta y orgánica
+            # NEUTRO o CRISIS_RIESGO: gesticulación conversacional orgánica y atenta
             gesto_izq = dict(base, **{
-                "waist_pitch": 0.05,
-                "waist_yaw": 0.08,
-                "left_shoulder_pitch": -0.42,
-                "left_shoulder_roll": 0.28,
-                "left_elbow": -0.52,
-                "left_wrist_roll": 0.25,
-                "right_shoulder_pitch": -0.25,
-                "right_elbow": -0.38,
+                "waist_pitch": 0.03,
+                "waist_yaw": 0.06,
+                "left_shoulder_pitch": 0.34,
+                "left_shoulder_roll": 0.14,
+                "left_elbow": 0.38,
+                "left_wrist_roll": 0.15,
+                "right_shoulder_pitch": 0.42,
+                "right_elbow": 0.28,
             })
             gesto_der = dict(base, **{
-                "waist_pitch": 0.04,
-                "waist_yaw": -0.08,
-                "left_shoulder_pitch": -0.28,
-                "left_elbow": -0.40,
-                "right_shoulder_pitch": -0.45,
-                "right_shoulder_roll": -0.28,
-                "right_elbow": -0.52,
-                "right_wrist_roll": -0.25,
+                "waist_pitch": 0.02,
+                "waist_yaw": -0.06,
+                "left_shoulder_pitch": 0.42,
+                "left_elbow": 0.28,
+                "right_shoulder_pitch": 0.34,
+                "right_shoulder_roll": -0.14,
+                "right_elbow": 0.38,
+                "right_wrist_roll": -0.15,
             })
-            sec, dur, pm, pv = [gesto_izq, gesto_der, base], 0.70, 0.0, 0.0
+            sec, dur, pm, pv = [gesto_izq, gesto_der, base], 0.60, 0.0, 0.0
 
         if valencia is not None and arousal is not None and emocion != "CRISIS_RIESGO":
             sec = cls._modular_poses_continuas(sec, base, valencia, arousal, intensidad)
             dur = round(float(np.clip(dur * (1.0 - 0.15 * arousal), 0.42, 1.15)), 2)
 
         return sec, dur, pm, pv
+
+    @classmethod
+    def generar_postura_continua(
+        cls,
+        valencia: float = 0.0,
+        arousal: float = 0.0,
+        fase_tiempo: float = 0.0,
+        hablando: bool = False,
+        energia: float = 1.0,
+    ) -> dict[str, float]:
+        """Calcula la postura 29-DoF continua según Laban Movement Analysis, Lecoq y McNeill.
+        
+        Aplica Center-Out movement donde el torso precede a los brazos y extremidades,
+        modulando respiración diafragmática en reposo o batutas rítmicas al hablar.
+        """
+        v = float(np.clip(valencia, -1.0, 1.0))
+        a = float(np.clip(arousal, -1.0, 1.0))
+        e = float(np.clip(energia, 0.4, 2.0))
+
+        # 1. Postura Base Continua f(V, A)
+        pitch_base = float(np.clip(-0.06 * v - 0.03 * a if v < 0 else -0.04 * v, -0.05, 0.16))
+        roll_base = float(np.clip(0.02 * v, -0.04, 0.04))
+        yaw_base = 0.0
+
+        sh_pitch_base = float(np.clip(0.42 - 0.12 * max(0.0, v) - 0.08 * max(0.0, a), 0.24, 0.46))
+        sh_roll_base = float(np.clip(0.08 + 0.10 * max(0.0, v), 0.06, 0.22))
+        el_base = float(np.clip(0.28 + 0.10 * max(0.0, v) + 0.04 * a, 0.22, 0.45))
+
+        # 2. Modulaciones Armónicas Dinámicas con desfasaje Center-Out (Lecoq / Disney)
+        if hablando:
+            f = fase_tiempo
+            amp_torso = 0.012 * e
+            amp_sh = (0.04 + 0.04 * max(0.0, a)) * e
+            amp_el = (0.06 + 0.06 * max(0.0, a)) * e
+            amp_dedos = (0.08 + 0.10 * max(0.0, a)) * e
+
+            # Center-out phase lags: torso -> hombro -> codo -> muñeca
+            mod_torso = amp_torso * math.sin(f)
+            mod_l_sh = -amp_sh * math.sin(f + 0.35)
+            mod_r_sh = -amp_sh * math.sin(f + 0.35 + 0.80)
+            mod_l_el = amp_el * math.cos(f + 0.80)
+            mod_r_el = amp_el * math.cos(f + 0.80 + 0.80)
+            mod_l_wr = 0.15 * math.sin(f + 1.15)
+            mod_r_wr = -0.15 * math.sin(f + 1.15 + 0.80)
+            dedos_val = float(np.clip(0.06 + amp_dedos * abs(math.sin((f + 1.15) * 0.5)), 0.02, 0.45))
+        else:
+            # Idle diaphragmatic breathing (0.25 Hz)
+            f = fase_tiempo
+            mod_torso = 0.014 * math.sin(f)
+            mod_l_sh = 0.010 * math.sin(f + 0.20)
+            mod_r_sh = 0.010 * math.sin(f + 0.20)
+            mod_l_el = 0.008 * math.cos(f)
+            mod_r_el = 0.008 * math.cos(f)
+            mod_l_wr = 0.0
+            mod_r_wr = 0.0
+            dedos_val = float(np.clip(0.04 + 0.02 * (1.0 + math.sin(f)), 0.02, 0.10))
+
+        pose = {
+            "waist_pitch": pitch_base + mod_torso,
+            "waist_roll": roll_base,
+            "waist_yaw": yaw_base,
+            "left_shoulder_pitch": sh_pitch_base + mod_l_sh,
+            "right_shoulder_pitch": sh_pitch_base + mod_r_sh,
+            "left_shoulder_roll": sh_roll_base,
+            "right_shoulder_roll": -sh_roll_base,
+            "left_shoulder_yaw": 0.0,
+            "right_shoulder_yaw": 0.0,
+            "left_elbow": el_base + mod_l_el,
+            "right_elbow": el_base + mod_r_el,
+            "left_wrist_pitch": 0.0,
+            "right_wrist_pitch": 0.0,
+            "left_wrist_roll": mod_l_wr,
+            "right_wrist_roll": mod_r_wr,
+            "left_wrist_yaw": 0.0,
+            "right_wrist_yaw": 0.0,
+        }
+
+        # Dedos Inspire RH56
+        for lado in ("left", "right"):
+            for dedo in ("index", "middle", "ring", "pinky"):
+                pose[f"{lado}_hand_{dedo}"] = dedos_val
+            pose[f"{lado}_hand_thumb_rotation"] = 0.05
+            pose[f"{lado}_hand_thumb_bend"] = dedos_val * 0.6
+
+        # Respetar límites seguros estrictos
+        for art in list(pose.keys()):
+            if art in cls.LIMITES_ARTICULARES:
+                lim_min, lim_max = cls.LIMITES_ARTICULARES[art]
+                pose[art] = round(float(np.clip(pose[art], lim_min, lim_max)), 4)
+
+        return pose
 
 
 # =====================================================================

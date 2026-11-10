@@ -184,6 +184,26 @@ class SimuladorEmbebidoG1:
         self._ultimo_tiempo = time.monotonic()
         self._lock = threading.Lock()
 
+        self.hablando: bool = False
+        self.valencia: float = 0.0
+        self.arousal: float = 0.0
+        self.energia_habla: float = 1.0
+        self._fase_gesto: float = 0.0
+        self._pose_base: dict[str, float] = {
+            "waist_pitch": 0.0,
+            "waist_roll": 0.0,
+            "waist_yaw": 0.0,
+            "left_shoulder_pitch": 0.42,
+            "right_shoulder_pitch": 0.42,
+            "left_shoulder_roll": 0.08,
+            "right_shoulder_roll": -0.08,
+            "left_elbow": 0.28,
+            "right_elbow": 0.28,
+            "left_wrist_roll": 0.0,
+            "right_wrist_roll": 0.0,
+            "manos": 0.05,
+        }
+
         # Recursos MuJoCo
         self._disponible = False
         self._model = None
@@ -247,6 +267,16 @@ class SimuladorEmbebidoG1:
         except Exception:
             self._disponible = False
             return False
+
+    def fijar_estado_habla(self, hablando: bool, energia: float = 1.0) -> None:
+        with self._lock:
+            self.hablando = hablando
+            self.energia_habla = max(0.4, min(2.0, float(energia)))
+
+    def fijar_estado_afectivo(self, valencia: float, arousal: float) -> None:
+        with self._lock:
+            self.valencia = max(-1.0, min(1.0, float(valencia)))
+            self.arousal = max(-1.0, min(1.0, float(arousal)))
 
     def avanzar(self, velocidad: float = 0.2, tiempo: float = 1.0) -> None:
         with self._lock:
@@ -378,12 +408,25 @@ class SimuladorEmbebidoG1:
                     if "right_knee" in self._jmap:
                         self._data.qpos[self._jmap["right_knee"]] = max(0.0, 0.20 * math.sin(f + 1.1 + math.pi))
                 elif self.accion == "saludando":
+                    # Saludo humanoide natural con brazo derecho alzado y codo doblado al frente
                     if "right_shoulder_pitch" in self._jmap:
-                        self._data.qpos[self._jmap["right_shoulder_pitch"]] = -2.4
+                        self._data.qpos[self._jmap["right_shoulder_pitch"]] = -1.75
+                    if "right_shoulder_roll" in self._jmap:
+                        self._data.qpos[self._jmap["right_shoulder_roll"]] = -0.32
                     if "right_elbow" in self._jmap:
-                        self._data.qpos[self._jmap["right_elbow"]] = -1.0 + 0.25 * math.sin(ahora * 8.0)
+                        self._data.qpos[self._jmap["right_elbow"]] = 0.85
                     if "right_wrist_roll" in self._jmap:
-                        self._data.qpos[self._jmap["right_wrist_roll"]] = 0.35 * math.sin(ahora * 8.0)
+                        self._data.qpos[self._jmap["right_wrist_roll"]] = 0.40 * math.sin(ahora * 8.0)
+                    if "left_shoulder_pitch" in self._jmap:
+                        self._data.qpos[self._jmap["left_shoulder_pitch"]] = 0.42
+                    if "left_elbow" in self._jmap:
+                        self._data.qpos[self._jmap["left_elbow"]] = 0.28
+                    if "waist_pitch" in self._jmap:
+                        self._data.qpos[self._jmap["waist_pitch"]] = -0.02
+                    for d in ("index", "middle", "ring", "pinky"):
+                        kd = f"right_hand_{d}"
+                        if kd in self._jmap:
+                            self._data.qpos[self._jmap[kd]] = 0.05
                 elif self.accion == "postura":
                     for k, v_obj in self._pose_objetivo.items():
                         if k in self._jmap:
@@ -391,20 +434,152 @@ class SimuladorEmbebidoG1:
                             actual = float(self._data.qpos[adr])
                             self._data.qpos[adr] = actual + (v_obj - actual) * min(1.0, dt * 7.0)
                 else:
-                    # Retorno elástico a pose de pie neutra natural
-                    poses_std = (
-                        ("left_shoulder_pitch", 0.42), ("right_shoulder_pitch", 0.42),
-                        ("left_shoulder_roll", 0.08), ("right_shoulder_roll", -0.08),
-                        ("left_elbow", 0.28), ("right_elbow", 0.28),
-                        ("left_hip_pitch", 0.0), ("right_hip_pitch", 0.0),
-                        ("left_knee", 0.0), ("right_knee", 0.0),
-                        ("waist_pitch", 0.0), ("waist_yaw", 0.0),
-                    )
-                    for k, v_std in poses_std:
-                        if k in self._jmap:
-                            adr = self._jmap[k]
-                            actual = float(self._data.qpos[adr])
-                            self._data.qpos[adr] = actual + (v_std - actual) * min(1.0, dt * 5.0)
+                    # Cinemática Afectiva Continua de Cuerpo Completo (Laban + Lecoq + McNeill)
+                    # 1. Definir Postura Base objetivo f(V, A)
+                    v = self.valencia
+                    a = self.arousal
+                    if v < -0.20:
+                        # Tristeza / Desánimo: inclinación empática hacia adelante
+                        base_obj = {
+                            "waist_pitch": 0.14,
+                            "waist_roll": 0.03,
+                            "waist_yaw": 0.0,
+                            "left_shoulder_pitch": 0.46,
+                            "right_shoulder_pitch": 0.46,
+                            "left_shoulder_roll": 0.06,
+                            "right_shoulder_roll": -0.06,
+                            "left_elbow": 0.24,
+                            "right_elbow": 0.24,
+                            "left_wrist_roll": 0.0,
+                            "right_wrist_roll": 0.0,
+                            "manos": 0.04,
+                        }
+                    elif v > 0.25:
+                        # Motivación / Alegría: expansión torácica erguida
+                        base_obj = {
+                            "waist_pitch": -0.04,
+                            "waist_roll": 0.0,
+                            "waist_yaw": 0.0,
+                            "left_shoulder_pitch": 0.28,
+                            "right_shoulder_pitch": 0.28,
+                            "left_shoulder_roll": 0.16,
+                            "right_shoulder_roll": -0.16,
+                            "left_elbow": 0.38,
+                            "right_elbow": 0.38,
+                            "left_wrist_roll": 0.15,
+                            "right_wrist_roll": -0.15,
+                            "manos": 0.18,
+                        }
+                    elif a > 0.30:
+                        # Ansiedad / Estrés: co-regulación y estabilidad
+                        base_obj = {
+                            "waist_pitch": 0.03,
+                            "waist_roll": 0.0,
+                            "waist_yaw": 0.0,
+                            "left_shoulder_pitch": 0.36,
+                            "right_shoulder_pitch": 0.36,
+                            "left_shoulder_roll": 0.12,
+                            "right_shoulder_roll": -0.12,
+                            "left_elbow": 0.34,
+                            "right_elbow": 0.34,
+                            "left_wrist_roll": -0.08,
+                            "right_wrist_roll": 0.08,
+                            "manos": 0.08,
+                        }
+                    else:
+                        # Neutro: reposo anatómico natural
+                        base_obj = {
+                            "waist_pitch": 0.0,
+                            "waist_roll": 0.0,
+                            "waist_yaw": 0.0,
+                            "left_shoulder_pitch": 0.42,
+                            "right_shoulder_pitch": 0.42,
+                            "left_shoulder_roll": 0.08,
+                            "right_shoulder_roll": -0.08,
+                            "left_elbow": 0.28,
+                            "right_elbow": 0.28,
+                            "left_wrist_roll": 0.0,
+                            "right_wrist_roll": 0.0,
+                            "manos": 0.05,
+                        }
+
+                    # Lerp suave hacia la postura base
+                    vel_lerp = dt * 4.5
+                    for k, val_obj in base_obj.items():
+                        self._pose_base[k] += (val_obj - self._pose_base[k]) * min(1.0, vel_lerp)
+
+                    # 2. Modulaciones Dinámicas Armónicas (Center-Out phase lags)
+                    if self.hablando:
+                        # Co-speech beat gestures
+                        vel_onda = (3.0 + 1.2 * max(0.0, a)) * self.energia_habla
+                        self._fase_gesto = (self._fase_gesto + dt * vel_onda) % (2.0 * math.pi)
+                        f = self._fase_gesto
+
+                        amp_sh = (0.05 + 0.04 * max(0.0, a)) * self.energia_habla
+                        amp_el = (0.08 + 0.06 * max(0.0, a)) * self.energia_habla
+                        amp_dedos = (0.10 + 0.10 * max(0.0, a)) * self.energia_habla
+
+                        # Torso -> Hombros -> Codos -> Muñecas
+                        mod_torso = 0.012 * self.energia_habla * math.sin(f)
+                        mod_l_sh = -amp_sh * math.sin(f + 0.35)
+                        mod_r_sh = -amp_sh * math.sin(f + 0.35 + 0.85)
+                        mod_l_el = amp_el * math.cos(f + 0.80)
+                        mod_r_el = amp_el * math.cos(f + 0.80 + 0.85)
+                        mod_l_wr = 0.18 * math.sin(f + 1.15)
+                        mod_r_wr = -0.18 * math.sin(f + 1.15 + 0.85)
+                        mod_dedos = amp_dedos * abs(math.sin((f + 1.15) * 0.5))
+                    else:
+                        # Idle breathing diafragmático (0.25 Hz = ~4s)
+                        f_resp = ahora * 1.57
+                        mod_torso = 0.014 * math.sin(f_resp)
+                        mod_l_sh = 0.010 * math.sin(f_resp + 0.20)
+                        mod_r_sh = 0.010 * math.sin(f_resp + 0.20)
+                        mod_l_el = 0.008 * math.cos(f_resp)
+                        mod_r_el = 0.008 * math.cos(f_resp)
+                        mod_l_wr = 0.0
+                        mod_r_wr = 0.0
+                        mod_dedos = 0.02 * (1.0 + math.sin(f_resp))
+
+                    # 3. Aplicar a las articulaciones de MuJoCo
+                    p = self._pose_base
+                    if "waist_pitch" in self._jmap:
+                        self._data.qpos[self._jmap["waist_pitch"]] = p["waist_pitch"] + mod_torso
+                    if "waist_roll" in self._jmap:
+                        self._data.qpos[self._jmap["waist_roll"]] = p["waist_roll"]
+                    if "waist_yaw" in self._jmap:
+                        self._data.qpos[self._jmap["waist_yaw"]] = p["waist_yaw"]
+                    if "left_shoulder_pitch" in self._jmap:
+                        self._data.qpos[self._jmap["left_shoulder_pitch"]] = p["left_shoulder_pitch"] + mod_l_sh
+                    if "right_shoulder_pitch" in self._jmap:
+                        self._data.qpos[self._jmap["right_shoulder_pitch"]] = p["right_shoulder_pitch"] + mod_r_sh
+                    if "left_shoulder_roll" in self._jmap:
+                        self._data.qpos[self._jmap["left_shoulder_roll"]] = p["left_shoulder_roll"]
+                    if "right_shoulder_roll" in self._jmap:
+                        self._data.qpos[self._jmap["right_shoulder_roll"]] = p["right_shoulder_roll"]
+                    if "left_elbow" in self._jmap:
+                        self._data.qpos[self._jmap["left_elbow"]] = p["left_elbow"] + mod_l_el
+                    if "right_elbow" in self._jmap:
+                        self._data.qpos[self._jmap["right_elbow"]] = p["right_elbow"] + mod_r_el
+                    if "left_wrist_roll" in self._jmap:
+                        self._data.qpos[self._jmap["left_wrist_roll"]] = p["left_wrist_roll"] + mod_l_wr
+                    if "right_wrist_roll" in self._jmap:
+                        self._data.qpos[self._jmap["right_wrist_roll"]] = p["right_wrist_roll"] + mod_r_wr
+
+                    # Piernas en posición de pie firme
+                    for leg in ("left_hip_pitch", "right_hip_pitch", "left_knee", "right_knee"):
+                        if leg in self._jmap:
+                            self._data.qpos[self._jmap[leg]] = 0.0
+
+                    # Dedos Inspire RH56
+                    apertura_dedos = max(0.02, min(0.65, p["manos"] + mod_dedos))
+                    for lado in ("left", "right"):
+                        for dedo in ("index", "middle", "ring", "pinky"):
+                            kd = f"{lado}_hand_{dedo}"
+                            if kd in self._jmap:
+                                self._data.qpos[self._jmap[kd]] = apertura_dedos
+                        k_tb = f"{lado}_hand_thumb_bend"
+                        if k_tb in self._jmap:
+                            self._data.qpos[self._jmap[k_tb]] = apertura_dedos * 0.5
 
                 # Inicializar renderer de forma perezosa en el mismo hilo de renderizado
                 if self._renderer is None:
@@ -709,7 +884,23 @@ class RostroOttoman:
         if valencia is not None and arousal is not None:
             self.valencia_actual = float(max(-1.0, min(1.0, valencia)))
             self.arousal_actual = float(max(-1.0, min(1.0, arousal)))
+            self.simulador_3d.fijar_estado_afectivo(self.valencia_actual, self.arousal_actual)
             self.historial_va.append((self.valencia_actual, self.arousal_actual, clave))
+        elif clave in PRESETS_ROSTRO:
+            va_presets = {
+                "MOTIVACION_ALEGRIA": (0.70, 0.60),
+                "TRISTEZA_DESANIMO": (-0.65, -0.45),
+                "ANSIEDAD_ESTRES": (-0.40, 0.70),
+                "ENOJO_FRUSTRACION": (-0.70, 0.75),
+                "DUDA_INSEGURIDAD": (-0.15, 0.20),
+                "NEUTRO": (0.0, 0.0),
+                "CRISIS_RIESGO": (-0.80, 0.50),
+            }
+            if clave in va_presets:
+                pv, pa = va_presets[clave]
+                self.valencia_actual = pv
+                self.arousal_actual = pa
+                self.simulador_3d.fijar_estado_afectivo(pv, pa)
         if incongruencia is not None:
             self.incongruencia_activa = bool(incongruencia)
         if canales is not None:
@@ -759,6 +950,7 @@ class RostroOttoman:
 
     def set_hablando(self, hablando: bool, subtitulo: str = "") -> None:
         self.hablando = hablando
+        self.simulador_3d.fijar_estado_habla(hablando)
         if subtitulo:
             self.subtitulo_actual = subtitulo
         if self._activo:
@@ -930,6 +1122,11 @@ class RostroOttoman:
                     lbl_mic.config(text=f"🎙️ Micrófono: {self.estado_microfono}")
                 elif msg.get("cmd") == "nuevo_chat":
                     _agregar_texto_historial(msg["remitente"], msg["mensaje"], msg.get("color", "#FFFFFF"))
+                elif msg.get("cmd") == "habla":
+                    h = bool(msg.get("hablando", False))
+                    self.simulador_3d.fijar_estado_habla(h)
+                    if "subtitulo" in msg and msg["subtitulo"]:
+                        lbl_subtitulo.config(text=f"\"{msg['subtitulo']}\"")
                 elif msg.get("cmd") == "estado":
                     if "emocion" in msg:
                         preset_obj = PRESETS_ROSTRO.get(msg["emocion"], PRESETS_ROSTRO["NEUTRO"])

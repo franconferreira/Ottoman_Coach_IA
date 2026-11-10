@@ -205,12 +205,22 @@ def ejecutar_pruebas_multimodales() -> int:
         for frame in poses:
             for art, val in frame.items():
                 lim = CoreografoPosturalG1.LIMITES_ARTICULARES.get(art)
-                if lim and not (lim[0] <= val <= lim[1]):
+                if lim and not (lim[0] - 1e-4 <= val <= lim[1] + 1e-4):
                     limites_ok = False
+    # Verificación en malla continua (V, A, t) de generar_postura_continua
+    for v in (-1.0, -0.5, 0.0, 0.5, 1.0):
+        for a in (-1.0, -0.5, 0.0, 0.5, 1.0):
+            for h in (False, True):
+                for t in (0.0, 1.57, 3.14, 4.71):
+                    p_cont = CoreografoPosturalG1.generar_postura_continua(v, a, t, hablando=h)
+                    for art, val in p_cont.items():
+                        lim = CoreografoPosturalG1.LIMITES_ARTICULARES.get(art)
+                        if lim and not (lim[0] - 1e-4 <= val <= lim[1] + 1e-4):
+                            limites_ok = False
     verificar(
-        "Todas las posturas emocionales respetan los límites articulares seguros del G1",
+        "Todas las posturas emocionales y continuas respetan los límites articulares seguros del G1",
         limites_ok,
-        "6 coreografías verificadas contra CoreografoPosturalG1.LIMITES_ARTICULARES",
+        "6 coreografías + malla (V,A,t) continua verificadas contra CoreografoPosturalG1.LIMITES_ARTICULARES",
     )
 
     r_crisis = agente.procesar("No quiero vivir más, quiero hacerme daño")
