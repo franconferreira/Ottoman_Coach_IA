@@ -82,16 +82,16 @@ class DemoPosturasG1:
         self.camera.elevation = -10.0
         self.camera.azimuth = 162.0
 
-        # Poses objetivo actuales (para lerp suave)
+        # Poses objetivo actuales (para lerp suave) — Postura natural humana
         self.pose_actual = {
             "waist_pitch": 0.0,
             "waist_yaw": 0.0,
-            "left_shoulder_pitch": 0.20,
-            "right_shoulder_pitch": 0.20,
-            "left_shoulder_roll": 0.15,
-            "right_shoulder_roll": -0.15,
-            "left_elbow": -0.35,
-            "right_elbow": -0.35,
+            "left_shoulder_pitch": 0.42,
+            "right_shoulder_pitch": 0.42,
+            "left_shoulder_roll": 0.08,
+            "right_shoulder_roll": -0.08,
+            "left_elbow": 0.28,
+            "right_elbow": 0.28,
             "left_wrist_roll": 0.0,
             "right_wrist_roll": 0.0,
             "manos": 0.05,
@@ -201,63 +201,63 @@ class DemoPosturasG1:
         dt = min(0.06, max(0.001, ahora - self._ultimo_tiempo))
         self._ultimo_tiempo = ahora
 
-        # 1. Definir Postura Base objetivo según la emoción elegida
+        # 1. Definir Postura Base objetivo según la emoción elegida (Posturas Naturales Humanoides)
         if self.emocion_actual == "MOTIVACION_ALEGRIA":
-            # Torso erguido, hombros abiertos y elevados, palmas abiertas
+            # Torso erguido, apertura natural y entusiasmo moderado
             base_obj = {
-                "waist_pitch": -0.04,
+                "waist_pitch": -0.03,
                 "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.28,
-                "right_shoulder_pitch": 0.28,
-                "left_shoulder_roll": 0.32,
-                "right_shoulder_roll": -0.32,
-                "left_elbow": -0.55,
-                "right_elbow": -0.55,
-                "left_wrist_roll": 0.30,
-                "right_wrist_roll": -0.30,
-                "manos": 0.25,
+                "left_shoulder_pitch": 0.30,
+                "right_shoulder_pitch": 0.30,
+                "left_shoulder_roll": 0.16,
+                "right_shoulder_roll": -0.16,
+                "left_elbow": 0.38,
+                "right_elbow": 0.38,
+                "left_wrist_roll": 0.15,
+                "right_wrist_roll": -0.15,
+                "manos": 0.20,
             }
         elif self.emocion_actual == "TRISTEZA_DESANIMO":
-            # Inclinación empática de torso (+0.18 rad), brazos recogidos, codos cerca
+            # Inclinación empática de torso (+0.14 rad), brazos relajados hacia abajo
             base_obj = {
-                "waist_pitch": 0.18,
+                "waist_pitch": 0.14,
                 "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.12,
-                "right_shoulder_pitch": 0.12,
-                "left_shoulder_roll": 0.08,
-                "right_shoulder_roll": -0.08,
-                "left_elbow": -0.22,
-                "right_elbow": -0.22,
+                "left_shoulder_pitch": 0.45,
+                "right_shoulder_pitch": 0.45,
+                "left_shoulder_roll": 0.06,
+                "right_shoulder_roll": -0.06,
+                "left_elbow": 0.24,
+                "right_elbow": 0.24,
                 "left_wrist_roll": 0.0,
                 "right_wrist_roll": 0.0,
-                "manos": 0.05,
+                "manos": 0.04,
             }
         elif self.emocion_actual == "ANSIEDAD_ESTRES":
-            # Co-regulación: postura relajada, hombros descansados, palmas hacia abajo
+            # Co-regulación: torso templado, brazos en actitud de sosiego
             base_obj = {
-                "waist_pitch": 0.02,
+                "waist_pitch": 0.01,
                 "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.18,
-                "right_shoulder_pitch": 0.18,
-                "left_shoulder_roll": 0.18,
-                "right_shoulder_roll": -0.18,
-                "left_elbow": -0.38,
-                "right_elbow": -0.38,
-                "left_wrist_roll": -0.20,
-                "right_wrist_roll": 0.20,
-                "manos": 0.10,
+                "left_shoulder_pitch": 0.38,
+                "right_shoulder_pitch": 0.38,
+                "left_shoulder_roll": 0.10,
+                "right_shoulder_roll": -0.10,
+                "left_elbow": 0.32,
+                "right_elbow": 0.32,
+                "left_wrist_roll": -0.10,
+                "right_wrist_roll": 0.10,
+                "manos": 0.08,
             }
         else:  # NEUTRO
-            # Postura canónica de escucha atenta
+            # Postura canónica relajada de descanso
             base_obj = {
                 "waist_pitch": 0.0,
                 "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.20,
-                "right_shoulder_pitch": 0.20,
-                "left_shoulder_roll": 0.15,
-                "right_shoulder_roll": -0.15,
-                "left_elbow": -0.32,
-                "right_elbow": -0.32,
+                "left_shoulder_pitch": 0.42,
+                "right_shoulder_pitch": 0.42,
+                "left_shoulder_roll": 0.08,
+                "right_shoulder_roll": -0.08,
+                "left_elbow": 0.28,
+                "right_elbow": 0.28,
                 "left_wrist_roll": 0.0,
                 "right_wrist_roll": 0.0,
                 "manos": 0.05,
@@ -270,29 +270,29 @@ class DemoPosturasG1:
 
         # 2. Modulación armónica continua
         if self.hablando:
-            # Co-speech gesture: oscilaciones vivas asimétricas según energía
-            vel_onda = (3.5 * self.multiplicador_energia)
+            # Co-speech gesture: gesticulación natural a la altura del abdomen / pecho medio
+            vel_onda = (3.2 * self.multiplicador_energia)
             self._fase_gesto = (self._fase_gesto + dt * vel_onda) % (2.0 * math.pi)
             f = self._fase_gesto
 
-            amp_hombro = 0.16 * self.multiplicador_energia
-            amp_codo = 0.14 * self.multiplicador_energia
+            amp_sh = 0.08 * self.multiplicador_energia
+            amp_el = 0.12 * self.multiplicador_energia
 
-            mod_l_sh = amp_hombro * math.sin(f)
-            mod_r_sh = amp_hombro * math.sin(f + 0.9)
-            mod_l_el = amp_codo * math.cos(f)
-            mod_r_el = amp_codo * math.cos(f + 0.9)
-            mod_dedos = 0.20 * abs(math.sin(f * 0.8))
-            mod_torso = 0.02 * math.sin(f * 0.5)
+            mod_l_sh = -0.08 + amp_sh * math.sin(f)
+            mod_r_sh = -0.08 + amp_sh * math.sin(f + 0.9)
+            mod_l_el = 0.18 + amp_el * math.cos(f)
+            mod_r_el = 0.18 + amp_el * math.cos(f + 0.9)
+            mod_dedos = 0.16 * abs(math.sin(f * 0.8))
+            mod_torso = 0.012 * math.sin(f * 0.5)
         else:
-            # Idle breathing: respiración sutil continua a ~0.25 Hz
+            # Idle breathing: brazos naturalmente descansados a los costados con respiración sutil
             f_resp = ahora * 1.57  # ~4 segundos por ciclo respiratorio
-            mod_torso = 0.025 * math.sin(f_resp)
-            mod_l_sh = 0.025 * math.sin(f_resp)
-            mod_r_sh = 0.025 * math.sin(f_resp)
-            mod_l_el = 0.015 * math.cos(f_resp)
-            mod_r_el = 0.015 * math.cos(f_resp)
-            mod_dedos = 0.04 * (1.0 + math.sin(f_resp))
+            mod_torso = 0.015 * math.sin(f_resp)
+            mod_l_sh = 0.012 * math.sin(f_resp)
+            mod_r_sh = 0.012 * math.sin(f_resp)
+            mod_l_el = 0.010 * math.cos(f_resp)
+            mod_r_el = 0.010 * math.cos(f_resp)
+            mod_dedos = 0.02 * (1.0 + math.sin(f_resp))
 
         # 3. Aplicar articulaciones resultantes en MuJoCo
         p = self.pose_actual

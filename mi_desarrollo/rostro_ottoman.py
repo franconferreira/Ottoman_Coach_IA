@@ -223,16 +223,20 @@ class SimuladorEmbebidoG1:
                     if nombre.endswith("_joint"):
                         self._jmap[nombre[:-6]] = adr
 
-            # Pose de pie estándar inicial
+            # Pose de pie estándar inicial (postura natural relajada)
             self._data.qpos[2] = self.altura
             if "left_shoulder_pitch" in self._jmap:
-                self._data.qpos[self._jmap["left_shoulder_pitch"]] = 0.20
+                self._data.qpos[self._jmap["left_shoulder_pitch"]] = 0.42
             if "right_shoulder_pitch" in self._jmap:
-                self._data.qpos[self._jmap["right_shoulder_pitch"]] = 0.20
+                self._data.qpos[self._jmap["right_shoulder_pitch"]] = 0.42
+            if "left_shoulder_roll" in self._jmap:
+                self._data.qpos[self._jmap["left_shoulder_roll"]] = 0.08
+            if "right_shoulder_roll" in self._jmap:
+                self._data.qpos[self._jmap["right_shoulder_roll"]] = -0.08
             if "left_elbow" in self._jmap:
-                self._data.qpos[self._jmap["left_elbow"]] = -0.30
+                self._data.qpos[self._jmap["left_elbow"]] = 0.28
             if "right_elbow" in self._jmap:
-                self._data.qpos[self._jmap["right_elbow"]] = -0.30
+                self._data.qpos[self._jmap["right_elbow"]] = 0.28
 
             mujoco.mj_forward(self._model, self._data)
 
@@ -387,10 +391,11 @@ class SimuladorEmbebidoG1:
                             actual = float(self._data.qpos[adr])
                             self._data.qpos[adr] = actual + (v_obj - actual) * min(1.0, dt * 7.0)
                 else:
-                    # Retorno elástico a pose de pie neutra
+                    # Retorno elástico a pose de pie neutra natural
                     poses_std = (
-                        ("left_shoulder_pitch", 0.20), ("right_shoulder_pitch", 0.20),
-                        ("left_elbow", -0.30), ("right_elbow", -0.30),
+                        ("left_shoulder_pitch", 0.42), ("right_shoulder_pitch", 0.42),
+                        ("left_shoulder_roll", 0.08), ("right_shoulder_roll", -0.08),
+                        ("left_elbow", 0.28), ("right_elbow", 0.28),
                         ("left_hip_pitch", 0.0), ("right_hip_pitch", 0.0),
                         ("left_knee", 0.0), ("right_knee", 0.0),
                         ("waist_pitch", 0.0), ("waist_yaw", 0.0),
