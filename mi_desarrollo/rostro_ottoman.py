@@ -465,7 +465,7 @@ class SimuladorEmbebidoG1:
                         if k in self._jmap:
                             adr = self._jmap[k]
                             actual = float(self._data.qpos[adr])
-                            self._data.qpos[adr] = actual + (v_obj - actual) * min(1.0, dt * 5.0)
+                            self._data.qpos[adr] = actual + (v_obj - actual) * min(1.0, dt * 8.5)
                 else:
                     # Cinemática Afectiva Continua de Cuerpo Completo (Laban + Lecoq + McNeill)
                     # 1. Definir Postura Base objetivo f(V, A)

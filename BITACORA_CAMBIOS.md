@@ -37,6 +37,6 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
     - Movilidad pélvica (*contrapposto*): basculación lateral (`waist_roll`) y torsión (`waist_yaw`), coordinados con caderas (`hip_roll`, `hip_pitch`).
     - Piernas vivas: microflexión basal de rodillas (`knee = 0.12 rad`) y tobillos (`ankle_pitch = -0.06 rad`), más posturas bipedales diferenciadas por rol (base enraizada en enojo, elevación/descenso rítmico respiratorio en calma).
     - Ampliación de `LIMITES_ARTICULARES` con los rangos físicos seguros de caderas, rodillas, tobillos y falanges de manos.
-  - `mi_desarrollo/demo_posturas_3d.py`: Removido el bloqueo hardcodeado de piernas a 0.0 en el loop principal, permitiendo interpolación y movimiento libre del tren inferior.
-  - `mi_desarrollo/rostro_ottoman.py`: Removido el forzado a 0.0 de piernas en modo `quieto`; conectada la cascada anatómica de dedos y microflexión de rodillas.
-- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`). Commit: `c873faa`.
+  - `mi_desarrollo/demo_posturas_3d.py`: Removido el bloqueo hardcodeado de piernas a 0.0 en el loop principal, permitiendo interpolación y movimiento libre del tren inferior. Activado auto-play de coreografía al iniciar y mapeados todos los botones de presets para disparar las coreografías teatrales. Añadido selector de cámara (Cuerpo Entero y Primer Plano de Manos/Torso).
+  - `mi_desarrollo/rostro_ottoman.py`: Removido el forzado a 0.0 de piernas en modo `quieto`; conectada la cascada anatómica de dedos y microflexión de rodillas. Acelerada la interpolación lerp a 8.5 para transiciones vivas.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`). Commit: `e225e30`.

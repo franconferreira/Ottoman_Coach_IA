@@ -55,7 +55,7 @@ class DemoPosturasG1:
         # Construir Interfaz Gráfica Tkinter
         self.root = tk.Tk()
         self.root.title("Demo 3D — Animatrónica Teatral Humanoide Unitree G1 (Disney Style)")
-        self.root.geometry("880x750")
+        self.root.geometry("880x780")
         self.root.configure(bg="#070B14")
         self.root.resizable(False, False)
 
@@ -63,6 +63,9 @@ class DemoPosturasG1:
         self._ultimo_tiempo = time.monotonic()
         self._fase_gesto = 0.0
         self._photo_ref = [None]
+
+        # Iniciar inmediatamente animando con rol activo (auto-play festivo)
+        self._activar_rol_teatral("MOTIVACION_ALEGRIA")
 
     def _inicializar_simulador(self):
         base = Path(__file__).resolve().parent.parent
@@ -157,6 +160,15 @@ class DemoPosturasG1:
         tk.Button(frame_energia, text="Enérgico (1.6x)", bg="#1E293B", fg="#FDE047", font=("Segoe UI", 8),
                   command=lambda: _set_energia(1.60)).pack(side="left", padx=2)
 
+        # Selector de Vista de Cámara
+        frame_cam = tk.Frame(frame_controles, bg="#070B14")
+        frame_cam.grid(row=0, column=2, padx=6, pady=2)
+        tk.Label(frame_cam, text="Cámara:", bg="#070B14", fg="#94A3B8", font=("Segoe UI", 8, "bold")).pack(side="left", padx=3)
+        tk.Button(frame_cam, text="🧍 Cuerpo Entero", bg="#1E293B", fg="#E2E8F0", font=("Segoe UI", 8),
+                  command=lambda: self._set_camara("entero")).pack(side="left", padx=2)
+        tk.Button(frame_cam, text="🔍 Primer Plano (Manos/Torso)", bg="#1E293B", fg="#38BDF8", font=("Segoe UI", 8, "bold"),
+                  command=lambda: self._set_camara("cerca")).pack(side="left", padx=2)
+
         # =============================================================
         # 1. FILA DE ROLES TEATRALES COMPLEMENTARIOS (GRANDES ARCOS)
         # =============================================================
@@ -227,13 +239,25 @@ class DemoPosturasG1:
                 command=lambda e=emo_k, v=v_val, a=a_val: self._set_emocion_preset(e, v, a)
             ).pack(side="left", padx=2)
 
+    def _set_camara(self, tipo: str):
+        if tipo == "cerca":
+            self.camera.lookat[:] = [0.0, 0.0, 0.88]
+            self.camera.distance = 1.25
+            self.camera.elevation = -6.0
+            self.camera.azimuth = 160.0
+        else:
+            self.camera.lookat[:] = [0.0, 0.0, 0.70]
+            self.camera.distance = 2.05
+            self.camera.elevation = -10.0
+            self.camera.azimuth = 162.0
+
     def _activar_rol_teatral(self, rol: str):
         self.emocion_actual = rol
         self.modo_teatral = True
         sec, dur, _, _ = CoreografoPosturalG1.obtener_coreografia(rol)
         self._secuencia_actual = list(sec)
         self._idx_secuencia = 0
-        self._duracion_step = max(0.40, float(dur))
+        self._duracion_step = max(0.85, float(dur))
         self._ultimo_tiempo_pose = time.monotonic()
 
         va_presets = {
@@ -266,8 +290,7 @@ class DemoPosturasG1:
         self._actualizar_telemetria()
 
     def _set_emocion_preset(self, emo: str, val: float, aro: float):
-        self.modo_teatral = False
-        self.emocion_actual = emo
+        self._activar_rol_teatral(emo)
         self.valencia = val
         self.arousal = aro
         self.scale_valencia.set(val)
@@ -275,9 +298,19 @@ class DemoPosturasG1:
         self._actualizar_telemetria()
 
     def _al_cambiar_slider(self):
-        self.modo_teatral = False
         self.valencia = float(self.scale_valencia.get())
         self.arousal = float(self.scale_arousal.get())
+        # Mapear V y A al rol teatral más afín para que nunca quede estático
+        if self.valencia > 0.25:
+            self._activar_rol_teatral("MOTIVACION_ALEGRIA")
+        elif self.valencia < -0.20 and self.arousal < 0.10:
+            self._activar_rol_teatral("TRISTEZA_DESANIMO")
+        elif self.valencia < -0.20 and self.arousal >= 0.10:
+            self._activar_rol_teatral("ENOJO_FRUSTRACION")
+        elif self.arousal > 0.30:
+            self._activar_rol_teatral("ANSIEDAD_ESTRES")
+        else:
+            self._activar_rol_teatral("NEUTRO")
         self._actualizar_telemetria()
 
     def _actualizar_telemetria(self):
@@ -307,7 +340,7 @@ class DemoPosturasG1:
                 if art in self.jmap:
                     adr = self.jmap[art]
                     actual = float(self.data.qpos[adr])
-                    self.data.qpos[adr] = actual + (val - actual) * min(1.0, dt * 5.0)
+                    self.data.qpos[adr] = actual + (val - actual) * min(1.0, dt * 8.5)
         else:
             # Cinemática continua
             if self.hablando:
