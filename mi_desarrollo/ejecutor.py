@@ -147,9 +147,13 @@ class Ejecutor:
         return f"estado: {e}"
 
     def _saludar(self, p: Optional[dict] = None) -> str:
-        """Ejecuta saludo empático sincronizando rostro animado, voz y gesto de brazo G1."""
+        """Ejecuta saludo empático sincronizando rostro animado, voz DSP y gesto de brazo G1."""
+        from coach_emocional import MotorRespuestaCoach, PerfilProsodico
+
         p = p or {}
+        estado = p.get("estado_afectivo")
         variante = str(p.get("variante_saludo", "")).lower()
+
         if "buenos dias" in variante or "buen dia" in variante:
             texto_saludo = "¡Muy buenos días! Soy Ottoman, tu coach y asistente robótico. ¿Cómo amaneciste y cómo te sentís hoy?"
         elif "buenas tardes" in variante:
@@ -158,40 +162,69 @@ class Ejecutor:
             texto_saludo = "¡Buenas noches! Soy Ottoman, tu coach y asistente robótico. ¿Cómo terminaste el día hoy?"
         else:
             texto_saludo = "¡Hola! Soy Ottoman, tu coach y asistente robótico. ¿Cómo te sentís hoy?"
-        if self.rostro is not None:
-            self.rostro.actualizar_estado(
-                emocion="ALEGRIA",
-                subtitulo=texto_saludo,
-                resumen_usuario="Intención: SALUDO | V:+0.75 A:+0.35",
-                resumen_prosodia="Voz Ottoman -> 155 ppm (+7%) | +1.0 dB | +8 Hz",
-                valencia=0.75,
-                arousal=0.35,
-                incongruencia=False,
-                canales=["lexico"],
-                metricas_faciales={
-                    "rostro_detectado": False,
-                    "apertura_ojos": 0.65,
-                    "tension_cejas": 0.12,
-                    "curvatura_boca": 0.72,
-                    "apertura_boca": 0.25,
-                    "inclinacion_cabeza_deg": 0.0,
-                    "emocion_facial": "ALEGRIA",
-                },
+
+        # Si los sensores biométricos (cámara/voz) detectan malestar durante el saludo, adaptamos
+        emo_saludo = "MOTIVACION_ALEGRIA"
+        val_saludo, aro_saludo = 0.75, 0.35
+        prosodia_saludo = PerfilProsodico(
+            velocidad_wpm=155,
+            velocidad_pct=7,
+            volumen_db=1.0,
+            tono_hz=8,
+            pausa_inicial_s=0.05,
+            pausa_entre_frases_s=0.30,
+            estilo_lexico="cálido y receptivo",
+            timbre="brillante_claro",
+        )
+        if estado is not None and (
+            estado.emocion_dominante not in ("NEUTRO", "MOTIVACION_ALEGRIA")
+            or estado.incongruencia_detectada
+        ):
+            emo_saludo = estado.emocion_dominante
+            val_saludo = float(estado.valencia)
+            aro_saludo = float(estado.arousal)
+            if emo_saludo in MotorRespuestaCoach.PERFILES_BASE:
+                _, prosodia_saludo, _ = MotorRespuestaCoach.PERFILES_BASE[emo_saludo]
+            texto_saludo = (
+                "¡Hola! Acá estoy con vos. Noto en tus gestos o en tu voz que hoy venís con algo de carga; "
+                "contame tranquilo cómo te sentís."
             )
 
+        resumen_voz = (
+            f"Voz Ottoman -> {prosodia_saludo.velocidad_wpm} ppm ({prosodia_saludo.velocidad_pct:+d}%) | "
+            f"{prosodia_saludo.volumen_db:+.1f} dB | {prosodia_saludo.tono_hz:+d} Hz | "
+            f"Timbre: {prosodia_saludo.timbre}"
+        )
+
+        if self.rostro is not None:
+            self.rostro.actualizar_estado(
+                emocion="ALEGRIA" if emo_saludo == "MOTIVACION_ALEGRIA" else emo_saludo,
+                subtitulo=texto_saludo,
+                resumen_usuario=f"Intención: SALUDO | V:{val_saludo:+.2f} A:{aro_saludo:+.2f}",
+                resumen_prosodia=resumen_voz,
+                valencia=val_saludo,
+                arousal=aro_saludo,
+                incongruencia=estado.incongruencia_detectada if estado is not None else False,
+                canales=estado.canales_activos if estado is not None else ["lexico"],
+                metricas_faciales=(
+                    self._metricas_faciales_para_dashboard(estado)
+                    if estado is not None and estado.facial.rostro_detectado
+                    else {
+                        "rostro_detectado": False,
+                        "apertura_ojos": 0.65,
+                        "tension_cejas": 0.12,
+                        "curvatura_boca": 0.72,
+                        "apertura_boca": 0.25,
+                        "inclinacion_cabeza_deg": 0.0,
+                        "emocion_facial": "ALEGRIA" if emo_saludo == "MOTIVACION_ALEGRIA" else emo_saludo,
+                    }
+                ),
+            )
+
+        self._log(f"Modulación Voz : {resumen_voz}")
         self._log(f"Saludo G1      : \"{texto_saludo}\"")
         hilo_voz = None
         if self.sintetizador_voz is not None and self.sintetizador_voz.habilitado:
-            from coach_emocional import PerfilProsodico
-            prosodia_saludo = PerfilProsodico(
-                velocidad_wpm=155,
-                velocidad_pct=7,
-                volumen_db=1.0,
-                tono_hz=8,
-                pausa_inicial_s=0.05,
-                pausa_entre_frases_s=0.30,
-                estilo_lexico="cálido y receptivo",
-            )
             hilo_voz = self.sintetizador_voz.hablar_sincronizado(
                 texto=texto_saludo,
                 prosodia=prosodia_saludo,
@@ -256,10 +289,11 @@ class Ejecutor:
                 )
             resumen_usr = " | ".join(partes_canal)
 
+        timbre_str = getattr(prosodia, "timbre", "neutro_templado")
         resumen_voz_robot = (
             f"Voz Ottoman -> {prosodia.velocidad_wpm} ppm ({prosodia.velocidad_pct:+d}%) | "
             f"{prosodia.volumen_db:+.1f} dB | {prosodia.tono_hz:+d} Hz | "
-            f"Pausa: {prosodia.pausa_entre_frases_s:.2f}s"
+            f"Timbre: {timbre_str} | Pausa: {prosodia.pausa_entre_frases_s:.2f}s"
         )
 
         # 1. Actualizar Rostro Animado y Dashboard (Cámara FACS + Plano Russell V-A)

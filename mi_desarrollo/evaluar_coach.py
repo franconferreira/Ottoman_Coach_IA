@@ -309,6 +309,30 @@ def ejecutar_pruebas_multimodales() -> int:
         f"Fitness Base={fit_base*100:.1f}% < Manual={fit_man*100:.1f}% < AG={fit_ga*100:.2f}%",
     )
 
+    # -----------------------------------------------------------------
+    # 9. Modulación Acústica DSP (Pitch F0 Hz + Timbre Espectral) y Postura Continua
+    # -----------------------------------------------------------------
+    from coach_emocional import PerfilProsodico
+    pcm_base = np.frombuffer(
+        _generar_onda_voz_sintetica(f0_hz=160.0, amplitud=0.5, num_silabas=6, duracion_total_s=1.5),
+        dtype=np.int16,
+    )
+    pros_calma = PerfilProsodico(124, -22, -4.0, -15, 0.5, 0.8, "calido", timbre="calido_suave")
+    pros_alegre = PerfilProsodico(170, +12, +3.0, +15, 0.2, 0.25, "energico", timbre="brillante_claro")
+    onda_calma, _ = SintetizadorVozAdaptativo.modular_onda_dsp(pcm_base, 16000, pros_calma)
+    onda_alegre, _ = SintetizadorVozAdaptativo.modular_onda_dsp(pcm_base, 16000, pros_alegre)
+    m_calma_dsp = av.analizar_pcm(onda_calma.tobytes(), sample_rate=16000)
+    m_alegre_dsp = av.analizar_pcm(onda_alegre.tobytes(), sample_rate=16000)
+    verificar(
+        "DSP de Síntesis modula físicamente F0 (Hz), Volumen (dB) y Timbre en la onda WAV",
+        (
+            m_calma_dsp.tono_f0_hz < 152.0
+            and m_alegre_dsp.tono_f0_hz > 168.0
+            and m_calma_dsp.volumen_db < m_alegre_dsp.volumen_db
+        ),
+        f"Calma: {m_calma_dsp.tono_f0_hz} Hz ({m_calma_dsp.volumen_db} dB) vs Alegría: {m_alegre_dsp.tono_f0_hz} Hz ({m_alegre_dsp.volumen_db} dB)",
+    )
+
     print("  " + "-" * 74)
     print(f"  RESULTADO FINAL: {pruebas_ok}/{total_pruebas} PRUEBAS MULTIMODALES SUPERADAS CON ÉXITO")
     print("=" * 78 + "\n")

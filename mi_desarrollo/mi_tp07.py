@@ -307,6 +307,16 @@ class ExtractorParametros:
         elif tipo == "SALUDO":
             if any(k in texto_norm for k in ("buen dia", "buenos dias", "buenas tardes", "buenas noches")):
                 p["variante_saludo"] = texto_norm
+            if estado_afectivo is not None and (
+                estado_afectivo.facial.rostro_detectado
+                or estado_afectivo.acustica.audio_analizado
+                or estado_afectivo.emocion_dominante not in ("NEUTRO", "MOTIVACION_ALEGRIA")
+            ):
+                p["estado_afectivo"] = estado_afectivo
+            self.motor_coach.registrar_turno(
+                texto,
+                "¡Hola! Soy Ottoman, tu coach y asistente robótico. ¿Cómo te sentís hoy?",
+            )
 
         elif tipo == "COACH_EMOCIONAL":
             afecto = estado_afectivo or self.fusionador.fusionar(texto)
@@ -322,6 +332,8 @@ class ExtractorParametros:
             p["arousal"] = afecto.arousal
             p["velocidad_voz_wpm"] = plan.prosodia.velocidad_wpm
             p["volumen_voz_db"] = plan.prosodia.volumen_db
+            p["tono_voz_hz"] = plan.prosodia.tono_hz
+            p["timbre_voz"] = plan.prosodia.timbre
 
         return p
 
@@ -422,10 +434,12 @@ class AgenteRobot:
         modo_dashboard: bool = False,
         captura_camara_dashboard: bool = False,
         modo_conversacional: bool = True,
+        usar_llm_local: Optional[bool] = None,
     ):
         self.robot = robot
         self.mostrar = mostrar
-        self.motor_coach = MotorRespuestaCoach()
+        activar_llm_local = (modo_conversacional and mostrar) if usar_llm_local is None else bool(usar_llm_local)
+        self.motor_coach = MotorRespuestaCoach(usar_llm_local=activar_llm_local)
         self.clasificador = ClasificadorIntencion(
             usar_ml=usar_ml, modo_conversacional=modo_conversacional
         )

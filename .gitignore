@@ -8,5 +8,7 @@ entorno/sim/.simulador_activo.json
 entorno/sim/.pose_actual.json
 *.mp3
 *.wav
+*.gguf
+mi_desarrollo/modelos/
 .DS_Store
 Thumbs.db

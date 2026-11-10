@@ -576,6 +576,9 @@ class AnalizadorLexicoAfectivo:
                 r"\bnervios[oa]?\b", r"\btaquicardia\b", r"\bno puedo respirar\b",
                 r"\bme falta el aire\b", r"\bmil cosas\b", r"\bsobrepasad[oa]\b",
                 r"\bangustia\w*\b", r"\bpresion\b", r"\bbloquead[oa] por el examen\b",
+                r"\ba las corridas\b", r"\bno me alcanza el tiempo\b", r"\bapurad[oa]\b",
+                r"\bllego tarde\b", r"\bme corre el tiempo\b", r"\burgente\b",
+                r"\bpreocupad[oa]\b", r"\binquiet[oa]\b", r"\btens[oa]\b",
             ],
         ),
         "TRISTEZA_DESANIMO": (
@@ -588,6 +591,10 @@ class AnalizadorLexicoAfectivo:
                 r"\bsin ganas\b", r"\bme salio todo mal\b", r"\bno sirvo\b",
                 r"\bdesanimad[oa]\b", r"\bvacio\b", r"\bcansad[oa] de todo\b",
                 r"\bfrustrad[oa] y cansad[oa]\b", r"\bdecepcion\w*\b",
+                r"\bme duele\w*\b", r"\bdolor\b", r"\benferm[oa]\b", r"\bno dormi\b",
+                r"\bdesaprobe\b", r"\breprobe\b", r"\bme bocharon\b", r"\bperdi\b",
+                r"\bperdimos\b", r"\bme fue mal\b", r"\bmal dia\b", r"\bdia pesado\b",
+                r"\bpesado el dia\b", r"\bextrano a\b", r"\bnostalgia\b", r"\bpena\b",
             ],
         ),
         "ENOJO_FRUSTRACION": (
@@ -598,7 +605,9 @@ class AnalizadorLexicoAfectivo:
                 r"\bodio\b", r"\bpudri\w*\b", r"\bpodrid[oa]\b", r"\binsoportable\b",
                 r"\binjusto\b", r"\bme da rabia\b", r"\birritad[oa]\b",
                 r"\bimposible trabajar asi\b", r"\bnada funciona\b", r"\bme saca\b",
-                r"\bre caliente\b", r"\bimpotencia\b",
+                r"\bre caliente\b", r"\bimpotencia\b", r"\bse rompio\b", r"\bse me rompio\b",
+                r"\bse trabo\b", r"\bno anda\b", r"\bdesastre\b", r"\bmalisimo\b",
+                r"\bpelee\b", r"\bdiscusion\b", r"\bme tiene cansad[oa]\b",
             ],
         ),
         "DUDA_INSEGURIDAD": (
@@ -610,6 +619,8 @@ class AnalizadorLexicoAfectivo:
                 r"\bconfundid[oa]\b", r"\bperdid[oa]\b", r"\bno me animo\b",
                 r"\bque decision tomar\b", r"\bno se si elegir\b", r"\bme cuesta decidir\b",
                 r"\bsindrome del impostor\b", r"\bnecesito un consejo\b",
+                r"\bque me recomendas\b", r"\bcual elijo\b", r"\bno entiendo\b",
+                r"\bme conviene\b", r"\bque opinas\b", r"\bcomo empezar\b",
             ],
         ),
         "MOTIVACION_ALEGRIA": (
@@ -620,6 +631,10 @@ class AnalizadorLexicoAfectivo:
                 r"\blo logre\b", r"\bme salio bien\b", r"\borgullos[oa]\b",
                 r"\bmotivad[oa]\b", r"\bentusiasmad[oa]\b", r"\bgenial me fue\b",
                 r"\bme fue increible\b", r"\bpude resolverlo\b", r"\bre bien\b",
+                r"\bgane\b", r"\bganamos\b", r"\bgol\b", r"\bcampeon\w*\b",
+                r"\bfestej\w*\b", r"\bcelebr\w*\b", r"\bexcelente\b", r"\bbuenisimo\b",
+                r"\bbarbaro\b", r"\bde diez\b", r"\bjoya\b", r"\bvacaciones\b",
+                r"\bconsegui trabajo\b", r"\bme contrataron\b", r"\bpromocione\b",
             ],
         ),
     }
