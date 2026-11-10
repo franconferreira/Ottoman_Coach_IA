@@ -452,7 +452,7 @@ class AgenteRobot:
             modo_dashboard=modo_dashboard,
             captura_camara_autonoma=captura_camara_dashboard,
         )
-        if habilitar_rostro_gui:
+        if habilitar_rostro_gui and not modo_dashboard:
             self.rostro.iniciar()
 
         self.sintetizador = SintetizadorVozAdaptativo(habilitado=habilitar_audio_tts)
@@ -788,30 +788,38 @@ def main() -> int:
     print("  Escribí 'demo' para ver los 6 escenarios afectivos o 'salir' para terminar.")
     print("=" * 78)
 
-    try:
+    def _consola_reader():
         while True:
-            if agente.rostro and not agente.rostro._activo and not args.sin_rostro:
-                break
-
-            lectura_facial = None
-            if analizador_facial is not None and analizador_facial.camara_disponible:
-                lectura_facial = analizador_facial.capturar_rafaga(2)
-
-            texto_usr = input("\n  Vos > ").strip()
-            if not texto_usr:
-                continue
-            if texto_usr.lower() in ("salir", "exit", "quit"):
-                break
-            if texto_usr.lower() == "demo":
-                correr_demo_coach(agente)
-                continue
-
             try:
-                if agente.rostro and hasattr(agente.rostro, "agregar_chat_mensaje"):
-                    agente.rostro.agregar_chat_mensaje("Vos (Consola)", texto_usr)
-                agente.procesar(texto_usr, facial=lectura_facial, acustica=None)
-            except Exception as exc:
-                print(f"  [ERROR] No se pudo completar la orden: {type(exc).__name__}: {exc}")
+                line = sys.stdin.readline()
+                if not line:
+                    break
+                texto_usr = line.strip()
+                if not texto_usr:
+                    continue
+                if texto_usr.lower() in ("salir", "exit", "quit"):
+                    if agente.rostro:
+                        agente.rostro.cerrar()
+                    break
+                if texto_usr.lower() == "demo":
+                    threading.Thread(target=correr_demo_coach, args=(agente,), daemon=True).start()
+                    continue
+
+                if agente.rostro and hasattr(agente.rostro, "enviar_desde_gui"):
+                    agente.rostro.enviar_desde_gui(texto_usr)
+                else:
+                    agente.procesar(texto_usr)
+            except Exception:
+                break
+
+    hilo_consola = threading.Thread(target=_consola_reader, daemon=True)
+    hilo_consola.start()
+
+    try:
+        if agente.rostro and agente.rostro.habilitado:
+            agente.rostro.iniciar(en_hilo_actual=True)
+        else:
+            hilo_consola.join()
     except (KeyboardInterrupt, EOFError):
         print("\n  Cerrando sesión de Ottoman Coach...")
     finally:

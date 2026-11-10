@@ -236,14 +236,8 @@ class SimuladorEmbebidoG1:
 
             mujoco.mj_forward(self._model, self._data)
 
-            self._renderer = mujoco.Renderer(self._model, self.alto, self.ancho)
-            self._camera = mujoco.MjvCamera()
-            self._camera.type = mujoco.mjtCamera.mjCAMERA_FREE
-            self._camera.lookat[:] = [0.0, 0.0, 0.75]
-            self._camera.distance = 2.25
-            self._camera.elevation = -11.0
-            self._camera.azimuth = 160.0
-
+            self._renderer = None
+            self._camera = None
             self._disponible = True
             return True
         except Exception:
@@ -406,6 +400,16 @@ class SimuladorEmbebidoG1:
                             adr = self._jmap[k]
                             actual = float(self._data.qpos[adr])
                             self._data.qpos[adr] = actual + (v_std - actual) * min(1.0, dt * 5.0)
+
+                # Inicializar renderer de forma perezosa en el mismo hilo de renderizado
+                if self._renderer is None:
+                    self._renderer = mujoco.Renderer(self._model, self.alto, self.ancho)
+                    self._camera = mujoco.MjvCamera()
+                    self._camera.type = mujoco.mjtCamera.mjCAMERA_FREE
+                    self._camera.lookat[:] = [0.0, 0.0, 0.75]
+                    self._camera.distance = 2.25
+                    self._camera.elevation = -11.0
+                    self._camera.azimuth = 160.0
 
                 # Cámara suave siguiendo el centro del robot
                 self._camera.lookat[0] = self.x
@@ -607,12 +611,34 @@ class RostroOttoman:
 
         threading.Thread(target=_worker, daemon=True).start()
 
-    def iniciar(self) -> bool:
-        """Levanta la ventana gráfica unificada en un hilo dedicado no bloqueante."""
+    def iniciar(self, en_hilo_actual: bool = False) -> bool:
+        """Levanta la ventana gráfica unificada.
+        
+        Si en_hilo_actual=True, corre directamente en el hilo invocador (requerido en Windows
+        para que GLFW / MuJoCo 3D comparta el message pump del hilo principal sin errores de contexto).
+        Si en_hilo_actual=False, levanta en un hilo dedicado no bloqueante.
+        """
         if not self.habilitado:
             return False
         if self._activo:
             return True
+
+        if en_hilo_actual:
+            try:
+                import tkinter as tk
+                root = tk.Tk()
+                root.title(self.titulo)
+                geom = "1380x870" if self.modo_dashboard else "680x500"
+                root.geometry(geom)
+                root.configure(bg="#070B14")
+                root.resizable(False, False)
+                self._activo = True
+                self._root = root
+                self._bucle_render(root, tk)
+                return True
+            except Exception:
+                self._activo = False
+                return False
 
         listo = threading.Event()
         exito = [False]
@@ -628,6 +654,7 @@ class RostroOttoman:
                 root.resizable(False, False)
                 exito[0] = True
                 self._activo = True
+                self._root = root
                 listo.set()
                 self._bucle_render(root, tk)
             except Exception:
@@ -642,6 +669,11 @@ class RostroOttoman:
     def cerrar(self) -> None:
         self._activo = False
         self._cola.put({"cmd": "cerrar"})
+        if hasattr(self, "_root") and self._root:
+            try:
+                self._root.after(0, self._root.destroy)
+            except Exception:
+                pass
         if self._hilo is not None and self._hilo.is_alive():
             self._hilo.join(timeout=1.0)
 
@@ -936,6 +968,7 @@ class RostroOttoman:
             )
 
             frame_sim_rgb = self.simulador_3d.update()
+            self._ultimo_frame_sim = frame_sim_rgb
             if frame_sim_rgb is not None:
                 try:
                     img_sim_pil = Image.fromarray(frame_sim_rgb)
