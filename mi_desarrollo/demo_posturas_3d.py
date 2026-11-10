@@ -361,6 +361,20 @@ class DemoPosturasG1:
                 if art in self.jmap:
                     self.data.qpos[self.jmap[art]] = val
 
+        # 1. Altura de pelvis dinámica: mantiene pies firmes en el piso con flexión visible de rodillas
+        lk = float(self.data.qpos[self.jmap["left_knee"]]) if "left_knee" in self.jmap else 0.0
+        rk = float(self.data.qpos[self.jmap["right_knee"]]) if "right_knee" in self.jmap else 0.0
+        knee_avg = (lk + rk) / 2.0
+        self.data.qpos[2] = 0.793 - (0.045 * knee_avg * knee_avg)
+
+        # 2. Contrapeso físico de pelvis en X (anti-sobrenatural):
+        # Cuando el torso se inclina al frente (waist_pitch > 0), las caderas retroceden para balancear el centro de gravedad
+        wp = float(self.data.qpos[self.jmap["waist_pitch"]]) if "waist_pitch" in self.jmap else 0.0
+        if wp > 0.04:
+            self.data.qpos[0] = -0.16 * wp
+        else:
+            self.data.qpos[0] = 0.0
+
         # Renderizar escena offscreen en el hilo principal
         mujoco.mj_forward(self.model, self.data)
         self.renderer.update_scene(self.data, camera=self.camera)

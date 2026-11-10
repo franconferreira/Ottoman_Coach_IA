@@ -206,8 +206,8 @@ class SimuladorEmbebidoG1:
             "right_shoulder_roll": -0.08,
             "left_elbow": 0.28,
             "right_elbow": 0.28,
-            "left_wrist_roll": 0.0,
-            "right_wrist_roll": 0.0,
+            "left_wrist_roll": -1.25,
+            "right_wrist_roll": 1.25,
             "manos": 0.05,
         }
 
@@ -598,11 +598,11 @@ class SimuladorEmbebidoG1:
                     if "right_wrist_roll" in self._jmap:
                         self._data.qpos[self._jmap["right_wrist_roll"]] = p["right_wrist_roll"] + mod_r_wr
 
-                    # Piernas vivas con microflexión orgánica (NO poste rígido)
+                    # Piernas vivas con flexión visible natural (rodillas hacia adelante)
                     for leg_joint, leg_val in (
-                        ("left_hip_pitch", -0.06), ("right_hip_pitch", -0.06),
-                        ("left_knee", 0.12), ("right_knee", 0.12),
-                        ("left_ankle_pitch", -0.06), ("right_ankle_pitch", -0.06),
+                        ("left_hip_pitch", -0.16), ("right_hip_pitch", -0.16),
+                        ("left_knee", 0.32), ("right_knee", 0.32),
+                        ("left_ankle_pitch", -0.16), ("right_ankle_pitch", -0.16),
                     ):
                         if leg_joint in self._jmap:
                             self._data.qpos[self._jmap[leg_joint]] = leg_val
@@ -626,6 +626,18 @@ class SimuladorEmbebidoG1:
                         k_tr = f"{lado}_hand_thumb_rotation"
                         if k_tr in self._jmap:
                             self._data.qpos[self._jmap[k_tr]] = 0.20
+
+                # Compensación física dinámica de centro de gravedad y rodillas
+                lk = float(self._data.qpos[self._jmap["left_knee"]]) if "left_knee" in self._jmap else 0.0
+                rk = float(self._data.qpos[self._jmap["right_knee"]]) if "right_knee" in self._jmap else 0.0
+                knee_avg = (lk + rk) / 2.0
+                self._data.qpos[2] = self.altura - (0.045 * knee_avg * knee_avg)
+
+                wp = float(self._data.qpos[self._jmap["waist_pitch"]]) if "waist_pitch" in self._jmap else 0.0
+                if wp > 0.04:
+                    self._data.qpos[0] = self.x - 0.16 * wp
+                else:
+                    self._data.qpos[0] = self.x
 
                 # Inicializar renderer de forma perezosa en el mismo hilo de renderizado
                 if self._renderer is None:

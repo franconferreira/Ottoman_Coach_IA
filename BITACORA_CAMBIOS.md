@@ -40,3 +40,16 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
   - `mi_desarrollo/demo_posturas_3d.py`: Removido el bloqueo hardcodeado de piernas a 0.0 en el loop principal, permitiendo interpolación y movimiento libre del tren inferior. Activado auto-play de coreografía al iniciar y mapeados todos los botones de presets para disparar las coreografías teatrales. Añadido selector de cámara (Cuerpo Entero y Primer Plano de Manos/Torso).
   - `mi_desarrollo/rostro_ottoman.py`: Removido el forzado a 0.0 de piernas en modo `quieto`; conectada la cascada anatómica de dedos y microflexión de rodillas. Acelerada la interpolación lerp a 8.5 para transiciones vivas.
 - **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`). Commit: `e225e30`.
+
+### [2026-11-10] - Cinemática Natural y Gravedad: Rodillas Flexionadas, Compensación de Centro de Masa y Palmas Neutras
+- **Archivos tocados:**
+  - `mi_desarrollo/coach_emocional.py`:
+    - Eliminación de palmas hacia arriba como postura por defecto: rotación medial de muñeca (`left_wrist_roll: -1.25`, `right_wrist_roll: 1.25`) en reposo neutro y poses base para que las palmas miren naturalmente hacia los muslos y el cuerpo (desaparece el zombie/meme).
+    - Flexión visible de rodillas ($0.32\text{–}0.52\text{ rad}$, $18^\circ\text{–}30^\circ$) con pitch compensatorio de cadera ($-0.16\text{ a }-0.26\text{ rad}$) y tobillos ($-0.16\text{ a }-0.26\text{ rad}$), otorgando postura atlética y dinámica.
+    - Corrección física de inclinación en tristeza: se atenuó `waist_pitch` a $0.15\text{ rad}$ coordinado con cadera retrasada (`left_hip_pitch: -0.20`) y rodillas flexionadas, respetando el límite seguro del test (>0.10 rad) sin quebrar la gravedad.
+  - `mi_desarrollo/demo_posturas_3d.py` y `mi_desarrollo/rostro_ottoman.py`:
+    - Cinemática inversa simplificada de pelvis: cálculo dinámico de altura Z ($Z = 0.793 - 0.045 \times \text{knee}^2$) para que los pies queden siempre firmes sobre el piso al flexionar rodillas sin flotación.
+    - Compensación de Centro de Masas (CoM) en el eje X: retroceso dinámico de pelvis ($X = -0.16 \times \text{waist\_pitch}$) cuando el torso se inclina hacia adelante, evitando la inclinación sobrenatural tipo voladizo.
+    - Modos de cámara optimizados: añadido botón de primer plano `[ 🔍 Primer Plano (Manos/Torso) ]` y auto-arranque en `MOTIVACION_ALEGRIA`.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`).
+
