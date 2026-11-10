@@ -2066,7 +2066,9 @@ class SintetizadorVozAdaptativo:
 
     @staticmethod
     def aplicar_dsp_estudio(onda_int16: np.ndarray, sample_rate: int) -> np.ndarray:
-        """Aplica presencia de pecho, suavizado de sibilancias y micro-reverberación física."""
+        """Aplica la acústica caricaturesca del General Infantil:
+        megáfono de juguete con crunch de cono y eco teatral de ópera/catedral.
+        """
         if onda_int16.size == 0:
             return onda_int16
         try:
@@ -2074,31 +2076,27 @@ class SintetizadorVozAdaptativo:
             x = onda_int16.astype(np.float32) / 32768.0
             nyq = 0.5 * sample_rate
 
-            # 1. De-essing: filtro low-pass suave para apagar sibilancias digitales (>6800 Hz)
-            if nyq > 6800:
-                sos_lp = butter(2, 6800.0 / nyq, btype="low", output="sos")
-                x = sosfilt(sos_lp, x)
+            # 1. Filtro de megáfono adaptado a juguete pequeño (650 Hz - 4350 Hz)
+            low_cut = min(650.0, nyq * 0.4)
+            high_cut = min(4350.0, nyq * 0.85)
+            sos_bp = butter(2, [low_cut / nyq, high_cut / nyq], btype="band", output="sos")
+            x = sosfilt(sos_bp, x)
 
-            # 2. Resonancia torácica: realce cálido en banda de pecho (200 Hz - 450 Hz)
-            if nyq > 450:
-                sos_band = butter(2, [200.0 / nyq, 450.0 / nyq], btype="band", output="sos")
-                cuerpo = sosfilt(sos_band, x)
-                x = x + 0.30 * cuerpo
+            # 2. Distorsión crunch de cono de plástico/papel al límite (hard clipping)
+            x = np.clip(x * 1.55, -0.75, 0.75)
 
-            # 3. Micro-reverberación de sala física (early reflections a 18ms, 31ms, 46ms)
-            delays_ms = [18, 31, 46]
-            gains = [0.12, 0.08, 0.04]
-            reverb = np.zeros_like(x)
-            for d_ms, g in zip(delays_ms, gains):
-                d_samples = int(sample_rate * (d_ms / 1000.0))
-                if len(x) > d_samples:
-                    delayed = np.pad(x[:-d_samples], (d_samples, 0))
-                    reverb += g * delayed
-            x = x + reverb
+            # 3. Eco teatral de ópera / catedral (delays de 45ms, 90ms, 140ms y 210ms)
+            delays = [int(sample_rate * 0.045), int(sample_rate * 0.090), int(sample_rate * 0.140), int(sample_rate * 0.210)]
+            gains = [0.32, 0.22, 0.15, 0.09]
+            rev = np.zeros_like(x)
+            for dl, g in zip(delays, gains):
+                if len(x) > dl:
+                    rev += g * np.pad(x[:-dl], (dl, 0))
+            x = x + rev
 
             pico = float(np.max(np.abs(x)))
             if pico > 0.01:
-                x = (x / pico) * 0.94
+                x = (x / pico) * 0.92
             return (x * 32767.0).astype(np.int16)
         except Exception:
             return onda_int16
@@ -2183,13 +2181,13 @@ class SintetizadorVozAdaptativo:
                     from scipy.io import wavfile
                     import winsound
 
-                    # Mapeo a la nueva base ágil (+8% velocidad, +3Hz tono)
-                    pct_rate = int(round(+8 + ((prosodia.velocidad_wpm - 150) / 150.0) * 35))
-                    pct_rate = max(+3, min(+25, pct_rate))
-                    val_pitch = int(round(+3 + (prosodia.tono_hz * 0.4)))
-                    val_pitch = max(-4, min(+8, val_pitch))
-                    val_vol = int(round(prosodia.volumen_db * 3.0))
-                    val_vol = max(-25, min(+10, val_vol))
+                    # Mapeo a la personalidad de caricatura: General Infantil con identidad cohesiva y estable
+                    pct_rate = int(round(+14 + ((prosodia.velocidad_wpm - 150) / 150.0) * 10))
+                    pct_rate = max(+12, min(+16, pct_rate))
+                    val_pitch = int(round(+20 + (prosodia.tono_hz * 0.12)))
+                    val_pitch = max(+18, min(+22, val_pitch))
+                    val_vol = int(round(prosodia.volumen_db * 2.0))
+                    val_vol = max(-15, min(+5, val_vol))
 
                     # Detección de bloques dinámicos (Contención inicial -> Silencio -> Acción)
                     oraciones = [o.strip() for o in re.split(r"(?<=[.!?])\s+", texto_prosodico) if o.strip()]
@@ -2200,17 +2198,17 @@ class SintetizadorVozAdaptativo:
                     with tempfile.TemporaryDirectory() as tmpdir:
                         final_wav = os.path.join(tmpdir, "final.wav")
                         if es_bimodal:
-                            # Mitad 1: contención suave (-4% vel, -3Hz tono, -12% vol)
+                            # Transición suave sin saltos abruptos (apenas 1 Hz / 1% de matiz orgánico)
                             corte = max(1, len(oraciones) // 2)
                             txt_b1 = " ".join(oraciones[:corte])
                             txt_b2 = " ".join(oraciones[corte:])
 
-                            r_b1 = f"{max(+3, pct_rate - 4):+d}%"
-                            p_b1 = f"{max(-3, val_pitch - 3):+d}Hz"
-                            v_b1 = f"{val_vol - 12:+d}%"
+                            r_b1 = f"{max(+12, pct_rate - 1):+d}%"
+                            p_b1 = f"{max(+18, val_pitch - 1):+d}Hz"
+                            v_b1 = f"{val_vol - 6:+d}%"
 
-                            r_b2 = f"{min(+22, pct_rate + 2):+d}%"
-                            p_b2 = f"{min(+6, val_pitch + 1):+d}Hz"
+                            r_b2 = f"{min(+16, pct_rate + 1):+d}%"
+                            p_b2 = f"{min(+22, val_pitch + 1):+d}Hz"
                             v_b2 = f"{val_vol:+d}%"
 
                             mp3_1 = os.path.join(tmpdir, "b1.mp3")

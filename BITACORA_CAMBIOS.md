@@ -82,3 +82,38 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
     - Patrones léxicos para expresiones de bloqueo y vacilación en `DUDA_INSEGURIDAD`.
 - **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`).
 
+### [2026-11-10] - Rediseño Minimalista del Rostro Ottoman (Estilo EVE / Cozmo)
+- **Archivos tocados:**
+  - `mi_desarrollo/rostro_ottoman.py`:
+    - Eliminación total de rasgos antropomórficos artificiales: boca con ecualizador de líneas y cejas rectas.
+    - Implementación de nueva morfología de robot humanoide: chasis aerodinámico blanco/gris estilo Unitree G1, orejeras laterales de sensores auditivos y visor curvado OLED en cristal negro profundo (`#050811`) con bisel metálico y reflejo especular curvo.
+    - Foco exclusivo en **Ojos LED Gigantes**: se eliminó la carcasa/orejeras exteriores a pedido del usuario para dar protagonismo total a los ojos sobre una pantalla OLED curva completa de 410x356 px, duplicando las dimensiones de los ojos (~74x118 px) para máxima legibilidad, presencia e impacto visual.
+    - Ojos LED puros basados en la hoja de 7 expresiones de referencia: cápsulas neutras, arcos sonrientes `^ ^` (`MOTIVACION_ALEGRIA`), corte diagonal firme `\ /` (`ENOJO_FRUSTRACION`), mirada caída empática `/ \` (`TRISTEZA_DESANIMO`), guiño asimétrico inquisitivo (`DUDA_INSEGURIDAD`) y ojos relajados de co-regulación (`ANSIEDAD_ESTRES`).
+    - *Voice Pulse*: modulación acústica en tiempo real (escala y resplandor de los ojos) mientras habla el TTS neuronal en lugar de una boca humana.
+    - Co-regulación respiratoria integrada: dilatación y contracción cadenciosa del visor y los ojos en ciclos de 8s (4s inhalación / 4s exhalación).
+    - **Corrección de error crítico de Tkinter (`TclError: unknown option "-capstyle"`):** al pasar a `MOTIVACION_ALEGRIA`, `canvas.create_arc` fallaba porque Tkinter no soporta `capstyle` en arcos nativos, interrumpiendo el bucle gráfico y dejando el panel derecho vacío. Se reemplazó por un spline poligonal suavizado `canvas.create_line(*pts, smooth=True, capstyle="round")` y se blindó el renderizador con `try...finally` para asegurar que el tick nunca se detenga.
+    - Actualizada la función `exportar_captura_dashboard_png` para generar las vistas previas de alta resolución con el nuevo diseño.
+  - `docs/graficos/ottoman_faces_preview.png`: Hoja de referencia con las 7 expresiones renderizadas en alta resolución con ojos gigantes.
+  - `docs/graficos/dashboard_preview.png`: Captura completa del Dashboard unificado actualizada con el visor OLED y ojos gigantes.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`).
+
+### [2026-11-10] - Personalidad Sonora de Caricatura Definitiva: General Infantil (Megáfono de Juguete con Eco Teatral)
+- **Archivos tocados:**
+  - `mi_desarrollo/coach_emocional.py`:
+    - Adopción definitiva de la personalidad de caricatura **"General Infantil"** (pitch agudo $+20\text{ Hz}$, cadencia ágil $+14\%$) inspirada en el arquetipo cómico de dictador diminuto / villano de juguete (estilo Plankton / Marvin el Marciano).
+    - Cadena DSP `SintetizadorVozAdaptativo.aplicar_dsp_estudio` actualizada:
+      1. Filtro pasa-banda de megáfono militar ajustado a chasis diminuto ($650\text{--}4350\text{ Hz}$).
+      2. Saturación crujiente de cono de plástico/papel al límite (hard clipping $1.55\times$).
+      3. Reverberación teatral en cascada de sala de ópera/catedral ($45\text{ ms}$, $90\text{ ms}$, $140\text{ ms}$ y $210\text{ ms}$).
+    - Mapeo continuo adaptativo en `hablar_sincronizado`: estabilizado el anclaje del personaje para eliminar cambios bruscos entre emociones; el tono se modula de forma suave y cohesiva en una banda estrecha ($+18\text{ Hz}$ en calma/contención hasta $+22\text{ Hz}$ en euforia, velocidad $+12\%\text{ a }+16\%$), preservando su identidad cómica constante y la sincronización con el *Voice Pulse* del visor OLED.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`). Verificación en vivo completada exitosamente.
+
+### [2026-11-10] - Inicio Rápido y Limpio de Ottoman (Tabla de Tests Optativa)
+- **Archivos tocados:**
+  - `mi_desarrollo/mi_tp07.py`:
+    - Se agregó el flag de línea de comandos `--evaluar` para correr la tabla de los 25 casos de prueba oficiales de forma explícita.
+    - El inicio interactivo por defecto (`INICIAR_OTTOMAN.bat` o `python mi_tp07.py --ml`) ya no imprime la tabla de los 25 casos en la terminal, arrancando inmediatamente a la experiencia limpia del agente.
+  - `EJECUTAR_MI_CODIGO.bat`:
+    - Mantiene el paso de `--evaluar` para preservar el comportamiento histórico de corrección académica exigido por la cátedra.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --sin-robot`).
+

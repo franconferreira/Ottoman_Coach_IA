@@ -670,6 +670,7 @@ def correr_demo_coach(agente: AgenteRobot) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Ottoman Coach IA — TP07 / TPO UADE")
     parser.add_argument("--sin-robot", action="store_true", help="Corre los 25 casos oficiales sin abrir el simulador")
+    parser.add_argument("--evaluar", action="store_true", help="Muestra la tabla de evaluación de los 25 casos oficiales antes de iniciar")
     parser.add_argument("--demo-coach", action="store_true", help="Ejecuta la demostración completa de los 6 escenarios emocionales")
     parser.add_argument("--voz", action="store_true", help="Activa escucha por micrófono con análisis acústico DSP (Hz, WPM, dB)")
     parser.add_argument("--camara", action="store_true", help="Activa análisis facial en vivo mediante cámara web (OpenCV)")
@@ -703,16 +704,17 @@ def main() -> int:
         print("         Continuando con Cuerpo Mock + Rostro Animado + Voz TTS.")
         robot_inst = _RobotMockSilencioso()
 
-    # Primero corremos la tabla oficial de 25 casos en silencio para mostrar el puntaje
-    agente_test = AgenteRobot(
-        _RobotMockSilencioso(),
-        mostrar=False,
-        usar_ml=args.ml,
-        habilitar_audio_tts=False,
-        habilitar_rostro_gui=False,
-        modo_conversacional=False,
-    )
-    evaluar(agente_test, mostrar=True)
+    # Si se solicita explícitamente con --evaluar, corremos la tabla oficial de 25 casos
+    if args.evaluar:
+        agente_test = AgenteRobot(
+            _RobotMockSilencioso(),
+            mostrar=False,
+            usar_ml=args.ml,
+            habilitar_audio_tts=False,
+            habilitar_rostro_gui=False,
+            modo_conversacional=False,
+        )
+        evaluar(agente_test, mostrar=True)
 
     # Ahora levantamos el Agente Multimodal completo (Rostro/Dashboard Unificado + TTS + Simulador)
     usar_dashboard = not args.sin_rostro
