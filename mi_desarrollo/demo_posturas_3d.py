@@ -328,11 +328,6 @@ class DemoPosturasG1:
                 if art in self.jmap:
                     self.data.qpos[self.jmap[art]] = val
 
-        # Piernas en posición de pie firme
-        for leg in ("left_hip_pitch", "right_hip_pitch", "left_knee", "right_knee"):
-            if leg in self.jmap:
-                self.data.qpos[self.jmap[leg]] = 0.0
-
         # Renderizar escena offscreen en el hilo principal
         mujoco.mj_forward(self.model, self.data)
         self.renderer.update_scene(self.data, camera=self.camera)

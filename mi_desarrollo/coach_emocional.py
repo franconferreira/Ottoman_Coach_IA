@@ -92,47 +92,147 @@ class PlanRegulacionEmocional:
 #  1. COREÓGRAFO POSTURAL Y PROXÉMICO PARA UNITREE G1 (29 DoF + MANOS)
 # =====================================================================
 
+def _mano_relajada_organica(lado: str) -> dict[str, float]:
+    """Cascada anatómica humana de reposo en las manos (Inspire RH56)."""
+    return {
+        f"{lado}_hand_index": 0.22,
+        f"{lado}_hand_middle": 0.35,
+        f"{lado}_hand_ring": 0.48,
+        f"{lado}_hand_pinky": 0.58,
+        f"{lado}_hand_thumb_rotation": 0.20,
+        f"{lado}_hand_thumb_bend": 0.18,
+    }
+
+
+def _mano_empatica_pecho(lado: str) -> dict[str, float]:
+    """Mano que se acopla con calidez y curvatura orgánica sobre el tórax."""
+    return {
+        f"{lado}_hand_index": 0.32,
+        f"{lado}_hand_middle": 0.46,
+        f"{lado}_hand_ring": 0.60,
+        f"{lado}_hand_pinky": 0.72,
+        f"{lado}_hand_thumb_rotation": 0.35,
+        f"{lado}_hand_thumb_bend": 0.25,
+    }
+
+
+def _mano_pacificador(lado: str) -> dict[str, float]:
+    """Dedos extendidos juntos con pulgar abierto: barrera universal de sosiego."""
+    return {
+        f"{lado}_hand_index": 0.05,
+        f"{lado}_hand_middle": 0.05,
+        f"{lado}_hand_ring": 0.05,
+        f"{lado}_hand_pinky": 0.05,
+        f"{lado}_hand_thumb_rotation": 0.85,
+        f"{lado}_hand_thumb_bend": 0.05,
+    }
+
+
+def _mano_puno_victoria(lado: str) -> dict[str, float]:
+    """Puño cerrado con firmeza festiva y pulgar envolvente."""
+    return {
+        f"{lado}_hand_index": 1.28,
+        f"{lado}_hand_middle": 1.28,
+        f"{lado}_hand_ring": 1.28,
+        f"{lado}_hand_pinky": 1.28,
+        f"{lado}_hand_thumb_rotation": 0.80,
+        f"{lado}_hand_thumb_bend": 1.05,
+    }
+
+
+def _mano_senalamiento(lado: str) -> dict[str, float]:
+    """Índice apuntando con complicidad hacia el usuario, restantes recogidos."""
+    return {
+        f"{lado}_hand_index": 0.05,
+        f"{lado}_hand_middle": 1.22,
+        f"{lado}_hand_ring": 1.22,
+        f"{lado}_hand_pinky": 1.22,
+        f"{lado}_hand_thumb_rotation": 0.65,
+        f"{lado}_hand_thumb_bend": 0.90,
+    }
+
+
+def _mano_declamatoria(lado: str) -> dict[str, float]:
+    """Apertura amplia en abanico con gracia escénica y dedos curvos."""
+    return {
+        f"{lado}_hand_index": 0.10,
+        f"{lado}_hand_middle": 0.16,
+        f"{lado}_hand_ring": 0.24,
+        f"{lado}_hand_pinky": 0.32,
+        f"{lado}_hand_thumb_rotation": 0.45,
+        f"{lado}_hand_thumb_bend": 0.12,
+    }
+
+
+def _mano_pulgar_arriba(lado: str) -> dict[str, float]:
+    """Pulgar extendido arriba con puño cerrado (triunfo y confirmación)."""
+    return {
+        f"{lado}_hand_index": 1.25,
+        f"{lado}_hand_middle": 1.25,
+        f"{lado}_hand_ring": 1.25,
+        f"{lado}_hand_pinky": 1.25,
+        f"{lado}_hand_thumb_rotation": 0.70,
+        f"{lado}_hand_thumb_bend": 0.0,
+    }
+
+
 def _manos_abiertas() -> dict[str, float]:
-    """Manos relajadas y abiertas (0.05 rad en articulaciones de dedos MuJoCo)."""
+    """Compatibilidad: manos relajadas orgánicas en ambos lados."""
     d = {}
-    for lado in ("left", "right"):
-        for dedo in ("index", "middle", "ring", "pinky", "thumb_bend", "thumb_rotation"):
-            d[f"{lado}_hand_{dedo}"] = 0.05
+    d.update(_mano_relajada_organica("left"))
+    d.update(_mano_relajada_organica("right"))
     return d
 
 
 def _pulgar_arriba_derecho() -> dict[str, float]:
-    """Mano derecha con pulgar extendido y dedos cerrados; izquierda relajada."""
-    d = _manos_abiertas()
-    for dedo in ("index", "middle", "ring", "pinky"):
-        d[f"right_hand_{dedo}"] = 1.25
-    d["right_hand_thumb_bend"] = 0.0
-    d["right_hand_thumb_rotation"] = 0.65
+    """Compatibilidad: mano derecha con pulgar arriba y mano izquierda relajada."""
+    d = _mano_relajada_organica("left")
+    d.update(_mano_pulgar_arriba("right"))
     return d
 
 
 def _pose_neutra_suave() -> dict[str, float]:
-    """Postura canónica neutra y relajada con brazos caídos a los lados (biomecánica humana)."""
+    """Postura canónica neutra viva con brazos cayendo relajados a los muslos (NO meme 6-7)."""
     pose = {
+        # Pelvis y columna
         "waist_yaw": 0.0,
         "waist_roll": 0.0,
         "waist_pitch": 0.0,
+        
+        # Brazos descansando naturalmente a los costados
         "left_shoulder_pitch": 0.42,
-        "left_shoulder_roll": 0.08,
+        "left_shoulder_roll": 0.06,
         "left_shoulder_yaw": 0.0,
-        "left_elbow": 0.28,
+        "left_elbow": 0.16,
         "left_wrist_pitch": 0.0,
         "left_wrist_roll": 0.0,
         "left_wrist_yaw": 0.0,
+        
         "right_shoulder_pitch": 0.42,
-        "right_shoulder_roll": -0.08,
+        "right_shoulder_roll": -0.06,
         "right_shoulder_yaw": 0.0,
-        "right_elbow": 0.28,
+        "right_elbow": 0.16,
         "right_wrist_pitch": 0.0,
         "right_wrist_roll": 0.0,
         "right_wrist_yaw": 0.0,
+        
+        # Piernas con microflexión viva (amortiguación orgánica)
+        "left_hip_pitch": -0.06,
+        "left_hip_roll": 0.02,
+        "left_hip_yaw": 0.0,
+        "left_knee": 0.12,
+        "left_ankle_pitch": -0.06,
+        "left_ankle_roll": -0.02,
+        
+        "right_hip_pitch": -0.06,
+        "right_hip_roll": -0.02,
+        "right_hip_yaw": 0.0,
+        "right_knee": 0.12,
+        "right_ankle_pitch": -0.06,
+        "right_ankle_roll": 0.02,
     }
-    pose.update(_manos_abiertas())
+    pose.update(_mano_relajada_organica("left"))
+    pose.update(_mano_relajada_organica("right"))
     return pose
 
 
@@ -143,157 +243,266 @@ class RepertorioAnimatronicoG1:
         "MOTIVACION_ALEGRIA": {
             "nombre": "Compañero de Festejo",
             "base": {
-                "waist_pitch": -0.10,
-                "waist_roll": 0.0,
-                "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.15,
-                "right_shoulder_pitch": 0.15,
-                "left_shoulder_roll": 0.45,
-                "right_shoulder_roll": -0.45,
-                "left_elbow": 0.75,
-                "right_elbow": 0.75,
+                # Pelvis y caderas: contrapposto desinhibido
+                "waist_pitch": -0.08,
+                "waist_roll": 0.04,
+                "waist_yaw": 0.06,
+                "left_hip_pitch": -0.10,
+                "right_hip_pitch": -0.04,
+                "left_hip_roll": 0.05,
+                "right_hip_roll": -0.03,
+                "left_knee": 0.20,
+                "right_knee": 0.10,
+                "left_ankle_pitch": -0.10,
+                "right_ankle_pitch": -0.06,
+                # Brazos abiertos y expansivos
+                "left_shoulder_pitch": 0.10,
+                "right_shoulder_pitch": 0.10,
+                "left_shoulder_roll": 0.40,
+                "right_shoulder_roll": -0.40,
+                "left_elbow": 0.50,
+                "right_elbow": 0.50,
+                "left_wrist_roll": 0.20,
+                "right_wrist_roll": -0.20,
             },
             "ademanes": {
                 "A_apertura_triunfal": {
-                    "waist_pitch": -0.12,
-                    "left_shoulder_pitch": -0.30,
-                    "right_shoulder_pitch": -0.30,
+                    # Brazos en V de victoria arriba del torso
+                    "waist_pitch": -0.10,
+                    "waist_roll": 0.0,
+                    "waist_yaw": 0.0,
+                    "left_shoulder_pitch": -0.65,
+                    "right_shoulder_pitch": -0.65,
                     "left_shoulder_roll": 0.70,
                     "right_shoulder_roll": -0.70,
-                    "left_elbow": 0.85,
-                    "right_elbow": 0.85,
+                    "left_elbow": 0.45,
+                    "right_elbow": 0.45,
                     "left_wrist_roll": 0.35,
                     "right_wrist_roll": -0.35,
+                    "left_wrist_pitch": -0.15,
+                    "right_wrist_pitch": -0.15,
+                    "left_knee": 0.14,
+                    "right_knee": 0.14,
+                    **_mano_declamatoria("left"),
+                    **_mano_declamatoria("right"),
                 },
-                "B_complicidad_frente": {
-                    "waist_pitch": 0.08,
-                    "left_shoulder_pitch": 0.35,
-                    "right_shoulder_pitch": -0.65,
-                    "left_shoulder_roll": 0.15,
-                    "right_shoulder_roll": -0.25,
-                    "left_elbow": 0.45,
-                    "right_elbow": 0.65,
-                    "right_wrist_pitch": 0.25,
+                "B_complicidad_senalamiento": {
+                    # Torsión con señalamiento hacia el usuario y cadera en apoyo
+                    "waist_pitch": 0.06,
+                    "waist_yaw": 0.18,
+                    "waist_roll": -0.05,
+                    "left_shoulder_pitch": 0.38,
+                    "left_shoulder_roll": 0.12,
+                    "left_elbow": 0.20,
+                    "right_shoulder_pitch": -0.48,
+                    "right_shoulder_roll": -0.18,
+                    "right_elbow": 0.38,
+                    "right_wrist_pitch": 0.20,
+                    "right_wrist_yaw": 0.10,
+                    "left_knee": 0.24,
+                    "right_knee": 0.08,
+                    **_mano_relajada_organica("left"),
+                    **_mano_senalamiento("right"),
                 },
                 "C_celebracion_pulgar": {
+                    # Puño victorioso izquierdo y pulgar arriba derecho
                     "waist_pitch": -0.06,
-                    "right_shoulder_pitch": -0.45,
-                    "right_shoulder_roll": -0.20,
-                    "right_elbow": 0.90,
+                    "waist_yaw": -0.10,
+                    "left_shoulder_pitch": 0.08,
+                    "left_shoulder_roll": 0.35,
+                    "left_elbow": 0.85,
+                    "right_shoulder_pitch": -0.52,
+                    "right_shoulder_roll": -0.22,
+                    "right_elbow": 0.88,
                     "right_wrist_roll": -0.25,
+                    "left_knee": 0.12,
+                    "right_knee": 0.18,
+                    **_mano_puno_victoria("left"),
+                    **_mano_pulgar_arriba("right"),
                 },
             },
         },
         "TRISTEZA_DESANIMO": {
             "nombre": "Contenedor Empático",
             "base": {
-                "waist_pitch": 0.14,
-                "waist_roll": 0.04,
-                "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.42,
-                "right_shoulder_pitch": 0.35,
-                "left_shoulder_roll": 0.12,
-                "right_shoulder_roll": -0.14,
-                "left_elbow": 0.32,
-                "right_elbow": 0.50,
+                # Inclinación empática de torso hacia adelante requerida por tests (>0.10 rad)
+                "waist_pitch": 0.20,
+                "waist_roll": 0.05,
+                "waist_yaw": 0.04,
+                "left_hip_pitch": 0.10,
+                "right_hip_pitch": 0.06,
+                "left_knee": 0.16,
+                "right_knee": 0.16,
+                "left_ankle_pitch": -0.08,
+                "right_ankle_pitch": -0.08,
+                # Asimetría: brazo izquierdo descansando abajo, derecho dispuesto a contener
+                "left_shoulder_pitch": 0.40,
+                "right_shoulder_pitch": 0.32,
+                "left_shoulder_roll": 0.08,
+                "right_shoulder_roll": -0.12,
+                "left_elbow": 0.20,
+                "right_elbow": 0.45,
             },
             "ademanes": {
                 "A_mano_al_corazon": {
-                    "waist_pitch": 0.16,
-                    "waist_roll": 0.04,
-                    "right_shoulder_pitch": 0.25,
+                    # Mano derecha al esternón con dedos curvados; izquierdo relajado abajo
+                    "waist_pitch": 0.20,
+                    "waist_roll": 0.06,
+                    "waist_yaw": 0.05,
+                    "left_shoulder_pitch": 0.42,
+                    "left_shoulder_roll": 0.06,
+                    "left_elbow": 0.18,
+                    "right_shoulder_pitch": 0.22,
                     "right_shoulder_roll": -0.15,
-                    "right_shoulder_yaw": -0.30,
-                    "right_elbow": 1.10,
-                    "right_wrist_pitch": 0.25,
-                    "left_shoulder_pitch": 0.38,
-                    "left_shoulder_roll": 0.25,
-                    "left_elbow": 0.45,
+                    "right_shoulder_yaw": -0.35,
+                    "right_elbow": 1.15,
+                    "right_wrist_pitch": 0.35,
+                    "right_wrist_roll": -0.20,
+                    "left_knee": 0.16,
+                    "right_knee": 0.16,
+                    **_mano_relajada_organica("left"),
+                    **_mano_empatica_pecho("right"),
                 },
-                "B_acogida_abierta": {
-                    "waist_pitch": 0.15,
-                    "left_shoulder_pitch": 0.30,
-                    "right_shoulder_pitch": 0.30,
-                    "left_shoulder_roll": 0.35,
-                    "right_shoulder_roll": -0.35,
-                    "left_elbow": 0.60,
-                    "right_elbow": 0.60,
-                    "left_wrist_pitch": 0.20,
-                    "right_wrist_pitch": 0.20,
+                "B_acogida_y_apoyo": {
+                    # Brazo derecho extendido en diagonal baja hacia el usuario ofreciendo calma
+                    "waist_pitch": 0.20,
+                    "waist_roll": 0.04,
+                    "waist_yaw": -0.06,
+                    "left_shoulder_pitch": 0.42,
+                    "left_shoulder_roll": 0.08,
+                    "left_elbow": 0.18,
+                    "right_shoulder_pitch": -0.12,
+                    "right_shoulder_roll": -0.20,
+                    "right_elbow": 0.45,
+                    "right_wrist_pitch": 0.15,
+                    "right_wrist_roll": 0.15,
+                    "left_knee": 0.20,
+                    "right_knee": 0.12,
+                    **_mano_relajada_organica("left"),
+                    **_mano_declamatoria("right"),
                 },
             },
         },
         "ENOJO_FRUSTRACION": {
             "nombre": "Pacificador / Desescalada",
             "base": {
-                "waist_pitch": 0.0,
+                # Base ancha y centro de gravedad bajo y enraizado (firmeza y aplomo)
+                "waist_pitch": -0.04,
                 "waist_roll": 0.0,
                 "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.35,
-                "right_shoulder_pitch": 0.35,
-                "left_shoulder_roll": 0.15,
-                "right_shoulder_roll": -0.15,
-                "left_elbow": 0.40,
-                "right_elbow": 0.40,
+                "left_hip_roll": 0.08,
+                "right_hip_roll": -0.08,
+                "left_hip_pitch": -0.08,
+                "right_hip_pitch": -0.08,
+                "left_knee": 0.20,
+                "right_knee": 0.20,
+                "left_ankle_pitch": -0.10,
+                "right_ankle_pitch": -0.10,
+                # Brazos en diagonal baja pacificadora (NO bandeja)
+                "left_shoulder_pitch": 0.24,
+                "right_shoulder_pitch": 0.24,
+                "left_shoulder_roll": 0.25,
+                "right_shoulder_roll": -0.25,
+                "left_elbow": 0.45,
+                "right_elbow": 0.45,
             },
             "ademanes": {
-                "A_palmas_abiertas_paz": {
-                    "waist_pitch": 0.0,
-                    "left_shoulder_pitch": 0.25,
-                    "right_shoulder_pitch": 0.25,
-                    "left_shoulder_roll": 0.22,
-                    "right_shoulder_roll": -0.22,
-                    "left_elbow": 0.70,
-                    "right_elbow": 0.70,
-                    "left_wrist_pitch": 0.45,
-                    "right_wrist_pitch": 0.45,
+                "A_barrera_de_serenidad": {
+                    # Palmas orientadas al frente y abajo en señal universal de frenado pacífico
+                    "waist_pitch": -0.04,
+                    "waist_roll": 0.0,
+                    "waist_yaw": 0.0,
+                    "left_shoulder_pitch": 0.18,
+                    "right_shoulder_pitch": 0.18,
+                    "left_shoulder_roll": 0.32,
+                    "right_shoulder_roll": -0.32,
+                    "left_elbow": 0.58,
+                    "right_elbow": 0.58,
+                    "left_wrist_pitch": -0.35,
+                    "right_wrist_pitch": -0.35,
+                    "left_wrist_roll": 0.22,
+                    "right_wrist_roll": -0.22,
+                    "left_knee": 0.22,
+                    "right_knee": 0.22,
+                    **_mano_pacificador("left"),
+                    **_mano_pacificador("right"),
                 },
                 "B_escucha_con_aplomo": {
-                    "waist_pitch": 0.02,
-                    "left_shoulder_pitch": 0.38,
-                    "right_shoulder_pitch": 0.38,
-                    "left_elbow": 0.35,
-                    "right_elbow": 0.35,
-                    "left_wrist_pitch": 0.15,
-                    "right_wrist_pitch": 0.15,
+                    # Asimetría: mano derecha sosteniendo sosiego, izquierda descansando
+                    "waist_pitch": -0.02,
+                    "waist_roll": -0.04,
+                    "waist_yaw": 0.08,
+                    "left_shoulder_pitch": 0.40,
+                    "left_shoulder_roll": 0.08,
+                    "left_elbow": 0.18,
+                    "right_shoulder_pitch": 0.18,
+                    "right_shoulder_roll": -0.26,
+                    "right_elbow": 0.50,
+                    "right_wrist_pitch": -0.28,
+                    "right_wrist_roll": -0.15,
+                    "left_knee": 0.18,
+                    "right_knee": 0.24,
+                    **_mano_relajada_organica("left"),
+                    **_mano_pacificador("right"),
                 },
             },
         },
         "ANSIEDAD_ESTRES": {
             "nombre": "Guía de Respiración y Sosiego",
             "base": {
+                # Pelvis centrada y articulaciones flexibles
                 "waist_pitch": 0.02,
                 "waist_roll": 0.0,
                 "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.38,
-                "right_shoulder_pitch": 0.38,
+                "left_hip_pitch": -0.06,
+                "right_hip_pitch": -0.06,
+                "left_knee": 0.14,
+                "right_knee": 0.14,
+                "left_ankle_pitch": -0.07,
+                "right_ankle_pitch": -0.07,
+                "left_shoulder_pitch": 0.36,
+                "right_shoulder_pitch": 0.36,
                 "left_shoulder_roll": 0.12,
                 "right_shoulder_roll": -0.12,
-                "left_elbow": 0.32,
-                "right_elbow": 0.32,
+                "left_elbow": 0.25,
+                "right_elbow": 0.25,
             },
             "ademanes": {
                 "A_inhalacion_profunda": {
-                    "waist_pitch": 0.05,
+                    # Expansión torácica y elevación vertical (rodillas se estiran levemente)
+                    "waist_pitch": -0.06,
+                    "left_knee": 0.08,
+                    "right_knee": 0.08,
+                    "left_ankle_pitch": -0.04,
+                    "right_ankle_pitch": -0.04,
                     "left_shoulder_pitch": 0.10,
                     "right_shoulder_pitch": 0.10,
                     "left_shoulder_roll": 0.35,
                     "right_shoulder_roll": -0.35,
-                    "left_elbow": 0.65,
-                    "right_elbow": 0.65,
-                    "left_wrist_pitch": 0.25,
-                    "right_wrist_pitch": 0.25,
+                    "left_elbow": 0.48,
+                    "right_elbow": 0.48,
+                    "left_wrist_pitch": 0.18,
+                    "right_wrist_pitch": 0.18,
+                    **_mano_declamatoria("left"),
+                    **_mano_declamatoria("right"),
                 },
                 "B_exhalacion_calma": {
-                    "waist_pitch": 0.01,
+                    # Descenso cadencioso (rodillas flexionan suavemente acompañando la exhalación)
+                    "waist_pitch": 0.04,
+                    "left_knee": 0.20,
+                    "right_knee": 0.20,
+                    "left_ankle_pitch": -0.10,
+                    "right_ankle_pitch": -0.10,
                     "left_shoulder_pitch": 0.42,
                     "right_shoulder_pitch": 0.42,
                     "left_shoulder_roll": 0.08,
                     "right_shoulder_roll": -0.08,
-                    "left_elbow": 0.28,
-                    "right_elbow": 0.28,
+                    "left_elbow": 0.16,
+                    "right_elbow": 0.16,
                     "left_wrist_pitch": -0.05,
                     "right_wrist_pitch": -0.05,
+                    **_mano_relajada_organica("left"),
+                    **_mano_relajada_organica("right"),
                 },
             },
         },
@@ -301,29 +510,47 @@ class RepertorioAnimatronicoG1:
             "nombre": "Andamiaje y Diálogo Socrático",
             "base": {
                 "waist_pitch": 0.04,
-                "waist_roll": 0.0,
+                "waist_roll": 0.02,
                 "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.34,
-                "right_shoulder_pitch": 0.34,
-                "left_shoulder_roll": 0.16,
-                "right_shoulder_roll": -0.16,
-                "left_elbow": 0.40,
-                "right_elbow": 0.40,
+                "left_knee": 0.14,
+                "right_knee": 0.14,
+                "left_shoulder_pitch": 0.36,
+                "right_shoulder_pitch": 0.36,
+                "left_shoulder_roll": 0.14,
+                "right_shoulder_roll": -0.14,
+                "left_elbow": 0.28,
+                "right_elbow": 0.28,
             },
             "ademanes": {
-                "A_opcion_uno": {
-                    "waist_yaw": 0.12,
-                    "left_shoulder_pitch": 0.20,
-                    "left_shoulder_roll": 0.35,
-                    "left_elbow": 0.60,
-                    "left_wrist_roll": 0.30,
+                "A_sopesar_opcion_a": {
+                    "waist_yaw": 0.15,
+                    "waist_roll": -0.04,
+                    "left_shoulder_pitch": 0.12,
+                    "left_shoulder_roll": 0.32,
+                    "left_elbow": 0.50,
+                    "left_wrist_roll": 0.25,
+                    "right_shoulder_pitch": 0.42,
+                    "right_shoulder_roll": -0.08,
+                    "right_elbow": 0.16,
+                    "left_knee": 0.18,
+                    "right_knee": 0.10,
+                    **_mano_declamatoria("left"),
+                    **_mano_relajada_organica("right"),
                 },
-                "B_opcion_dos": {
-                    "waist_yaw": -0.12,
-                    "right_shoulder_pitch": 0.20,
-                    "right_shoulder_roll": -0.35,
-                    "right_elbow": 0.60,
-                    "right_wrist_roll": -0.30,
+                "B_sopesar_opcion_b": {
+                    "waist_yaw": -0.15,
+                    "waist_roll": 0.04,
+                    "right_shoulder_pitch": 0.12,
+                    "right_shoulder_roll": -0.32,
+                    "right_elbow": 0.50,
+                    "right_wrist_roll": -0.25,
+                    "left_shoulder_pitch": 0.42,
+                    "left_shoulder_roll": 0.08,
+                    "left_elbow": 0.16,
+                    "left_knee": 0.10,
+                    "right_knee": 0.18,
+                    **_mano_relajada_organica("left"),
+                    **_mano_declamatoria("right"),
                 },
             },
         },
@@ -333,29 +560,41 @@ class RepertorioAnimatronicoG1:
                 "waist_pitch": 0.0,
                 "waist_roll": 0.0,
                 "waist_yaw": 0.0,
+                "left_knee": 0.12,
+                "right_knee": 0.12,
                 "left_shoulder_pitch": 0.42,
                 "right_shoulder_pitch": 0.42,
-                "left_shoulder_roll": 0.08,
-                "right_shoulder_roll": -0.08,
-                "left_elbow": 0.28,
-                "right_elbow": 0.28,
+                "left_shoulder_roll": 0.06,
+                "right_shoulder_roll": -0.06,
+                "left_elbow": 0.16,
+                "right_elbow": 0.16,
             },
             "ademanes": {
-                "A_gesto_izq": {
-                    "waist_pitch": 0.03,
-                    "waist_yaw": 0.06,
-                    "left_shoulder_pitch": 0.25,
-                    "left_shoulder_roll": 0.25,
-                    "left_elbow": 0.50,
-                    "left_wrist_roll": 0.20,
+                "A_atencion_izq": {
+                    "waist_pitch": 0.02,
+                    "waist_yaw": 0.08,
+                    "left_shoulder_pitch": 0.28,
+                    "left_shoulder_roll": 0.20,
+                    "left_elbow": 0.38,
+                    "right_shoulder_pitch": 0.42,
+                    "right_elbow": 0.16,
+                    "left_knee": 0.16,
+                    "right_knee": 0.10,
+                    **_mano_declamatoria("left"),
+                    **_mano_relajada_organica("right"),
                 },
-                "B_gesto_der": {
-                    "waist_pitch": 0.03,
-                    "waist_yaw": -0.06,
-                    "right_shoulder_pitch": 0.25,
-                    "right_shoulder_roll": -0.25,
-                    "right_elbow": 0.50,
-                    "right_wrist_roll": -0.20,
+                "B_atencion_der": {
+                    "waist_pitch": 0.02,
+                    "waist_yaw": -0.08,
+                    "right_shoulder_pitch": 0.28,
+                    "right_shoulder_roll": -0.20,
+                    "right_elbow": 0.38,
+                    "left_shoulder_pitch": 0.42,
+                    "left_elbow": 0.16,
+                    "left_knee": 0.10,
+                    "right_knee": 0.16,
+                    **_mano_relajada_organica("left"),
+                    **_mano_declamatoria("right"),
                 },
             },
         },
@@ -365,20 +604,26 @@ class RepertorioAnimatronicoG1:
                 "waist_pitch": 0.04,
                 "waist_roll": 0.0,
                 "waist_yaw": 0.0,
+                "left_knee": 0.14,
+                "right_knee": 0.14,
                 "left_shoulder_pitch": 0.40,
                 "right_shoulder_pitch": 0.40,
-                "left_shoulder_roll": 0.10,
-                "right_shoulder_roll": -0.10,
-                "left_elbow": 0.30,
-                "right_elbow": 0.30,
+                "left_shoulder_roll": 0.08,
+                "right_shoulder_roll": -0.08,
+                "left_elbow": 0.20,
+                "right_elbow": 0.20,
             },
             "ademanes": {
                 "A_escucha_pacifica": {
                     "waist_pitch": 0.04,
-                    "left_shoulder_pitch": 0.35,
-                    "right_shoulder_pitch": 0.35,
-                    "left_elbow": 0.40,
-                    "right_elbow": 0.40,
+                    "left_shoulder_pitch": 0.36,
+                    "right_shoulder_pitch": 0.36,
+                    "left_elbow": 0.25,
+                    "right_elbow": 0.25,
+                    "left_knee": 0.16,
+                    "right_knee": 0.16,
+                    **_mano_relajada_organica("left"),
+                    **_mano_relajada_organica("right"),
                 },
             },
         },
@@ -388,11 +633,13 @@ class RepertorioAnimatronicoG1:
 class CoreografoPosturalG1:
     """Diseña el lenguaje corporal (kinésica + proxémica) según la emoción."""
 
-    # Límites seguros estrictos para torso y brazos del G1 (subconjunto conservador del XML)
+    # Límites seguros estrictos para torso, extremidades y manos del G1 (subconjunto conservador del XML)
     LIMITES_ARTICULARES: dict[str, tuple[float, float]] = {
+        # Pelvis y tronco
         "waist_yaw": (-0.45, 0.45),
         "waist_roll": (-0.25, 0.25),
         "waist_pitch": (-0.15, 0.25),
+        # Extremidades superiores (brazos)
         "left_shoulder_pitch": (-2.20, 0.80),
         "right_shoulder_pitch": (-2.20, 0.80),
         "left_shoulder_roll": (-0.60, 1.40),
@@ -407,6 +654,32 @@ class CoreografoPosturalG1:
         "right_wrist_roll": (-1.40, 1.40),
         "left_wrist_yaw": (-1.20, 1.20),
         "right_wrist_yaw": (-1.20, 1.20),
+        # Extremidades inferiores (piernas vivas y amortiguadas)
+        "left_hip_pitch": (-0.60, 0.60),
+        "right_hip_pitch": (-0.60, 0.60),
+        "left_hip_roll": (-0.35, 0.35),
+        "right_hip_roll": (-0.35, 0.35),
+        "left_hip_yaw": (-0.40, 0.40),
+        "right_hip_yaw": (-0.40, 0.40),
+        "left_knee": (0.0, 0.80),
+        "right_knee": (0.0, 0.80),
+        "left_ankle_pitch": (-0.50, 0.50),
+        "right_ankle_pitch": (-0.50, 0.50),
+        "left_ankle_roll": (-0.30, 0.30),
+        "right_ankle_roll": (-0.30, 0.30),
+        # Manos diestras Inspire RH56 (6 articulaciones independientes por mano)
+        "left_hand_index": (0.0, 1.40),
+        "right_hand_index": (0.0, 1.40),
+        "left_hand_middle": (0.0, 1.40),
+        "right_hand_middle": (0.0, 1.40),
+        "left_hand_ring": (0.0, 1.40),
+        "right_hand_ring": (0.0, 1.40),
+        "left_hand_pinky": (0.0, 1.40),
+        "right_hand_pinky": (0.0, 1.40),
+        "left_hand_thumb_rotation": (0.0, 1.00),
+        "right_hand_thumb_rotation": (0.0, 1.00),
+        "left_hand_thumb_bend": (0.0, 1.25),
+        "right_hand_thumb_bend": (0.0, 1.25),
     }
 
     @classmethod
@@ -564,12 +837,34 @@ class CoreografoPosturalG1:
             "right_wrist_yaw": 0.0,
         }
 
-        # Dedos Inspire RH56
+        # Piernas vivas con microflexión orgánica y contrapposto
+        knee_base = float(np.clip(0.12 + 0.04 * abs(a), 0.08, 0.22))
+        ankle_base = -knee_base * 0.5
+        hip_pitch_base = -knee_base * 0.5
+        hip_roll_l = float(np.clip(0.02 + 0.03 * v, -0.06, 0.08))
+        hip_roll_r = float(np.clip(-0.02 - 0.03 * v, -0.08, 0.06))
+
+        pose["left_hip_pitch"] = hip_pitch_base
+        pose["right_hip_pitch"] = hip_pitch_base
+        pose["left_hip_roll"] = hip_roll_l
+        pose["right_hip_roll"] = hip_roll_r
+        pose["left_hip_yaw"] = 0.0
+        pose["right_hip_yaw"] = 0.0
+        pose["left_knee"] = knee_base
+        pose["right_knee"] = knee_base
+        pose["left_ankle_pitch"] = ankle_base
+        pose["right_ankle_pitch"] = ankle_base
+        pose["left_ankle_roll"] = -hip_roll_l * 0.5
+        pose["right_ankle_roll"] = -hip_roll_r * 0.5
+
+        # Dedos Inspire RH56 con cascada anatómica natural (6 DoF por mano)
         for lado in ("left", "right"):
-            for dedo in ("index", "middle", "ring", "pinky"):
-                pose[f"{lado}_hand_{dedo}"] = dedos_val
-            pose[f"{lado}_hand_thumb_rotation"] = 0.05
-            pose[f"{lado}_hand_thumb_bend"] = dedos_val * 0.6
+            pose[f"{lado}_hand_index"] = float(np.clip(dedos_val, 0.05, 1.30))
+            pose[f"{lado}_hand_middle"] = float(np.clip(dedos_val * 1.20 + 0.04, 0.05, 1.35))
+            pose[f"{lado}_hand_ring"] = float(np.clip(dedos_val * 1.40 + 0.08, 0.05, 1.38))
+            pose[f"{lado}_hand_pinky"] = float(np.clip(dedos_val * 1.60 + 0.12, 0.05, 1.40))
+            pose[f"{lado}_hand_thumb_rotation"] = float(np.clip(0.20 + 0.30 * max(0.0, a), 0.10, 0.80))
+            pose[f"{lado}_hand_thumb_bend"] = float(np.clip(dedos_val * 0.70, 0.05, 1.00))
 
         # Respetar límites seguros estrictos
         for art in list(pose.keys()):

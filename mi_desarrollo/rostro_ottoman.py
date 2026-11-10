@@ -598,21 +598,34 @@ class SimuladorEmbebidoG1:
                     if "right_wrist_roll" in self._jmap:
                         self._data.qpos[self._jmap["right_wrist_roll"]] = p["right_wrist_roll"] + mod_r_wr
 
-                    # Piernas en posición de pie firme
-                    for leg in ("left_hip_pitch", "right_hip_pitch", "left_knee", "right_knee"):
-                        if leg in self._jmap:
-                            self._data.qpos[self._jmap[leg]] = 0.0
+                    # Piernas vivas con microflexión orgánica (NO poste rígido)
+                    for leg_joint, leg_val in (
+                        ("left_hip_pitch", -0.06), ("right_hip_pitch", -0.06),
+                        ("left_knee", 0.12), ("right_knee", 0.12),
+                        ("left_ankle_pitch", -0.06), ("right_ankle_pitch", -0.06),
+                    ):
+                        if leg_joint in self._jmap:
+                            self._data.qpos[self._jmap[leg_joint]] = leg_val
 
-                    # Dedos Inspire RH56
+                    # Dedos Inspire RH56 con cascada anatómica viva
                     apertura_dedos = max(0.02, min(0.65, p["manos"] + mod_dedos))
                     for lado in ("left", "right"):
-                        for dedo in ("index", "middle", "ring", "pinky"):
+                        cascada = {
+                            "index": apertura_dedos,
+                            "middle": apertura_dedos * 1.20 + 0.04,
+                            "ring": apertura_dedos * 1.40 + 0.08,
+                            "pinky": apertura_dedos * 1.60 + 0.12,
+                        }
+                        for dedo, val_dedo in cascada.items():
                             kd = f"{lado}_hand_{dedo}"
                             if kd in self._jmap:
-                                self._data.qpos[self._jmap[kd]] = apertura_dedos
+                                self._data.qpos[self._jmap[kd]] = min(1.35, val_dedo)
                         k_tb = f"{lado}_hand_thumb_bend"
                         if k_tb in self._jmap:
-                            self._data.qpos[self._jmap[k_tb]] = apertura_dedos * 0.5
+                            self._data.qpos[self._jmap[k_tb]] = min(1.10, apertura_dedos * 0.70)
+                        k_tr = f"{lado}_hand_thumb_rotation"
+                        if k_tr in self._jmap:
+                            self._data.qpos[self._jmap[k_tr]] = 0.20
 
                 # Inicializar renderer de forma perezosa en el mismo hilo de renderizado
                 if self._renderer is None:
