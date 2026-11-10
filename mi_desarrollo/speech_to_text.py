@@ -25,22 +25,39 @@ class ReconocedorVozMultimodal:
         self._reconocedor = sr.Recognizer()
         self._reconocedor.pause_threshold = pausa_silencio
         self._analizador_acustico = AnalizadorAcusticoVoz()
+        self.idioma = idioma
+        self.microfono_disponible = False
+        self._microfono = None
         try:
             self._microfono = sr.Microphone()
-        except (AttributeError, OSError) as exc:
-            raise RuntimeError(
-                "No se pudo abrir el micrófono. Verificá PyAudio y los permisos de micrófono en Windows."
-            ) from exc
-        self.idioma = idioma
+            self.microfono_disponible = True
+        except (AttributeError, OSError, Exception) as exc:
+            print(f"  [MIC] Advertencia: No se detectó micrófono físico disponible ({exc}). El chat escrito permanece activo.")
+            self.microfono_disponible = False
 
-    def calibrar(self, duracion: float = 1.0) -> None:
-        print("  [MIC] Calibrando umbral de ruido ambiente...")
-        with self._microfono as fuente:
-            self._reconocedor.adjust_for_ambient_noise(fuente, duration=duracion)
-        print("  [MIC] Micrófono calibrado y listo.")
+    def calibrar(self, duracion: float = 1.0) -> bool:
+        if not self.microfono_disponible or self._microfono is None:
+            try:
+                self._microfono = self._sr.Microphone()
+                self.microfono_disponible = True
+            except Exception:
+                self.microfono_disponible = False
+                return False
+        try:
+            print("  [MIC] Calibrando umbral de ruido ambiente...")
+            with self._microfono as fuente:
+                self._reconocedor.adjust_for_ambient_noise(fuente, duration=duracion)
+            print("  [MIC] Micrófono calibrado y listo.")
+            return True
+        except Exception as exc:
+            print(f"  [MIC] No se pudo calibrar micrófono: {exc}")
+            self.microfono_disponible = False
+            return False
 
     def escuchar_multimodal(self) -> tuple[str, MetricasAcusticasVoz]:
         """Escucha una intervención y retorna el texto junto con su análisis acústico."""
+        if not self.microfono_disponible or self._microfono is None:
+            return "", MetricasAcusticasVoz(audio_analizado=False)
         print("\n  Hablá ahora con Ottoman (o decí 'salir' para terminar)...")
         try:
             with self._microfono as fuente:

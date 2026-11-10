@@ -459,7 +459,7 @@ class AgenteRobot:
             robot,
             mostrar=mostrar,
             sintetizador_voz=self.sintetizador if habilitar_audio_tts else None,
-            rostro=self.rostro if habilitar_rostro_gui else None,
+            rostro=self.rostro,
         )
 
         # Memoria episódica de las últimas 5 acciones y emociones (Extensión 5)
@@ -554,6 +554,8 @@ class AgenteRobot:
                     self.sintetizador.hablar_sincronizado(
                         plan_crisis.texto_respuesta, plan_crisis.prosodia, rostro=self.rostro, bloqueante=True
                     )
+            if self.rostro and hasattr(self.rostro, "agregar_chat_mensaje"):
+                self.rostro.agregar_chat_mensaje("Ottoman (Seguridad)", f"⛔ {motivo}", "#F87171")
             return {
                 "tipo": tipo,
                 "parametros": parametros,
@@ -568,6 +570,8 @@ class AgenteRobot:
             if self.mostrar:
                 print(f"    3. Seguridad  : OK (inofensivo)")
                 print(f"    4. Resultado  : DESCONOCIDO — {msg}")
+            if self.rostro and hasattr(self.rostro, "agregar_chat_mensaje"):
+                self.rostro.agregar_chat_mensaje("Ottoman", msg, "#94A3B8")
             return {
                 "tipo": "DESCONOCIDO",
                 "parametros": parametros,
@@ -588,6 +592,14 @@ class AgenteRobot:
             self.memoria_acciones.append((tipo, dict(parametros)))
         if tipo == "COACH_EMOCIONAL":
             self.memoria_emociones.append(estado_afectivo.emocion_dominante)
+
+        if self.rostro and hasattr(self.rostro, "agregar_chat_mensaje"):
+            if tipo == "COACH_EMOCIONAL":
+                plan = parametros.get("plan_coach")
+                txt_c = plan.texto_respuesta if plan else str(detalle_ejecucion)
+                self.rostro.agregar_chat_mensaje("Ottoman", txt_c, "#A7F3D0")
+            else:
+                self.rostro.agregar_chat_mensaje("Ottoman", f"✅ {detalle_ejecucion}", "#34D399")
 
         return {
             "tipo": tipo,
@@ -701,14 +713,15 @@ def main() -> int:
     )
     evaluar(agente_test, mostrar=True)
 
-    # Ahora levantamos el Agente Multimodal completo (Rostro/Dashboard + TTS + Simulador)
+    # Ahora levantamos el Agente Multimodal completo (Rostro/Dashboard Unificado + TTS + Simulador)
+    usar_dashboard = not args.sin_rostro
     agente = AgenteRobot(
         robot_inst,
         mostrar=True,
         usar_ml=args.ml,
         habilitar_audio_tts=not args.sin_tts,
         habilitar_rostro_gui=not args.sin_rostro,
-        modo_dashboard=args.dashboard,
+        modo_dashboard=usar_dashboard,
         captura_camara_dashboard=False,
         modo_conversacional=True,
     )
@@ -719,53 +732,72 @@ def main() -> int:
             robot_inst.desconectar()
         return 0
 
-    # Sensores opcionales en tiempo real
-    analizador_facial = AnalizadorFacial() if args.camara else None
-    if analizador_facial is not None:
+    # Sensores multimodales: se intentan por defecto con degradación suave y reconexión en caliente
+    analizador_facial = None
+    try:
+        analizador_facial = AnalizadorFacial()
         if analizador_facial.abrir_camara():
             print("  [CAM] Cámara web activa para lectura de expresiones faciales.")
         else:
-            print("  [CAM] No se detectó cámara disponible; se operará con Voz + Léxico.")
-            analizador_facial = None
+            print("  [CAM] Cámara web no detectada; radar biométrico FACS activo (reconectable desde el dashboard).")
+    except Exception as e_cam:
+        print(f"  [CAM] Aviso: {e_cam}")
 
     reconocedor_voz = None
-    if args.voz:
+    try:
         from speech_to_text import ReconocedorVozMultimodal
         reconocedor_voz = ReconocedorVozMultimodal()
-        reconocedor_voz.calibrar()
+        if reconocedor_voz.microfono_disponible:
+            reconocedor_voz.calibrar(0.6)
+            print("  [MIC] Micrófono activo para captura de voz y prosodia DSP.")
+        else:
+            print("  [MIC] Micrófono no detectado; entrada por chat lista (reconectable desde el dashboard).")
+    except Exception as e_mic:
+        print(f"  [MIC] Aviso: {e_mic}")
+
+    # Vincular agente y sensores al dashboard unificado
+    if agente.rostro is not None and hasattr(agente.rostro, "vincular_agente"):
+        agente.rostro.vincular_agente(
+            agente=agente,
+            reconocedor_voz=reconocedor_voz,
+            analizador_facial=analizador_facial,
+        )
+
+    # Hilo continuo de muestreo de cámara para el panel FACS
+    detener_feed_cam = threading.Event()
+    def _feed_cam_worker():
+        while not detener_feed_cam.is_set():
+            if analizador_facial is not None and analizador_facial.camara_disponible and analizador_facial._cap:
+                try:
+                    ok_f, frame_f = analizador_facial._cap.read()
+                    if ok_f and frame_f is not None:
+                        mf_res, hud_res = analizador_facial.analizar_frame(frame_f, dibujar_hud=True)
+                        if agente.rostro:
+                            agente.rostro.actualizar_camara(hud_res, mf_res)
+                except Exception:
+                    pass
+            time.sleep(0.066)
+
+    hilo_feed = threading.Thread(target=_feed_cam_worker, daemon=True)
+    hilo_feed.start()
 
     print("\n" + "=" * 78)
-    print("  MODO INTERACTIVO — OTTOMAN COACH MULTIMODAL")
-    print("  Escribí comandos físicos ('avanzá 2 metros') o contale cómo te sentís.")
+    print("  MODO INTERACTIVO — OTTOMAN COACH MULTIMODAL UNIFICADO")
+    print("  Podés escribir tus órdenes directamente en el Dashboard o en esta consola.")
     print("  Escribí 'demo' para ver los 6 escenarios afectivos o 'salir' para terminar.")
     print("=" * 78)
 
     try:
         while True:
+            if agente.rostro and not agente.rostro._activo and not args.sin_rostro:
+                break
+
             lectura_facial = None
-            if analizador_facial is not None:
-                ok_f, frame_f = analizador_facial._cap.read() if analizador_facial._cap else (False, None)
-                if ok_f and frame_f is not None:
-                    lectura_facial, hud_f = analizador_facial.analizar_frame(frame_f, dibujar_hud=True)
-                    if args.dashboard and agente.rostro:
-                        agente.rostro.actualizar_camara(hud_f, lectura_facial)
-                else:
-                    lectura_facial = analizador_facial.capturar_rafaga(3)
-            if lectura_facial and lectura_facial.rostro_detectado:
-                print(
-                    f"  [CAM -> FACS] Expresión={lectura_facial.emocion_facial} "
-                    f"(V={lectura_facial.valencia_facial:+.2f}, A={lectura_facial.arousal_facial:+.2f})"
-                )
+            if analizador_facial is not None and analizador_facial.camara_disponible:
+                lectura_facial = analizador_facial.capturar_rafaga(2)
 
-            if reconocedor_voz is not None:
-                texto_usr, lectura_voz = reconocedor_voz.escuchar_multimodal()
-                if not texto_usr and not lectura_voz.audio_analizado:
-                    continue
-            else:
-                texto_usr = input("\n  Vos > ").strip()
-                lectura_voz = None
-
-            if not texto_usr and lectura_voz is None:
+            texto_usr = input("\n  Vos > ").strip()
+            if not texto_usr:
                 continue
             if texto_usr.lower() in ("salir", "exit", "quit"):
                 break
@@ -774,15 +806,19 @@ def main() -> int:
                 continue
 
             try:
-                agente.procesar(texto_usr, facial=lectura_facial, acustica=lectura_voz)
+                if agente.rostro and hasattr(agente.rostro, "agregar_chat_mensaje"):
+                    agente.rostro.agregar_chat_mensaje("Vos (Consola)", texto_usr)
+                agente.procesar(texto_usr, facial=lectura_facial, acustica=None)
             except Exception as exc:
                 print(f"  [ERROR] No se pudo completar la orden: {type(exc).__name__}: {exc}")
     except (KeyboardInterrupt, EOFError):
         print("\n  Cerrando sesión de Ottoman Coach...")
     finally:
+        detener_feed_cam.set()
         if analizador_facial is not None:
             analizador_facial.cerrar_camara()
-        agente.rostro.cerrar()
+        if agente.rostro:
+            agente.rostro.cerrar()
         if conectado_sim:
             robot_inst.desconectar()
 

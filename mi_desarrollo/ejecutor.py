@@ -84,6 +84,9 @@ class Ejecutor:
             f"{distancia:g} m a {velocidad:g} m/s = {tiempo_total:.2f} s"
             + (f", partido en {len(tramos)} tramos" if len(tramos) > 1 else "")
         )
+        sim_3d = getattr(self.rostro, "simulador_3d", None) if self.rostro else None
+        if sim_3d is not None:
+            sim_3d.avanzar(velocidad=signo * velocidad, tiempo=tiempo_total)
         for i, t in enumerate(tramos, 1):
             self._log(f"  tramo {i}/{len(tramos)}: avanzar({signo * velocidad:+.2f}, {t:.2f})")
             self.robot.avanzar(velocidad=signo * velocidad, tiempo=t)
@@ -107,6 +110,9 @@ class Ejecutor:
             f"a {velocidad:g} rad/s = {tiempo_total:.2f} s"
             + (f", partido en {len(tramos)} tramos" if len(tramos) > 1 else "")
         )
+        sim_3d = getattr(self.rostro, "simulador_3d", None) if self.rostro else None
+        if sim_3d is not None:
+            sim_3d.girar(velocidad=signo * velocidad, tiempo=tiempo_total)
         for i, t in enumerate(tramos, 1):
             self._log(f"  tramo {i}/{len(tramos)}: girar({signo * velocidad:+.2f}, {t:.2f})")
             self.robot.girar(velocidad=signo * velocidad, tiempo=t)
@@ -232,6 +238,10 @@ class Ejecutor:
                 bloqueante=False,
             )
 
+        sim_3d = getattr(self.rostro, "simulador_3d", None) if self.rostro else None
+        if sim_3d is not None:
+            sim_3d.saludar(duracion=3.5)
+
         saludar_fn = getattr(self.robot, "saludar", None)
         if saludar_fn is not None:
             saludar_fn()
@@ -334,6 +344,10 @@ class Ejecutor:
             self.robot.avanzar(velocidad=signo * vel_segura, tiempo=dur_prox)
 
         # 4. Ejecutar secuencia cinemática de torso, brazos y dedos Inspire
+        sim_3d = getattr(self.rostro, "simulador_3d", None) if self.rostro else None
+        if sim_3d is not None and plan.secuencia_postural:
+            sim_3d.ejecutar_secuencia(plan.secuencia_postural, duracion_step=plan.duracion_step_postura)
+
         ejecutar_poses = getattr(self.robot, "ejecutar_secuencia_poses", None) or getattr(
             self.robot, "ejecutar_secuencia_senas", None
         )

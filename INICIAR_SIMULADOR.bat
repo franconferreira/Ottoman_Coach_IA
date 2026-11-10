@@ -6,21 +6,14 @@ REM ============================================================
 cd /d "%~dp0"
 
 echo ============================================================
-echo    Inteligencia Artificial
-echo    Simulador de robots Unitree
+echo    Inteligencia Artificial - UADE
+echo    Simulador Oficial Unitree G1 (Humanoide)
 echo ============================================================
 echo.
-echo    Que robot queres usar?
+echo    Iniciando simulador fisico para el humanoide Unitree G1...
 echo.
-echo      1)  G1   - robot humanoide (camina en dos patas)
-echo      2)  Go2  - robot perro     (camina en cuatro patas)
-echo.
-set OPCION=1
-set /p OPCION="   Elegi 1 o 2 [1]: "
 
 set ROBOT=g1
-if "%OPCION%"=="2" set ROBOT=go2
-echo.
 
 REM ============================================================
 REM   Buscar Python

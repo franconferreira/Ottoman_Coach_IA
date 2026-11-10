@@ -154,6 +154,10 @@ class AnalizadorFacial:
             self._cap = None
             return False
 
+    @property
+    def camara_disponible(self) -> bool:
+        return self._cap is not None and self._cap.isOpened()
+
     def cerrar_camara(self) -> None:
         if self._cap is not None:
             try:

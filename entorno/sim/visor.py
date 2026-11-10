@@ -39,6 +39,14 @@ class Visor:
         # Sin gravedad: el modelo no tiene que caerse mientras lo posicionamos.
         self.model.opt.gravity[:] = 0.0
         self._primera_art = 7   # qpos[0:3] posicion, qpos[3:7] cuaternion
+        self._joint_map = {}
+        for j_id in range(self.model.njnt):
+            nombre_jnt = self.mj.mj_id2name(self.model, self.mj.mjtObj.mjOBJ_JOINT, j_id)
+            if nombre_jnt:
+                adr = self.model.jnt_qposadr[j_id]
+                self._joint_map[nombre_jnt] = adr
+                if nombre_jnt.endswith("_joint"):
+                    self._joint_map[nombre_jnt[:-6]] = adr
 
     def _pose(self) -> None:
         e = self.mundo.leer()
@@ -62,6 +70,10 @@ class Visor:
                     art[idx] = valor + (
                         0.35 * math.sin(time.time() * 7.0) if e["accion"] == "saludando" else 0.0
                     )
+        elif e.get("pose_articular"):
+            for art_k, art_v in e["pose_articular"].items():
+                if art_k in self._joint_map:
+                    q[self._joint_map[art_k]] = float(art_v)
         elif e["moviendose"]:
             f = e["fase"]
             for idx, amplitud, desfase in self.robot.marcha:
