@@ -136,6 +136,255 @@ def _pose_neutra_suave() -> dict[str, float]:
     return pose
 
 
+class RepertorioAnimatronicoG1:
+    """Catálogo de poses teatrales amplias (Laban + Lecoq + Disney Animatronics) para el Unitree G1."""
+
+    ROLES: dict[str, dict] = {
+        "MOTIVACION_ALEGRIA": {
+            "nombre": "Compañero de Festejo",
+            "base": {
+                "waist_pitch": -0.10,
+                "waist_roll": 0.0,
+                "waist_yaw": 0.0,
+                "left_shoulder_pitch": 0.15,
+                "right_shoulder_pitch": 0.15,
+                "left_shoulder_roll": 0.45,
+                "right_shoulder_roll": -0.45,
+                "left_elbow": 0.75,
+                "right_elbow": 0.75,
+            },
+            "ademanes": {
+                "A_apertura_triunfal": {
+                    "waist_pitch": -0.12,
+                    "left_shoulder_pitch": -0.30,
+                    "right_shoulder_pitch": -0.30,
+                    "left_shoulder_roll": 0.70,
+                    "right_shoulder_roll": -0.70,
+                    "left_elbow": 0.85,
+                    "right_elbow": 0.85,
+                    "left_wrist_roll": 0.35,
+                    "right_wrist_roll": -0.35,
+                },
+                "B_complicidad_frente": {
+                    "waist_pitch": 0.08,
+                    "left_shoulder_pitch": 0.35,
+                    "right_shoulder_pitch": -0.65,
+                    "left_shoulder_roll": 0.15,
+                    "right_shoulder_roll": -0.25,
+                    "left_elbow": 0.45,
+                    "right_elbow": 0.65,
+                    "right_wrist_pitch": 0.25,
+                },
+                "C_celebracion_pulgar": {
+                    "waist_pitch": -0.06,
+                    "right_shoulder_pitch": -0.45,
+                    "right_shoulder_roll": -0.20,
+                    "right_elbow": 0.90,
+                    "right_wrist_roll": -0.25,
+                },
+            },
+        },
+        "TRISTEZA_DESANIMO": {
+            "nombre": "Contenedor Empático",
+            "base": {
+                "waist_pitch": 0.14,
+                "waist_roll": 0.04,
+                "waist_yaw": 0.0,
+                "left_shoulder_pitch": 0.42,
+                "right_shoulder_pitch": 0.35,
+                "left_shoulder_roll": 0.12,
+                "right_shoulder_roll": -0.14,
+                "left_elbow": 0.32,
+                "right_elbow": 0.50,
+            },
+            "ademanes": {
+                "A_mano_al_corazon": {
+                    "waist_pitch": 0.16,
+                    "waist_roll": 0.04,
+                    "right_shoulder_pitch": 0.25,
+                    "right_shoulder_roll": -0.15,
+                    "right_shoulder_yaw": -0.30,
+                    "right_elbow": 1.10,
+                    "right_wrist_pitch": 0.25,
+                    "left_shoulder_pitch": 0.38,
+                    "left_shoulder_roll": 0.25,
+                    "left_elbow": 0.45,
+                },
+                "B_acogida_abierta": {
+                    "waist_pitch": 0.15,
+                    "left_shoulder_pitch": 0.30,
+                    "right_shoulder_pitch": 0.30,
+                    "left_shoulder_roll": 0.35,
+                    "right_shoulder_roll": -0.35,
+                    "left_elbow": 0.60,
+                    "right_elbow": 0.60,
+                    "left_wrist_pitch": 0.20,
+                    "right_wrist_pitch": 0.20,
+                },
+            },
+        },
+        "ENOJO_FRUSTRACION": {
+            "nombre": "Pacificador / Desescalada",
+            "base": {
+                "waist_pitch": 0.0,
+                "waist_roll": 0.0,
+                "waist_yaw": 0.0,
+                "left_shoulder_pitch": 0.35,
+                "right_shoulder_pitch": 0.35,
+                "left_shoulder_roll": 0.15,
+                "right_shoulder_roll": -0.15,
+                "left_elbow": 0.40,
+                "right_elbow": 0.40,
+            },
+            "ademanes": {
+                "A_palmas_abiertas_paz": {
+                    "waist_pitch": 0.0,
+                    "left_shoulder_pitch": 0.25,
+                    "right_shoulder_pitch": 0.25,
+                    "left_shoulder_roll": 0.22,
+                    "right_shoulder_roll": -0.22,
+                    "left_elbow": 0.70,
+                    "right_elbow": 0.70,
+                    "left_wrist_pitch": 0.45,
+                    "right_wrist_pitch": 0.45,
+                },
+                "B_escucha_con_aplomo": {
+                    "waist_pitch": 0.02,
+                    "left_shoulder_pitch": 0.38,
+                    "right_shoulder_pitch": 0.38,
+                    "left_elbow": 0.35,
+                    "right_elbow": 0.35,
+                    "left_wrist_pitch": 0.15,
+                    "right_wrist_pitch": 0.15,
+                },
+            },
+        },
+        "ANSIEDAD_ESTRES": {
+            "nombre": "Guía de Respiración y Sosiego",
+            "base": {
+                "waist_pitch": 0.02,
+                "waist_roll": 0.0,
+                "waist_yaw": 0.0,
+                "left_shoulder_pitch": 0.38,
+                "right_shoulder_pitch": 0.38,
+                "left_shoulder_roll": 0.12,
+                "right_shoulder_roll": -0.12,
+                "left_elbow": 0.32,
+                "right_elbow": 0.32,
+            },
+            "ademanes": {
+                "A_inhalacion_profunda": {
+                    "waist_pitch": 0.05,
+                    "left_shoulder_pitch": 0.10,
+                    "right_shoulder_pitch": 0.10,
+                    "left_shoulder_roll": 0.35,
+                    "right_shoulder_roll": -0.35,
+                    "left_elbow": 0.65,
+                    "right_elbow": 0.65,
+                    "left_wrist_pitch": 0.25,
+                    "right_wrist_pitch": 0.25,
+                },
+                "B_exhalacion_calma": {
+                    "waist_pitch": 0.01,
+                    "left_shoulder_pitch": 0.42,
+                    "right_shoulder_pitch": 0.42,
+                    "left_shoulder_roll": 0.08,
+                    "right_shoulder_roll": -0.08,
+                    "left_elbow": 0.28,
+                    "right_elbow": 0.28,
+                    "left_wrist_pitch": -0.05,
+                    "right_wrist_pitch": -0.05,
+                },
+            },
+        },
+        "DUDA_INSEGURIDAD": {
+            "nombre": "Andamiaje y Diálogo Socrático",
+            "base": {
+                "waist_pitch": 0.04,
+                "waist_roll": 0.0,
+                "waist_yaw": 0.0,
+                "left_shoulder_pitch": 0.34,
+                "right_shoulder_pitch": 0.34,
+                "left_shoulder_roll": 0.16,
+                "right_shoulder_roll": -0.16,
+                "left_elbow": 0.40,
+                "right_elbow": 0.40,
+            },
+            "ademanes": {
+                "A_opcion_uno": {
+                    "waist_yaw": 0.12,
+                    "left_shoulder_pitch": 0.20,
+                    "left_shoulder_roll": 0.35,
+                    "left_elbow": 0.60,
+                    "left_wrist_roll": 0.30,
+                },
+                "B_opcion_dos": {
+                    "waist_yaw": -0.12,
+                    "right_shoulder_pitch": 0.20,
+                    "right_shoulder_roll": -0.35,
+                    "right_elbow": 0.60,
+                    "right_wrist_roll": -0.30,
+                },
+            },
+        },
+        "NEUTRO": {
+            "nombre": "Atento y Conversacional",
+            "base": {
+                "waist_pitch": 0.0,
+                "waist_roll": 0.0,
+                "waist_yaw": 0.0,
+                "left_shoulder_pitch": 0.42,
+                "right_shoulder_pitch": 0.42,
+                "left_shoulder_roll": 0.08,
+                "right_shoulder_roll": -0.08,
+                "left_elbow": 0.28,
+                "right_elbow": 0.28,
+            },
+            "ademanes": {
+                "A_gesto_izq": {
+                    "waist_pitch": 0.03,
+                    "waist_yaw": 0.06,
+                    "left_shoulder_pitch": 0.25,
+                    "left_shoulder_roll": 0.25,
+                    "left_elbow": 0.50,
+                    "left_wrist_roll": 0.20,
+                },
+                "B_gesto_der": {
+                    "waist_pitch": 0.03,
+                    "waist_yaw": -0.06,
+                    "right_shoulder_pitch": 0.25,
+                    "right_shoulder_roll": -0.25,
+                    "right_elbow": 0.50,
+                    "right_wrist_roll": -0.20,
+                },
+            },
+        },
+        "CRISIS_RIESGO": {
+            "nombre": "Contención Ética",
+            "base": {
+                "waist_pitch": 0.04,
+                "waist_roll": 0.0,
+                "waist_yaw": 0.0,
+                "left_shoulder_pitch": 0.40,
+                "right_shoulder_pitch": 0.40,
+                "left_shoulder_roll": 0.10,
+                "right_shoulder_roll": -0.10,
+                "left_elbow": 0.30,
+                "right_elbow": 0.30,
+            },
+            "ademanes": {
+                "A_escucha_pacifica": {
+                    "waist_pitch": 0.04,
+                    "left_shoulder_pitch": 0.35,
+                    "right_shoulder_pitch": 0.35,
+                    "left_elbow": 0.40,
+                    "right_elbow": 0.40,
+                },
+            },
+        },
+    }
+
+
 class CoreografoPosturalG1:
     """Diseña el lenguaje corporal (kinésica + proxémica) según la emoción."""
 
@@ -204,158 +453,34 @@ class CoreografoPosturalG1:
         """Devuelve (secuencia_poses, duracion_step_s, proxemica_m, vel_proxemica_ms)."""
         base = _pose_neutra_suave()
 
-        if emocion == "ANSIEDAD_ESTRES":
-            # Co-regulación respiratoria diafragmática: torso receptive, brazos suben
-            # suavemente acompañando inhalación y descienden lento en exhalación.
-            inhala = dict(base, **{
-                "waist_pitch": 0.04,
-                "left_shoulder_pitch": 0.32,
-                "left_shoulder_roll": 0.16,
-                "left_elbow": 0.40,
-                "left_wrist_pitch": 0.15,
-                "right_shoulder_pitch": 0.32,
-                "right_shoulder_roll": -0.16,
-                "right_elbow": 0.40,
-                "right_wrist_pitch": 0.15,
-            })
-            sostener = dict(inhala, **{
-                "left_shoulder_pitch": 0.30,
-                "right_shoulder_pitch": 0.30,
-                "left_elbow": 0.44,
-                "right_elbow": 0.44,
-            })
-            exhala = dict(base, **{
-                "waist_pitch": 0.02,
-                "left_shoulder_pitch": 0.40,
-                "left_shoulder_roll": 0.10,
-                "left_elbow": 0.30,
-                "left_wrist_pitch": -0.05,
-                "right_shoulder_pitch": 0.40,
-                "right_shoulder_roll": -0.10,
-                "right_elbow": 0.30,
-                "right_wrist_pitch": -0.05,
-            })
-            sec, dur, pm, pv = [inhala, sostener, exhala, base], 0.95, 0.0, 0.0
+        # Obtener datos del repertorio animatrónico
+        rol = RepertorioAnimatronicoG1.ROLES.get(
+            emocion, RepertorioAnimatronicoG1.ROLES["NEUTRO"]
+        )
 
-        elif emocion == "TRISTEZA_DESANIMO":
-            # Acercamiento proxémico empático (+0.25m), inclinación empática del torso (+0.14 rad),
-            # mano derecha al pecho/corazón con codo flexionado natural, brazo izquierdo contenedor.
-            empatia_1 = dict(base, **{
-                "waist_pitch": 0.14,
-                "waist_roll": 0.04,
-                "right_shoulder_pitch": 0.30,
-                "right_shoulder_roll": -0.14,
-                "right_shoulder_yaw": -0.30,
-                "right_elbow": 0.50,
-                "right_wrist_pitch": 0.20,
-                "left_shoulder_pitch": 0.40,
-                "left_shoulder_roll": 0.12,
-                "left_elbow": 0.32,
-            })
-            empatia_2 = dict(empatia_1, **{
-                "waist_pitch": 0.16,
-                "left_shoulder_pitch": 0.36,
-                "left_wrist_pitch": 0.15,
-            })
-            sec, dur, pm, pv = [empatia_1, empatia_2, empatia_1, base], 0.85, +0.25, 0.12
+        sec = []
+        for ademan_dict in rol["ademanes"].values():
+            pose = dict(base)
+            pose.update(rol["base"])
+            pose.update(ademan_dict)
+            if emocion == "MOTIVACION_ALEGRIA" and "C_celebracion_pulgar" in rol["ademanes"]:
+                if ademan_dict == rol["ademanes"]["C_celebracion_pulgar"]:
+                    pose.update(_pulgar_arriba_derecho())
+            sec.append(pose)
+        sec.append(base)
 
-        elif emocion == "ENOJO_FRUSTRACION":
-            # Proxémica de desescalada: paso corto atrás (-0.25m) respetando espacio personal,
-            # torso erguido estable, ambas palmas abiertas hacia el frente (no amenaza).
-            calma_1 = dict(base, **{
-                "waist_pitch": 0.0,
-                "waist_roll": 0.0,
-                "left_shoulder_pitch": 0.34,
-                "left_shoulder_roll": 0.16,
-                "left_elbow": 0.44,
-                "left_wrist_pitch": 0.30,
-                "right_shoulder_pitch": 0.34,
-                "right_shoulder_roll": -0.16,
-                "right_elbow": 0.44,
-                "right_wrist_pitch": 0.30,
-            })
-            calma_2 = dict(calma_1, **{
-                "left_shoulder_pitch": 0.38,
-                "right_shoulder_pitch": 0.38,
-                "left_elbow": 0.36,
-                "right_elbow": 0.36,
-                "left_wrist_pitch": 0.18,
-                "right_wrist_pitch": 0.18,
-            })
-            sec, dur, pm, pv = [calma_1, calma_2, base], 0.80, -0.25, 0.12
+        # Definir parámetros dinámicos según emoción
+        configuraciones = {
+            "ANSIEDAD_ESTRES": (0.95, 0.0, 0.0),
+            "TRISTEZA_DESANIMO": (0.85, +0.25, 0.12),
+            "ENOJO_FRUSTRACION": (0.80, -0.25, 0.12),
+            "DUDA_INSEGURIDAD": (0.65, 0.0, 0.0),
+            "MOTIVACION_ALEGRIA": (0.50, 0.0, 0.0),
+            "NEUTRO": (0.60, 0.0, 0.0),
+            "CRISIS_RIESGO": (0.70, 0.0, 0.0),
+        }
 
-        elif emocion == "DUDA_INSEGURIDAD":
-            # Gesto socrático: presenta primera opción con mano izquierda abierta y
-            # segunda opción con mano derecha abierta; torso atento con leve rotación.
-            opcion_a = dict(base, **{
-                "waist_yaw": 0.10,
-                "waist_pitch": 0.04,
-                "left_shoulder_pitch": 0.32,
-                "left_shoulder_roll": 0.20,
-                "left_elbow": 0.42,
-                "left_wrist_roll": 0.20,
-            })
-            opcion_b = dict(base, **{
-                "waist_yaw": -0.10,
-                "waist_pitch": 0.04,
-                "right_shoulder_pitch": 0.32,
-                "right_shoulder_roll": -0.20,
-                "right_elbow": 0.42,
-                "right_wrist_roll": -0.20,
-            })
-            sintesis = dict(base, **{
-                "waist_yaw": 0.0,
-                "left_shoulder_pitch": 0.36,
-                "right_shoulder_pitch": 0.36,
-                "left_elbow": 0.36,
-                "right_elbow": 0.36,
-            })
-            sec, dur, pm, pv = [opcion_a, opcion_b, sintesis, base], 0.65, 0.0, 0.0
-
-        elif emocion == "MOTIVACION_ALEGRIA":
-            # Postura expansiva celebratoria + pulgar arriba Inspire RH56 con brazos abiertos y vivos.
-            apertura = dict(base, **{
-                "waist_pitch": -0.04,
-                "left_shoulder_pitch": 0.26,
-                "left_shoulder_roll": 0.24,
-                "left_elbow": 0.42,
-                "right_shoulder_pitch": 0.26,
-                "right_shoulder_roll": -0.24,
-                "right_elbow": 0.42,
-            })
-            pulgar = dict(base, **{
-                "waist_pitch": -0.03,
-                "right_shoulder_pitch": 0.28,
-                "right_shoulder_roll": -0.16,
-                "right_elbow": 0.46,
-                "right_wrist_roll": -0.20,
-            })
-            pulgar.update(_pulgar_arriba_derecho())
-            sec, dur, pm, pv = [apertura, pulgar, pulgar, base], 0.50, 0.0, 0.0
-
-        else:
-            # NEUTRO o CRISIS_RIESGO: gesticulación conversacional orgánica y atenta
-            gesto_izq = dict(base, **{
-                "waist_pitch": 0.03,
-                "waist_yaw": 0.06,
-                "left_shoulder_pitch": 0.34,
-                "left_shoulder_roll": 0.14,
-                "left_elbow": 0.38,
-                "left_wrist_roll": 0.15,
-                "right_shoulder_pitch": 0.42,
-                "right_elbow": 0.28,
-            })
-            gesto_der = dict(base, **{
-                "waist_pitch": 0.02,
-                "waist_yaw": -0.06,
-                "left_shoulder_pitch": 0.42,
-                "left_elbow": 0.28,
-                "right_shoulder_pitch": 0.34,
-                "right_shoulder_roll": -0.14,
-                "right_elbow": 0.38,
-                "right_wrist_roll": -0.15,
-            })
-            sec, dur, pm, pv = [gesto_izq, gesto_der, base], 0.60, 0.0, 0.0
+        dur, pm, pv = configuraciones.get(emocion, (0.70, 0.0, 0.0))
 
         if valencia is not None and arousal is not None and emocion != "CRISIS_RIESGO":
             sec = cls._modular_poses_continuas(sec, base, valencia, arousal, intensidad)
@@ -1191,3 +1316,4 @@ class SintetizadorVozAdaptativo:
         hilo = threading.Thread(target=_tarea_audio, daemon=True)
         hilo.start()
         return hilo
+

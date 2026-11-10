@@ -189,6 +189,13 @@ class SimuladorEmbebidoG1:
         self.arousal: float = 0.0
         self.energia_habla: float = 1.0
         self._fase_gesto: float = 0.0
+        
+        # Animación teatral (Show Action Sequencing)
+        self._secuencia_actual: list[dict[str, float]] = []
+        self._idx_secuencia = 0
+        self._duracion_step = 0.7
+        self._ultimo_tiempo_pose = time.monotonic()
+
         self._pose_base: dict[str, float] = {
             "waist_pitch": 0.0,
             "waist_roll": 0.0,
@@ -278,6 +285,16 @@ class SimuladorEmbebidoG1:
             self.valencia = max(-1.0, min(1.0, float(valencia)))
             self.arousal = max(-1.0, min(1.0, float(arousal)))
 
+    def fijar_coreografia(self, secuencia: list[dict[str, float]], duracion: float = 0.7) -> None:
+        if not secuencia:
+            return
+        with self._lock:
+            self._secuencia_actual = list(secuencia)
+            self._idx_secuencia = 0
+            self._duracion_step = max(0.3, float(duracion))
+            self._ultimo_tiempo_pose = time.monotonic()
+            self.accion = "animacion"
+
     def avanzar(self, velocidad: float = 0.2, tiempo: float = 1.0) -> None:
         with self._lock:
             self._vel_lin = float(velocidad)
@@ -307,11 +324,14 @@ class SimuladorEmbebidoG1:
         if not secuencia:
             return
         with self._lock:
+            self._secuencia_actual = list(secuencia)
+            self._idx_secuencia = 0
+            self._duracion_step = max(0.2, float(duracion_step))
+            self._ultimo_tiempo_pose = time.monotonic()
             self._secuencia_pasos = list(secuencia)
-            self._duracion_step = max(0.1, float(duracion_step))
             self._paso_actual_idx = 0
             self._tiempo_paso_restante = self._duracion_step
-            self.accion = "postura"
+            self.accion = "animacion"
             self._pose_objetivo = dict(secuencia[0])
 
     def resetear_posicion(self) -> None:
@@ -324,6 +344,7 @@ class SimuladorEmbebidoG1:
             self._vel_ang = 0.0
             self._tiempo_restante = 0.0
             self._secuencia_pasos = []
+            self._secuencia_actual = []
             self._pose_actual.clear()
             self._pose_objetivo.clear()
 
@@ -433,6 +454,18 @@ class SimuladorEmbebidoG1:
                             adr = self._jmap[k]
                             actual = float(self._data.qpos[adr])
                             self._data.qpos[adr] = actual + (v_obj - actual) * min(1.0, dt * 7.0)
+                elif self.accion == "animacion":
+                    # Show Action Sequencing (Teatral)
+                    if time.monotonic() - self._ultimo_tiempo_pose > self._duracion_step:
+                        self._idx_secuencia = (self._idx_secuencia + 1) % len(self._secuencia_actual)
+                        self._ultimo_tiempo_pose = time.monotonic()
+                    
+                    target = self._secuencia_actual[self._idx_secuencia]
+                    for k, v_obj in target.items():
+                        if k in self._jmap:
+                            adr = self._jmap[k]
+                            actual = float(self._data.qpos[adr])
+                            self._data.qpos[adr] = actual + (v_obj - actual) * min(1.0, dt * 5.0)
                 else:
                     # Cinemática Afectiva Continua de Cuerpo Completo (Laban + Lecoq + McNeill)
                     # 1. Definir Postura Base objetivo f(V, A)

@@ -16,10 +16,15 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
 - Creación de esta bitácora compartida.
 - Próximamente: Entrenamiento de modelos ligeros para emoción de voz, texto y reconocimiento de usuario.
 
-### [2026-11-10] - Expresividad Corporal 3D Completa y Gesticulación Co-Verbal (G1)
+### [2026-11-10] - Implementación Motor Animatrónico Teatral (Disney Style)
 - **Archivos tocados:**
-  - `mi_desarrollo/coach_emocional.py`: Eliminadas poses heredadas con codos invertidos; postura canónica relajada (`shoulder_pitch: 0.42`, `elbow: 0.28`); nuevo método continuo `CoreografoPosturalG1.generar_postura_continua(valencia, arousal, ...)`.
-  - `mi_desarrollo/rostro_ottoman.py`: `SimuladorEmbebidoG1` modula a 35 FPS en hilo principal el movimiento corporal completo según $(V, A)$; incorpora *Idle Breathing* diafragmático en reposo (0.25 Hz), *Co-speech Beat Gestures* rítmicos al hablar (Lecoq Center-out + McNeill) y sincronización con `actualizar_estado` y `set_hablando`.
-  - `mi_desarrollo/demo_posturas_3d.py`: Demo interactiva standalone actualizada con sliders continuos de Valencia y Arousal, selector de cadencia gestual y telemetría en vivo (`PROBAR_POSTURA_3D.bat`).
-  - `mi_desarrollo/evaluar_coach.py`: Agregada verificación exhaustiva de límites articulares sobre malla continua de 1.620 combinaciones $(V, A, t)$.
-- **Estado de tests:** 25/25 en TP07 (100%) y 16/16 en multimodal (100%). Commit: `a71587c` en `franco/ottoman-coach`.
+  - `mi_desarrollo/coach_emocional.py`: Nueva clase `RepertorioAnimatronicoG1` con 4 roles teatrales (Festejo, Contención, Pacificador, Sosiego) y coreografías de gran escala ($30^\circ\text{–}60^\circ$).
+  - `mi_desarrollo/rostro_ottoman.py`: Implementado `SimuladorEmbebidoG1.fijar_coreografia` y `accion == "animacion"` para Show Action Sequencing (transiciones fluidas de poses).
+  - `mi_desarrollo/demo_posturas_3d.py`: Añadidos botones de roles al visor para prueba interactiva en tiempo real.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py`). Commit: `dca7145`.
+- **Detalle de roles implementados:**
+  - `MOTIVACION_ALEGRIA`: Compañero de festejo (apertura triunfal, señalamiento cómplice y brazos en V).
+  - `TRISTEZA_DESANIMO`: Contenedor cálido (inclinación de torso +0.20 rad, mano al corazón, abrazo de contención, proxémica +0.25 m).
+  - `ENOJO_FRUSTRACION`: Pacificador / Desescalada (paso atrás -0.25 m, palmas abiertas de frenado, postura estable de desescalada).
+  - `ANSIEDAD_ESTRES`: Guía de respiración diafragmática (metrónomo corporal de inhalación/exhalación, brazos cadenciosos).
+  - `DUDA_INSEGURIDAD` & `NEUTRO`: Poses de atención receptiva y calidez.
