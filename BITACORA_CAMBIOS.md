@@ -286,7 +286,18 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
     - Corregida consulta de estado operacional para mostrar `ENFOQUE` (análisis táctico de batería) en vez de `NEUTRO`.
 - **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --ml --sin-robot --evaluar`).
 
-### [2026-11-11] - Rediseño Total del Estudio y Visor Interactivo 3D (Unitree G1)
+### [2026-11-11] - Sincronización Facial Multifásica por Cláusulas con Word Boundaries (Edge-TTS)
+- **Archivos tocados:**
+  - `mi_desarrollo/coach_emocional.py`:
+    - Incorporada arquitectura de transiciones faciales multifásicas en `PlanificadorCoreografiaFacial`: segmenta respuestas en cláusulas discursivas mediante puntuación y conectores de contraste (`pero`, `sin embargo`, `aunque`), asignando a cada una su emoción y morfología específica (`MOTIVACION_ALEGRIA`, `TRISTEZA_DESANIMO` con párpado inferior cálido, `ENFOQUE`, `PREGUNTA` con `?`, `CALMA`, `ASOMBRO`, `EUREKA`).
+    - En `SintetizadorVozMultimodal.hablar_sincronizado`: activada la captura acústica de eventos `WordBoundary` de Edge-TTS (`offset` en ticks a microsegundos), alineando de forma milimétrica el inicio de cada cláusula con la palabra exacta pronunciada por la voz en el audio WAV.
+    - Compensación automática de escala temporal por pitch shifting DSP (`escala_t = 1.0 / ratio_pitch`).
+    - Despacho secuencial en hilo desacoplado mediante `_despachar_coreografia`, transmutando suavemente la cara en cada fase discursiva.
+  - `mi_desarrollo/rostro_ottoman.py`:
+    - Nuevo método `cambiar_expresion_conversacional`: permite actualizar la cara y glifo de Ottoman en tiempo real sin cortar la locución de voz ni la respiración.
+    - Comando `"cambiar_expresion"` integrado en el bucle principal de renderizado Tkinter, manteniendo la interpolación lerp suave de párpados y cejas entre expresiones.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --ml --sin-robot --evaluar`).
+
 - **Archivos tocados:**
   - `mi_desarrollo/demo_posturas_3d.py`:
     - Reescritura integral de la aplicación en un estudio visual profesional con arquitectura modular y pestañas categorizadas (`ttk.Notebook`).

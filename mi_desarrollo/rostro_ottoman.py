@@ -1192,6 +1192,28 @@ class RostroOttoman:
         """Muestra un glifo heroico de personalidad ('!' o '?') en los ojos del visor OLED."""
         self.disparar_micro_expresion(forma_ojo="capsula", glifo=glifo, duracion=duracion)
 
+    def cambiar_expresion_conversacional(
+        self,
+        emocion: str,
+        forma_ojo: Optional[str] = None,
+        glifo: Optional[str] = None,
+        duracion: float = 2.5,
+        apertura: Optional[float] = None,
+        inclinacion: Optional[float] = None,
+    ) -> None:
+        """Transmuta la expresión facial activa en tiempo real según la cláusula discursiva en curso."""
+        self.emocion_actual = emocion
+        if self._activo:
+            self._cola.put({
+                "cmd": "cambiar_expresion",
+                "emocion": emocion,
+                "forma_ojo": forma_ojo,
+                "glifo": glifo,
+                "duracion": duracion,
+                "apertura": apertura,
+                "inclinacion": inclinacion,
+            })
+
     # -----------------------------------------------------------------
     #  Renderizado visual y gestión de eventos de la GUI
     # -----------------------------------------------------------------
@@ -1424,6 +1446,15 @@ class RostroOttoman:
                     glifo_micro = msg.get("glifo")
                     apertura_micro = msg.get("apertura")
                     inclinacion_micro = msg.get("inclinacion")
+                elif msg.get("cmd") == "cambiar_expresion":
+                    emo = msg.get("emocion", "NEUTRO")
+                    preset_obj = PRESETS_ROSTRO.get(emo, PRESETS_ROSTRO["NEUTRO"])
+                    dur = float(msg.get("duracion", 2.5))
+                    fin_micro_expresion = time.monotonic() + dur
+                    forma_ojo_micro = msg.get("forma_ojo") or preset_obj.forma_ojo
+                    glifo_micro = msg.get("glifo") if "glifo" in msg else getattr(preset_obj, "glifo", None)
+                    apertura_micro = msg.get("apertura") if msg.get("apertura") is not None else preset_obj.apertura_ojo
+                    inclinacion_micro = msg.get("inclinacion") if msg.get("inclinacion") is not None else preset_obj.inclinacion_ojo
                 elif msg.get("cmd") == "estado":
                     if "emocion" in msg:
                         preset_obj = PRESETS_ROSTRO.get(msg["emocion"], PRESETS_ROSTRO["NEUTRO"])

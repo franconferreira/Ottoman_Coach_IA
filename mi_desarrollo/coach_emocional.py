@@ -92,21 +92,23 @@ class PlanRegulacionEmocional:
 
 @dataclass
 class EventoMicroExpresion:
-    """Micro-expresión facial programada en la línea de tiempo de habla."""
+    """Micro-expresión o postura facial programada en la línea de tiempo de habla."""
     t_inicio: float
     duracion: float
     forma_ojo: str
     glifo: Optional[str] = None
     apertura: Optional[float] = None
     inclinacion: Optional[float] = None
+    emocion_preset: str = "NEUTRO"
+    texto_clausula: str = ""
 
 
 class PlanificadorCoreografiaFacial:
-    """Planificador prosódico-lingüístico de micro-expresiones faciales en tiempo real.
+    """Planificador prosódico-lingüístico de transiciones faciales multifásicas en tiempo real.
     
-    Analiza la estructura discursiva, signos de puntuación (¡!, ¿?, ,, .) y marcadores
-    emocionales para generar una línea de tiempo dinámica de micro-gestos y glifos,
-    evitando la rigidez de una máscara facial estática durante el habla de Ottoman.
+    Analiza la estructura discursiva en cláusulas afectivas (¡!, ¿?, comas, conectores de contraste)
+    y utiliza Word Boundaries (timestamps acústicos de microsegundos de Edge-TTS) para coordinar
+    de forma milimétrica la expresión de Ottoman con la parte exacta de la oración que está pronunciando.
     """
 
     @classmethod
@@ -115,136 +117,175 @@ class PlanificadorCoreografiaFacial:
         texto: str,
         emocion_base: str = "NEUTRO",
         prosodia: Optional[PerfilProsodico] = None,
+        palabras_timestamps: Optional[list[tuple[str, float]]] = None,
+        escala_tiempo: float = 1.0,
     ) -> list[EventoMicroExpresion]:
         if not texto or not texto.strip():
             return []
 
         wpm = prosodia.velocidad_wpm if prosodia else 150
-        # Velocidad en palabras por segundo (típicamente 2.5 palabras/s a 150 WPM)
+        # Velocidad estimada de fallback en palabras por segundo
         wps = max(1.4, wpm / 60.0)
 
-        # Segmentar en oraciones manteniendo puntuación
-        oraciones_crudas = [f.strip() for f in re.split(r"(?<=[.?!])\s+", texto.strip()) if f.strip()]
+        # 1. Segmentación discursiva inteligente en cláusulas afectivas
+        partes = re.split(r"(?<=[.?!;:])\s+|(?:,\s+)", texto.strip())
         bloques: list[str] = []
-        for ora in oraciones_crudas:
-            if "," in ora:
-                sub = [s.strip() for s in ora.split(",") if s.strip()]
+        for p in partes:
+            p_limpia = p.strip()
+            if not p_limpia:
+                continue
+            sub = re.split(r"\b(pero|sin\s+embargo|aunque|así\s+que|entonces)\b", p_limpia, flags=re.IGNORECASE)
+            if len(sub) > 1:
+                acum = ""
                 for s in sub:
-                    bloques.append(s)
+                    if s.lower() in ("pero", "sin embargo", "aunque", "así que", "entonces"):
+                        if acum.strip():
+                            bloques.append(acum.strip())
+                        acum = s + " "
+                    else:
+                        acum += s
+                if acum.strip():
+                    bloques.append(acum.strip())
             else:
-                bloques.append(ora)
+                bloques.append(p_limpia)
 
         if not bloques:
             bloques = [texto.strip()]
 
         eventos: list[EventoMicroExpresion] = []
         t_acumulado = 0.0
+        idx_palabra = 0
 
         for i, bloque in enumerate(bloques):
             txt_min = bloque.lower().strip()
             palabras = [p for p in re.findall(r"\w+", txt_min) if p]
             num_palabras = max(1, len(palabras))
-            duracion_estimada = max(0.85, round(num_palabras / wps, 2))
+            duracion_estimada = max(1.10, round(num_palabras / wps, 2))
 
+            # Clasificación morfológica y preset por cláusula
+            preset = "NEUTRO"
             forma = "capsula"
             glifo = None
             apertura = None
             inclinacion = None
 
-            # 1. Detección de exclamación o énfasis heroico / alerta
-            if "¡" in bloque or "!" in bloque or any(w in txt_min for w in ("vamos", "excelente", "felicitaciones", "genial", "alegría")):
-                if any(w in txt_min for w in ("cuidado", "atención", "ojo", "alto", "freno", "peligro", "emergencia", "bloqueo")):
-                    glifo = "!"
-                    forma = "diagonal_enojo"
-                    inclinacion = 18.0
-                    apertura = 1.10
-                elif any(w in txt_min for w in ("eureka", "idea", "logramos", "brillante", "excelente", "super")):
-                    glifo = "!"
-                    forma = "chispa_estrella"
-                    apertura = 1.12
-                else:
-                    glifo = "!"
-                    forma = "arco_feliz"
-                    apertura = 1.08
+            # 1. Alerta / Freno / Peligro
+            if any(w in txt_min for w in ("cuidado", "atención", "ojo", "alto", "freno", "peligro", "emergencia", "bloqueo", "rechazado")):
+                preset = "ALERTA"
+                forma = "capsula"
+                glifo = "!"
+                apertura = 1.05
 
-            # 2. Detección de interrogación / duda reflexiva
-            elif "¿" in bloque or "?" in bloque or any(w in txt_min for w in ("cómo", "qué", "cuál", "quién", "dónde", "probaste", "pensás", "parece")):
-                glifo = "?"
-                forma = "entrecerrado_enfoque"
-                apertura = 0.88
+            # 2. Asombro / Descubrimiento fascinante
+            elif any(w in txt_min for w in ("guau", "sorprendente", "mirá", "increíble", "asombroso", "qué locura")):
+                preset = "ASOMBRO"
+                forma = "ojo_circular_asombro"
+                apertura = 1.15
 
-            # 3. Marcadores de co-regulación, respiración y calma
-            elif any(w in txt_min for w in ("tranquilo", "calma", "despacio", "inhalá", "exhalá", "respiremos", "paz", "serenidad", "relajá")):
-                forma = "suave_calma"
-                apertura = 0.74
+            # 3. Eureka / Iluminación / Gran idea
+            elif any(w in txt_min for w in ("eureka", "idea brillante", "se me ocurre", "lo resolvimos")):
+                preset = "EUREKA"
+                forma = "chispa_estrella"
+                glifo = "!"
+                apertura = 1.12
 
-            # 4. Marcadores de concentración, análisis y foco cognitivo
-            elif any(w in txt_min for w in ("pensemos", "analicemos", "plan", "primer paso", "opciones", "enfoque", "estrategia", "revisemos")):
-                forma = "entrecerrado_enfoque"
-                apertura = 0.82
-
-            # 5. Marcadores de empatía cálida y contención
-            elif any(w in txt_min for w in ("entiendo", "difícil", "cuesta", "duro", "pesar", "triste", "estoy con vos", "abrazo")):
+            # 4. Empatía cálida y contención profunda (AU6 / parpado_inferior_calido)
+            elif any(w in txt_min for w in (
+                "entiendo", "difícil", "cuesta", "duro", "pesar", "pesado", "cansado", "agobiado",
+                "triste", "estoy con vos", "abrazo", "no te preocupes", "a tu ritmo", "sin presiones",
+                "comprensible", "te escucho", "te banco", "bronca"
+            )):
+                preset = "TRISTEZA_DESANIMO"
                 forma = "parpado_inferior_calido"
                 inclinacion = 0.0
                 apertura = 0.85
 
-            # 6. Marcadores de asombro y descubrimiento
-            elif any(w in txt_min for w in ("guau", "sorprendente", "mirá", "increíble", "asombroso")):
-                forma = "ojo_circular_asombro"
-                apertura = 1.15
+            # 5. Calma / Respiración diafragmática / Descompresión
+            elif any(w in txt_min for w in ("calma", "tranqui", "despacio", "inhalá", "exhalá", "respiremos", "paz", "serenidad", "relajá", "frenar")):
+                preset = "CALMA"
+                forma = "suave_calma"
+                apertura = 0.74
 
-            # 7. Dispersión natural según la emoción dominante del coach
+            # 6. Interrogación / Curiosidad / Indagación al usuario (Glifo ?)
+            elif ("?" in bloque or "¿" in bloque or bloque.endswith("?")) or (
+                "!" not in bloque and "¡" not in bloque and re.search(r"^(?:cómo|qué|cuál|quién|dónde|cuándo|por qué|querés|te parece)\b", txt_min)
+            ):
+                preset = "PREGUNTA"
+                forma = "capsula"
+                glifo = "?"
+                apertura = 1.0
+
+            # 7. Celebración, entusiasmo y bienvenida (Arco feliz ^ ^)
+            elif "¡" in bloque or "!" in bloque or any(w in txt_min for w in (
+                "hola", "excelente", "genial", "vamos", "felicitaciones", "buenísimo", "de diez",
+                "un gustazo", "alegría", "logro", "bienvenido", "bárbaro", "joya", "impecable"
+            )):
+                preset = "MOTIVACION_ALEGRIA"
+                forma = "arco_feliz"
+                apertura = 1.05
+
+            # 8. Enfoque táctico / Concentración / Análisis / Plan
+            elif any(w in txt_min for w in (
+                "analicemos", "plan", "primer paso", "opciones", "enfoque", "estrategia",
+                "paso a paso", "pensemos", "revisemos", "batería", "sensores", "coordenadas",
+                "armar", "resolver", "organizar", "técnica"
+            )):
+                preset = "ENFOQUE"
+                forma = "entrecerrado_enfoque"
+                apertura = 0.85
+
             else:
-                if emocion_base == "MOTIVACION_ALEGRIA":
+                if emocion_base in ("MOTIVACION_ALEGRIA", "ALEGRIA"):
+                    preset = "MOTIVACION_ALEGRIA"
                     forma = "arco_feliz"
                     apertura = 1.05
-                elif emocion_base == "ANSIEDAD_ESTRES":
+                elif emocion_base in ("ANSIEDAD_ESTRES", "CALMA"):
+                    preset = "CALMA"
                     forma = "suave_calma"
                     apertura = 0.76
-                elif emocion_base == "TRISTEZA_DESANIMO":
+                elif emocion_base in ("TRISTEZA_DESANIMO", "EMPATIA"):
+                    preset = "TRISTEZA_DESANIMO"
                     forma = "parpado_inferior_calido"
                     inclinacion = 0.0
                     apertura = 0.85
                 elif emocion_base == "ENOJO_FRUSTRACION":
+                    preset = "ENOJO_FRUSTRACION"
                     forma = "diagonal_enojo"
                     inclinacion = 14.0
                     apertura = 0.86
                 elif emocion_base == "DUDA_INSEGURIDAD":
+                    preset = "ENFOQUE"
                     forma = "entrecerrado_enfoque"
                     apertura = 0.88
                 else:
+                    preset = "NEUTRO"
                     forma = "capsula"
                     apertura = 0.92
 
+            # Determinar timestamp inicial de la cláusula
+            t_inicio_clausula = t_acumulado
+            if palabras_timestamps and palabras:
+                first_w = palabras[0]
+                for j in range(idx_palabra, len(palabras_timestamps)):
+                    w_tts, t_w = palabras_timestamps[j]
+                    if w_tts == first_w or first_w in w_tts or w_tts in first_w:
+                        t_inicio_clausula = max(0.0, round(t_w * escala_tiempo, 3))
+                        idx_palabra = j + len(palabras)
+                        break
+
             eventos.append(
                 EventoMicroExpresion(
-                    t_inicio=round(t_acumulado, 2),
+                    t_inicio=round(t_inicio_clausula, 3),
                     duracion=duracion_estimada,
                     forma_ojo=forma,
                     glifo=glifo,
                     apertura=apertura,
                     inclinacion=inclinacion,
+                    emocion_preset=preset,
+                    texto_clausula=bloque,
                 )
             )
 
-            # Si el bloque empezó con glifo '!' o '?', y dura más de 1.1s, desvanecerlo suavemente a la forma ocular secundaria
-            if glifo in ("!", "?") and duracion_estimada > 1.1:
-                dur_glifo = 0.85
-                dur_resto = round(duracion_estimada - dur_glifo, 2)
-                eventos[-1].duracion = dur_glifo
-                eventos.append(
-                    EventoMicroExpresion(
-                        t_inicio=round(t_acumulado + dur_glifo, 2),
-                        duracion=dur_resto,
-                        forma_ojo="arco_feliz" if glifo == "!" else "entrecerrado_enfoque",
-                        glifo=None,
-                        apertura=apertura,
-                        inclinacion=inclinacion,
-                    )
-                )
-
-            # Acumular tiempo para el próximo bloque más una micro-pausa
             t_acumulado += duracion_estimada + 0.15
 
         return eventos
@@ -2546,17 +2587,23 @@ class SintetizadorVozAdaptativo:
                 reproduccion_exitosa = False
                 archivos_a_borrar: list[str] = []
 
-                def _despachar_coreografia(rostro_ref):
-                    if rostro_ref is None or not hasattr(rostro_ref, "disparar_micro_expresion"):
+                def _despachar_coreografia(rostro_ref, palabras_tts=None, escala_t=1.0):
+                    if rostro_ref is None or not (hasattr(rostro_ref, "cambiar_expresion_conversacional") or hasattr(rostro_ref, "disparar_micro_expresion")):
                         return None
                     emo_base = getattr(rostro_ref, "emocion_actual", "NEUTRO")
-                    evs = PlanificadorCoreografiaFacial.planificar(texto_limpio, emocion_base=emo_base, prosodia=prosodia)
+                    evs = PlanificadorCoreografiaFacial.planificar(
+                        texto_limpio,
+                        emocion_base=emo_base,
+                        prosodia=prosodia,
+                        palabras_timestamps=palabras_tts,
+                        escala_tiempo=escala_t,
+                    )
                     if not evs:
                         return None
                     stop_ev = threading.Event()
                     def _loop():
                         t0 = time.monotonic()
-                        for ev in evs:
+                        for i, ev in enumerate(evs):
                             if stop_ev.is_set():
                                 break
                             espera = (t0 + ev.t_inicio) - time.monotonic()
@@ -2566,20 +2613,34 @@ class SintetizadorVozAdaptativo:
                             if stop_ev.is_set():
                                 break
                             try:
-                                rostro_ref.disparar_micro_expresion(
-                                    forma_ojo=ev.forma_ojo,
-                                    glifo=ev.glifo,
-                                    duracion=ev.duracion,
-                                    apertura=ev.apertura,
-                                    inclinacion=ev.inclinacion,
-                                )
+                                dur_ev = ev.duracion
+                                if i + 1 < len(evs):
+                                    dur_ev = max(1.0, evs[i + 1].t_inicio - ev.t_inicio)
+
+                                if hasattr(rostro_ref, "cambiar_expresion_conversacional"):
+                                    rostro_ref.cambiar_expresion_conversacional(
+                                        emocion=ev.emocion_preset,
+                                        forma_ojo=ev.forma_ojo,
+                                        glifo=ev.glifo,
+                                        duracion=dur_ev,
+                                        apertura=ev.apertura,
+                                        inclinacion=ev.inclinacion,
+                                    )
+                                else:
+                                    rostro_ref.disparar_micro_expresion(
+                                        forma_ojo=ev.forma_ojo,
+                                        glifo=ev.glifo,
+                                        duracion=dur_ev,
+                                        apertura=ev.apertura,
+                                        inclinacion=ev.inclinacion,
+                                    )
                             except Exception:
                                 pass
                     t_coreo = threading.Thread(target=_loop, daemon=True)
                     t_coreo.start()
                     return stop_ev
 
-                # INTENTO 1: edge-tts (Neuronal Argentino Tomás con nueva base ágil)
+                # INTENTO 1: edge-tts (Neuronal Argentino Tomás con sincronización WordBoundary)
                 try:
                     import asyncio
                     import edge_tts
@@ -2594,66 +2655,37 @@ class SintetizadorVozAdaptativo:
                     val_vol = int(round(prosodia.volumen_db * 2.0))
                     val_vol = max(-15, min(+5, val_vol))
 
-                    # Detección de bloques dinámicos (Contención inicial -> Silencio -> Acción)
-                    oraciones = [o.strip() for o in re.split(r"(?<=[.!?])\s+", texto_prosodico) if o.strip()]
-                    es_bimodal = len(oraciones) >= 2 and any(
-                        w in texto_prosodico.lower() for w in ("vamos", "plan", "primer", "arranquemos", "contame", "¿dale?", "¡¿dale?!")
-                    )
-
                     with tempfile.TemporaryDirectory() as tmpdir:
                         final_wav = os.path.join(tmpdir, "final.wav")
-                        if es_bimodal:
-                            # Transición suave sin saltos abruptos (apenas 1 Hz / 1% de matiz orgánico)
-                            corte = max(1, len(oraciones) // 2)
-                            txt_b1 = " ".join(oraciones[:corte])
-                            txt_b2 = " ".join(oraciones[corte:])
+                        r_str = f"{pct_rate:+d}%"
+                        p_str = f"{val_pitch:+d}Hz"
+                        v_str = f"{val_vol:+d}%"
+                        mp3_u = os.path.join(tmpdir, "unit.mp3")
+                        wav_u = os.path.join(tmpdir, "unit.wav")
+                        palabras_tts: list[tuple[str, float]] = []
 
-                            r_b1 = f"{max(+12, pct_rate - 1):+d}%"
-                            p_b1 = f"{max(+18, val_pitch - 1):+d}Hz"
-                            v_b1 = f"{val_vol - 6:+d}%"
+                        async def _gen_unit():
+                            c = edge_tts.Communicate(
+                                texto_prosodico,
+                                "es-AR-TomasNeural",
+                                rate=r_str,
+                                pitch=p_str,
+                                volume=v_str,
+                                boundary="WordBoundary",
+                            )
+                            with open(mp3_u, "wb") as f_mp3:
+                                async for chunk in c.stream():
+                                    if chunk["type"] == "audio":
+                                        f_mp3.write(chunk["data"])
+                                    elif chunk["type"] == "WordBoundary":
+                                        t_sec = chunk["offset"] / 10_000_000.0
+                                        palabras_tts.append((chunk["text"].lower().strip(), t_sec))
 
-                            r_b2 = f"{min(+16, pct_rate + 1):+d}%"
-                            p_b2 = f"{min(+22, val_pitch + 1):+d}Hz"
-                            v_b2 = f"{val_vol:+d}%"
+                        asyncio.run(_gen_unit())
 
-                            mp3_1 = os.path.join(tmpdir, "b1.mp3")
-                            mp3_2 = os.path.join(tmpdir, "b2.mp3")
-                            wav_1 = os.path.join(tmpdir, "b1.wav")
-                            wav_2 = os.path.join(tmpdir, "b2.wav")
-
-                            async def _gen_bloques():
-                                c1 = edge_tts.Communicate(txt_b1, "es-AR-TomasNeural", rate=r_b1, pitch=p_b1, volume=v_b1)
-                                c2 = edge_tts.Communicate(txt_b2, "es-AR-TomasNeural", rate=r_b2, pitch=p_b2, volume=v_b2)
-                                await c1.save(mp3_1)
-                                await c2.save(mp3_2)
-
-                            asyncio.run(_gen_bloques())
-
-                            cmd1 = ["ffmpeg", "-y", "-i", mp3_1, "-ac", "1", "-ar", "24000", wav_1]
-                            cmd2 = ["ffmpeg", "-y", "-i", mp3_2, "-ac", "1", "-ar", "24000", wav_2]
-                            subprocess.run(cmd1, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                            subprocess.run(cmd2, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-                            sr, d1 = wavfile.read(wav_1)
-                            _, d2 = wavfile.read(wav_2)
-                            silencio = np.zeros(int(sr * 0.42), dtype=np.int16)
-                            data_pcm = np.concatenate([d1, silencio, d2])
-                        else:
-                            r_str = f"{pct_rate:+d}%"
-                            p_str = f"{val_pitch:+d}Hz"
-                            v_str = f"{val_vol:+d}%"
-                            mp3_u = os.path.join(tmpdir, "unit.mp3")
-                            wav_u = os.path.join(tmpdir, "unit.wav")
-
-                            async def _gen_unit():
-                                c = edge_tts.Communicate(texto_prosodico, "es-AR-TomasNeural", rate=r_str, pitch=p_str, volume=v_str)
-                                await c.save(mp3_u)
-
-                            asyncio.run(_gen_unit())
-
-                            cmd_u = ["ffmpeg", "-y", "-i", mp3_u, "-ac", "1", "-ar", "24000", wav_u]
-                            subprocess.run(cmd_u, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                            sr, data_pcm = wavfile.read(wav_u)
+                        cmd_u = ["ffmpeg", "-y", "-i", mp3_u, "-ac", "1", "-ar", "24000", wav_u]
+                        subprocess.run(cmd_u, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        sr, data_pcm = wavfile.read(wav_u)
 
                         # Aplicar cadena DSP de estudio (pecho + de-essing + micro-reverberación)
                         data_final = SintetizadorVozAdaptativo.aplicar_dsp_estudio(data_pcm, sr)
@@ -2662,10 +2694,14 @@ class SintetizadorVozAdaptativo:
                         data_mod, sr_mod = SintetizadorVozAdaptativo.modular_onda_dsp(data_final, sr, prosodia)
                         wavfile.write(final_wav, sr_mod, data_mod)
 
+                        # Compensar escala temporal si pitch shifting moduló la longitud
+                        ratio_pitch = float(np.clip((160.0 + float(prosodia.tono_hz)) / 160.0, 0.84, 1.20))
+                        escala_t = 1.0 / ratio_pitch if abs(ratio_pitch - 1.0) > 0.01 else 1.0
+
                         stop_coreo = None
                         if rostro is not None:
                             rostro.set_hablando(True, subtitulo=texto_limpio)
-                            stop_coreo = _despachar_coreografia(rostro)
+                            stop_coreo = _despachar_coreografia(rostro, palabras_tts=palabras_tts, escala_t=escala_t)
                         try:
                             winsound.PlaySound(final_wav, winsound.SND_FILENAME)
                             reproduccion_exitosa = True
