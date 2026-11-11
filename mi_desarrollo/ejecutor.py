@@ -221,12 +221,12 @@ class Ejecutor:
                     if estado is not None and estado.facial.rostro_detectado
                     else {
                         "rostro_detectado": False,
-                        "apertura_ojos": 0.65,
-                        "tension_cejas": 0.12,
-                        "curvatura_boca": 0.72,
-                        "apertura_boca": 0.25,
+                        "apertura_ojos": 0.0,
+                        "tension_cejas": 0.0,
+                        "curvatura_boca": 0.0,
+                        "apertura_boca": 0.0,
                         "inclinacion_cabeza_deg": 0.0,
-                        "emocion_facial": "ALEGRIA" if emo_saludo == "MOTIVACION_ALEGRIA" else emo_saludo,
+                        "emocion_facial": "INACTIVO",
                     }
                 ),
             )
@@ -267,21 +267,19 @@ class Ejecutor:
 
     @staticmethod
     def _metricas_faciales_para_dashboard(estado) -> Optional[object]:
-        """Si hay cámara física usa la lectura real; si es chat de texto proyecta FACS equivalentes."""
+        """Si hay cámara física y rostro detectado pasa la lectura real; si no, marca canal inactivo."""
         if estado is None:
             return None
-        if estado.facial.rostro_detectado:
+        if estado.facial and getattr(estado.facial, "rostro_detectado", False):
             return estado.facial
-        v = float(estado.valencia)
-        a = float(estado.arousal)
         return {
             "rostro_detectado": False,
-            "apertura_ojos": max(0.20, min(0.95, 0.52 + 0.32 * a)),
-            "tension_cejas": max(0.08, min(0.95, 0.25 - 0.35 * v + 0.28 * max(0.0, a))),
-            "curvatura_boca": max(-0.90, min(0.90, 0.78 * v)),
-            "apertura_boca": max(0.08, min(0.85, 0.16 + 0.28 * abs(a))),
-            "inclinacion_cabeza_deg": -8.0 if v < -0.25 and a < 0 else 0.0,
-            "emocion_facial": estado.emocion_dominante,
+            "apertura_ojos": 0.0,
+            "tension_cejas": 0.0,
+            "curvatura_boca": 0.0,
+            "apertura_boca": 0.0,
+            "inclinacion_cabeza_deg": 0.0,
+            "emocion_facial": "INACTIVO",
         }
 
     def _ejecutar_coach(self, p: dict) -> str:

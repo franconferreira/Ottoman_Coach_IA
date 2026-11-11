@@ -62,7 +62,7 @@ class PresetFacialRobot:
 PRESETS_ROSTRO: dict[str, PresetFacialRobot] = {
     "NEUTRO": PresetFacialRobot(
         nombre="Escucha Atenta",
-        color_rgb=(56, 189, 248),      # Cian suave
+        color_rgb=(56, 189, 248),      # Azul signature constante (#38BDF8)
         apertura_ojo=0.92,
         arco_feliz=0.0,
         angulo_ceja_izq=2.0,
@@ -79,7 +79,7 @@ PRESETS_ROSTRO: dict[str, PresetFacialRobot] = {
     ),
     "ANSIEDAD_ESTRES": PresetFacialRobot(
         nombre="Co-regulación y Calma Respiratoria",
-        color_rgb=(96, 165, 250),      # Azul sereno profundo
+        color_rgb=(56, 189, 248),      # Azul signature constante (#38BDF8)
         apertura_ojo=0.74,
         arco_feliz=0.15,
         angulo_ceja_izq=8.0,
@@ -96,7 +96,7 @@ PRESETS_ROSTRO: dict[str, PresetFacialRobot] = {
     ),
     "TRISTEZA_DESANIMO": PresetFacialRobot(
         nombre="Empatía Cálida y Contención",
-        color_rgb=(251, 191, 36),      # Ámbar cálido
+        color_rgb=(56, 189, 248),      # Azul signature constante (#38BDF8)
         apertura_ojo=0.82,
         arco_feliz=0.10,
         angulo_ceja_izq=16.0,
@@ -113,7 +113,7 @@ PRESETS_ROSTRO: dict[str, PresetFacialRobot] = {
     ),
     "ENOJO_FRUSTRACION": PresetFacialRobot(
         nombre="Serenidad Ecuánime (Desescalada)",
-        color_rgb=(52, 211, 153),      # Verde equilibrio
+        color_rgb=(56, 189, 248),      # Azul signature constante (#38BDF8)
         apertura_ojo=0.86,
         arco_feliz=0.0,
         angulo_ceja_izq=4.0,
@@ -130,24 +130,24 @@ PRESETS_ROSTRO: dict[str, PresetFacialRobot] = {
     ),
     "DUDA_INSEGURIDAD": PresetFacialRobot(
         nombre="Mentoría Estructurada",
-        color_rgb=(34, 211, 238),      # Turquesa brillante
-        apertura_ojo=0.96,
-        arco_feliz=0.05,
-        angulo_ceja_izq=10.0,
-        angulo_ceja_der=3.0,
-        altura_ceja=-6.0,
-        curvatura_boca=0.40,
+        color_rgb=(56, 189, 248),      # Azul signature constante (#38BDF8)
+        apertura_ojo=0.88,
+        arco_feliz=0.0,
+        angulo_ceja_izq=6.0,
+        angulo_ceja_der=-6.0,
+        altura_ceja=-4.0,
+        curvatura_boca=0.20,
         guia_respiracion=False,
         intervalo_parpadeo=3.8,
-        forma_ojo="asimetrico_duda",
-        inclinacion_ojo=6.0,
+        forma_ojo="entrecerrado_enfoque",
+        inclinacion_ojo=4.0,
         ancho_ojo=74.0,
         alto_ojo=118.0,
-        escala_asimetrica=0.35,
+        escala_asimetrica=1.0,
     ),
     "MOTIVACION_ALEGRIA": PresetFacialRobot(
         nombre="Celebración y Entusiasmo",
-        color_rgb=(250, 204, 21),      # Dorado energético
+        color_rgb=(56, 189, 248),      # Azul signature constante (#38BDF8)
         apertura_ojo=1.05,
         arco_feliz=0.88,               # Ojos felices arqueados (^ ^)
         angulo_ceja_izq=-6.0,
@@ -164,7 +164,7 @@ PRESETS_ROSTRO: dict[str, PresetFacialRobot] = {
     ),
     "CRISIS_RIESGO": PresetFacialRobot(
         nombre="Protocolo de Contención Ética",
-        color_rgb=(129, 140, 248),     # Índigo calmo
+        color_rgb=(56, 189, 248),      # Azul signature constante (#38BDF8)
         apertura_ojo=0.78,
         arco_feliz=0.0,
         angulo_ceja_izq=12.0,
@@ -178,6 +178,66 @@ PRESETS_ROSTRO: dict[str, PresetFacialRobot] = {
         ancho_ojo=74.0,
         alto_ojo=102.0,
         escala_asimetrica=1.0,
+    ),
+    "ASOMBRO": PresetFacialRobot(
+        nombre="Sorpresa Abierta",
+        color_rgb=(56, 189, 248),
+        apertura_ojo=1.20,
+        arco_feliz=0.0,
+        guia_respiracion=False,
+        forma_ojo="ojo_circular_asombro",
+        inclinacion_ojo=0.0,
+        ancho_ojo=92.0,
+        alto_ojo=120.0,
+    ),
+    "EUREKA": PresetFacialRobot(
+        nombre="Chispa Eureka / Logro",
+        color_rgb=(56, 189, 248),
+        apertura_ojo=1.15,
+        arco_feliz=0.0,
+        guia_respiracion=False,
+        forma_ojo="chispa_estrella",
+        inclinacion_ojo=0.0,
+        ancho_ojo=88.0,
+        alto_ojo=118.0,
+    ),
+    "ALERTA": PresetFacialRobot(
+        nombre="Énfasis Heroico (!)",
+        color_rgb=(56, 189, 248),
+        apertura_ojo=1.0,
+        arco_feliz=0.0,
+        guia_respiracion=False,
+        forma_ojo="capsula",
+        glifo="!",
+    ),
+    "PREGUNTA": PresetFacialRobot(
+        nombre="Interrogación Curiosa (?)",
+        color_rgb=(56, 189, 248),
+        apertura_ojo=1.0,
+        arco_feliz=0.0,
+        guia_respiracion=False,
+        forma_ojo="capsula",
+        glifo="?",
+    ),
+    "ENFOQUE": PresetFacialRobot(
+        nombre="Análisis Táctico / Enfoque",
+        color_rgb=(56, 189, 248),
+        apertura_ojo=0.85,
+        arco_feliz=0.0,
+        guia_respiracion=False,
+        forma_ojo="entrecerrado_enfoque",
+        ancho_ojo=80.0,
+        alto_ojo=110.0,
+    ),
+    "CALMA": PresetFacialRobot(
+        nombre="Serenidad Zen (/ \\)",
+        color_rgb=(56, 189, 248),
+        apertura_ojo=0.74,
+        arco_feliz=0.0,
+        guia_respiracion=True,
+        forma_ojo="suave_calma",
+        ancho_ojo=78.0,
+        alto_ojo=106.0,
     ),
 }
 
@@ -793,12 +853,12 @@ class RostroOttoman:
         self.historial_chat: deque[tuple[str, str, str]] = deque(maxlen=60)
         self.metricas_faciales_dict: dict = {
             "rostro_detectado": False,
-            "apertura_ojos": 0.50,
-            "tension_cejas": 0.20,
-            "curvatura_boca": 0.05,
-            "apertura_boca": 0.12,
+            "apertura_ojos": 0.0,
+            "tension_cejas": 0.0,
+            "curvatura_boca": 0.0,
+            "apertura_boca": 0.0,
             "inclinacion_cabeza_deg": 0.0,
-            "emocion_facial": "NEUTRO",
+            "emocion_facial": "INACTIVO",
         }
         self._ultimo_frame_rgb: Optional[np.ndarray] = None
         self._lock_frame = threading.Lock()
@@ -1033,6 +1093,12 @@ class RostroOttoman:
                 "DUDA_INSEGURIDAD": (-0.15, 0.20),
                 "NEUTRO": (0.0, 0.0),
                 "CRISIS_RIESGO": (-0.80, 0.50),
+                "ASOMBRO": (0.40, 0.85),
+                "EUREKA": (0.80, 0.70),
+                "ALERTA": (-0.10, 0.80),
+                "PREGUNTA": (0.10, 0.40),
+                "ENFOQUE": (0.20, 0.30),
+                "CALMA": (0.30, -0.40),
             }
             if clave in va_presets:
                 pv, pa = va_presets[clave]
@@ -1230,6 +1296,31 @@ class RostroOttoman:
             b_chip = tk.Button(frame_chips, text=txt_chip, bg="#1E293B", fg="#94A3B8", font=("Segoe UI", 8),
                                relief="flat", cursor="hand2", padx=8, pady=2, command=cmd_chip)
             b_chip.pack(side="left", padx=3)
+
+        # Chips interactivos de prueba directa de rostros y expresiones OLED
+        frame_caras = tk.Frame(frame_chat, bg="#070B14", pady=2)
+        frame_caras.pack(fill="x")
+        lbl_caras = tk.Label(frame_caras, text="Expresiones OLED:", bg="#070B14", fg="#64748B", font=("Segoe UI", 8, "bold"))
+        lbl_caras.pack(side="left", padx=(2, 4))
+        caras_chips = [
+            ("😐 Neutro", "NEUTRO"),
+            ("😊 Sonrisa", "MOTIVACION_ALEGRIA"),
+            ("✨ Eureka", "EUREKA"),
+            ("😮 Asombro", "ASOMBRO"),
+            ("❗ Alerta", "ALERTA"),
+            ("❓ Pregunta", "PREGUNTA"),
+            ("🧘 Calma", "CALMA"),
+            ("🔍 Enfoque", "ENFOQUE"),
+            ("😠 Firme", "ENOJO_FRUSTRACION"),
+            ("🥺 Empatía", "TRISTEZA_DESANIMO"),
+        ]
+        for txt_c, pre_k in caras_chips:
+            b_c = tk.Button(
+                frame_caras, text=txt_c, bg="#0F172A", fg="#38BDF8", activebackground="#1E293B", activeforeground="#7DD3FC",
+                font=("Segoe UI", 8, "bold"), relief="flat", cursor="hand2", padx=6, pady=2,
+                command=lambda k=pre_k: self.actualizar_estado(k)
+            )
+            b_c.pack(side="left", padx=2)
 
         # Variables de interpolación del rostro (Morfología Robótica EVE/Cozmo)
         preset_obj = PRESETS_ROSTRO["NEUTRO"]
@@ -1486,163 +1577,180 @@ class RostroOttoman:
                     outline=col_principal if preset_obj.guia_respiracion else col_tenue,
                     width=1.8,
                 )
-                # Reflejo especular curvo de cristal
-                canvas.create_arc(
-                    vx1 + 40, vy1 + 25, vx2 - 90, vy2 - 140,
-                    start=55, extent=75, style="arc", outline="#1E293B", width=3.0,
-                )
 
-                # Ojos LED Gigantes
-                cx_izq = cx_c - 82
-                cx_der = cx_c + 82
-                cy_ojo = cy_c
+                # Centro del visor y ojos gigantes
+                cx_c = 690
+                cy_c = 240
                 h_blink = max(0.04, factor_parpadeo)
 
-                for sig, ox in ((-1, cx_izq), (1, cx_der)):
-                    es_izq = (sig == -1)
-                    escala_lado = asimetria_act if es_izq else 1.0
-
-                    # Parpadeo rápido (cierre horizontal de párpado electrónico)
+                # =============================================================
+                #  CASO ESPECIAL: GLIFO HEROICO ÚNICO EN EL CENTRO DEL VISOR
+                #  Un solo símbolo gigante (!) o (?) centrado en el medio de la cara
+                # =============================================================
+                if glifo_efectivo in ("!", "?"):
                     if factor_parpadeo < 0.22:
-                        w_linea = (ancho_ojo_act * 0.65) * escala_lado
+                        w_linea = (ancho_ojo_act * 1.05)
                         canvas.create_line(
-                            ox - w_linea + mirada_x, cy_ojo + mirada_y,
-                            ox + w_linea + mirada_x, cy_ojo + mirada_y,
-                            fill=col_principal, width=8, capstyle="round",
+                            cx_c - w_linea + mirada_x, cy_c + mirada_y,
+                            cx_c + w_linea + mirada_x, cy_c + mirada_y,
+                            fill=col_principal, width=10, capstyle="round",
                         )
-                        continue
-
-                    # Caso 0: Glifos Heroicos de Personalidad (! y ?)
-                    if glifo_efectivo == "!":
-                        t_sz = int(round(86 * pulso_habla * pulso_resp_ojo))
+                    else:
+                        t_sz = int(round(135 * pulso_habla * pulso_resp_ojo))
                         canvas.create_text(
-                            ox + mirada_x, cy_ojo + mirada_y,
-                            text="!",
-                            font=("Segoe UI", max(24, t_sz), "bold"),
-                            fill=col_principal,
-                        )
-                    elif glifo_efectivo == "?":
-                        t_sz = int(round(84 * pulso_habla * pulso_resp_ojo))
-                        canvas.create_text(
-                            ox + mirada_x, cy_ojo + mirada_y,
-                            text="?",
-                            font=("Segoe UI", max(24, t_sz), "bold"),
+                            cx_c + mirada_x, cy_c + mirada_y,
+                            text=glifo_efectivo,
+                            font=("Segoe UI", max(36, t_sz), "bold"),
                             fill=col_principal,
                         )
 
-                    # Caso A: Chispa / Estrella Eureka
-                    elif forma_ojo_efectiva == "chispa_estrella":
-                        rx = (ancho_ojo_act * 0.54) * pulso_resp_ojo
-                        ry = (alto_ojo_act * 0.52) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
-                        pts_star = [
-                            ox + mirada_x, cy_ojo - ry * 1.08 + mirada_y,
-                            ox + rx * 0.30 + mirada_x, cy_ojo - ry * 0.30 + mirada_y,
-                            ox + rx * 1.08 + mirada_x, cy_ojo + mirada_y,
-                            ox + rx * 0.30 + mirada_x, cy_ojo + ry * 0.30 + mirada_y,
-                            ox + mirada_x, cy_ojo + ry * 1.08 + mirada_y,
-                            ox - rx * 0.30 + mirada_x, cy_ojo + ry * 0.30 + mirada_y,
-                            ox - rx * 1.08 + mirada_x, cy_ojo + mirada_y,
-                            ox - rx * 0.30 + mirada_x, cy_ojo - ry * 0.30 + mirada_y,
-                        ]
-                        canvas.create_polygon(*pts_star, fill=col_principal, outline="", smooth=True)
+                else:
+                    # =========================================================
+                    #  OJOS LED GIGANTES (MODO DUAL DE 9 MORFOLOGÍAS)
+                    # =========================================================
+                    cx_izq = cx_c - 82
+                    cx_der = cx_c + 82
+                    cy_ojo = cy_c
 
-                    # Caso B: Entrecerrado Enfoque (Análisis táctico y concentración)
-                    elif forma_ojo_efectiva == "entrecerrado_enfoque":
-                        rx = (ancho_ojo_act * 0.56) * pulso_resp_ojo
-                        ry = (alto_ojo_act * 0.25) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
-                        canvas.create_oval(
-                            ox - rx + mirada_x, cy_ojo - ry + mirada_y,
-                            ox + rx + mirada_x, cy_ojo + ry + mirada_y,
-                            fill=col_principal, outline="",
-                        )
+                    for sig, ox in ((-1, cx_izq), (1, cx_der)):
+                        es_izq = (sig == -1)
+                        escala_lado = asimetria_act if es_izq else 1.0
 
-                    # Caso C: Ojo Circular Asombro (Sorpresa genuina abierta)
-                    elif forma_ojo_efectiva == "ojo_circular_asombro":
-                        r_circ = (alto_ojo_act * 0.50) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
-                        canvas.create_oval(
-                            ox - r_circ + mirada_x, cy_ojo - r_circ + mirada_y,
-                            ox + r_circ + mirada_x, cy_ojo + r_circ + mirada_y,
-                            fill=col_principal, outline="",
-                        )
-
-                    # Caso D: Arco Feliz (Motivación / Alegría ^ ^)
-                    elif forma_ojo_efectiva == "arco_feliz" or (arco_act > 0.45 and forma_ojo_efectiva == "capsula"):
-                        rx = (ancho_ojo_act * 0.68) * pulso_resp_ojo
-                        ry = (alto_ojo_act * 0.52) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
-                        t_vals = [0.18 + i * (math.pi - 0.36) / 8 for i in range(9)]
-                        pts_arco = []
-                        for t_ang in t_vals:
-                            pts_arco.extend([
-                                ox + rx * math.cos(t_ang) + mirada_x,
-                                cy_ojo - ry * math.sin(t_ang) + mirada_y,
-                            ])
-                        canvas.create_line(*pts_arco, smooth=True, fill=col_principal, width=20, capstyle="round")
-
-                    # Caso E: Diagonal Enojo / Firmeza (\ /)
-                    elif forma_ojo_efectiva == "diagonal_enojo":
-                        rx = (ancho_ojo_act * 0.50) * pulso_resp_ojo
-                        ry = (alto_ojo_act * 0.46) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
-                        s = 1 if es_izq else -1
-                        d_corte = inc_ojo_act * 0.95
-                        pts = [
-                            ox - rx + mirada_x, cy_ojo - ry - d_corte * s + mirada_y,
-                            ox + rx + mirada_x, cy_ojo - ry + d_corte * s + mirada_y,
-                            ox + rx * 0.82 + mirada_x, cy_ojo + ry + mirada_y,
-                            ox - rx * 0.82 + mirada_x, cy_ojo + ry + mirada_y,
-                        ]
-                        canvas.create_polygon(*pts, fill=col_principal, outline="", smooth=True)
-
-                    # Caso F: Caído Triste / Empatía (/ \)
-                    elif forma_ojo_efectiva == "caido_triste":
-                        rx = (ancho_ojo_act * 0.48) * pulso_resp_ojo
-                        ry = (alto_ojo_act * 0.46) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
-                        s = -1 if es_izq else 1
-                        d_caida = abs(inc_ojo_act) * 0.95
-                        pts = [
-                            ox - rx + mirada_x, cy_ojo - ry + d_caida * s + mirada_y,
-                            ox + rx + mirada_x, cy_ojo - ry - d_caida * s + mirada_y,
-                            ox + rx * 0.78 + mirada_x, cy_ojo + ry - d_caida * 0.4 * s + mirada_y,
-                            ox - rx * 0.78 + mirada_x, cy_ojo + ry + d_caida * 0.4 * s + mirada_y,
-                        ]
-                        canvas.create_polygon(*pts, fill=col_principal, outline="", smooth=True)
-
-                    # Caso G: Asimétrico Duda (Ojo izquierdo entrecerrado/guiño, derecho abierto curioso)
-                    elif forma_ojo_efectiva == "asimetrico_duda":
-                        if es_izq:
-                            w_guiño = (ancho_ojo_act * 0.65)
+                        # Parpadeo rápido (cierre horizontal de párpado electrónico)
+                        if factor_parpadeo < 0.22:
+                            w_linea = (ancho_ojo_act * 0.65) * escala_lado
                             canvas.create_line(
-                                ox - w_guiño + mirada_x, cy_ojo + 4 + mirada_y,
-                                ox + w_guiño + mirada_x, cy_ojo - 4 + mirada_y,
+                                ox - w_linea + mirada_x, cy_ojo + mirada_y,
+                                ox + w_linea + mirada_x, cy_ojo + mirada_y,
                                 fill=col_principal, width=8, capstyle="round",
                             )
-                        else:
+                            continue
+
+                        # Caso A: Chispa / Estrella Eureka
+                        if forma_ojo_efectiva == "chispa_estrella":
+                            rx = (ancho_ojo_act * 0.54) * pulso_resp_ojo
+                            ry = (alto_ojo_act * 0.52) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
+                            pts_star = [
+                                ox + mirada_x, cy_ojo - ry * 1.08 + mirada_y,
+                                ox + rx * 0.30 + mirada_x, cy_ojo - ry * 0.30 + mirada_y,
+                                ox + rx * 1.08 + mirada_x, cy_ojo + mirada_y,
+                                ox + rx * 0.30 + mirada_x, cy_ojo + ry * 0.30 + mirada_y,
+                                ox + mirada_x, cy_ojo + ry * 1.08 + mirada_y,
+                                ox - rx * 0.30 + mirada_x, cy_ojo + ry * 0.30 + mirada_y,
+                                ox - rx * 1.08 + mirada_x, cy_ojo + mirada_y,
+                                ox - rx * 0.30 + mirada_x, cy_ojo - ry * 0.30 + mirada_y,
+                            ]
+                            canvas.create_polygon(*pts_star, fill=col_principal, outline="", smooth=False)
+
+                        # Caso B: Entrecerrado Enfoque (Análisis táctico y concentración)
+                        elif forma_ojo_efectiva == "entrecerrado_enfoque":
                             rx = (ancho_ojo_act * 0.58) * pulso_resp_ojo
-                            ry = (alto_ojo_act * 0.58) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
+                            ry = (alto_ojo_act * 0.22) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
+                            if rx > ry + 2:
+                                canvas.create_line(
+                                    ox - (rx - ry) + mirada_x, cy_ojo + mirada_y,
+                                    ox + (rx - ry) + mirada_x, cy_ojo + mirada_y,
+                                    width=max(4, int(2 * ry)), fill=col_principal, capstyle="round",
+                                )
+                            else:
+                                canvas.create_oval(
+                                    ox - rx + mirada_x, cy_ojo - ry + mirada_y,
+                                    ox + rx + mirada_x, cy_ojo + ry + mirada_y,
+                                    fill=col_principal, outline="",
+                                )
+
+                        # Caso C: Ojo Circular Asombro (Sorpresa genuina abierta y amplia)
+                        elif forma_ojo_efectiva == "ojo_circular_asombro":
+                            r_circ = min(70.0, (alto_ojo_act * 0.58) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo)
                             canvas.create_oval(
-                                ox - rx + mirada_x, cy_ojo - ry + mirada_y,
-                                ox + rx + mirada_x, cy_ojo + ry + mirada_y,
+                                ox - r_circ + mirada_x, cy_ojo - r_circ + mirada_y,
+                                ox + r_circ + mirada_x, cy_ojo + r_circ + mirada_y,
                                 fill=col_principal, outline="",
                             )
 
-                    # Caso H: Suave Calma (Serenidad / Co-regulación respiratoria)
-                    elif forma_ojo_efectiva == "suave_calma":
-                        rx = (ancho_ojo_act * 0.54) * pulso_resp_ojo
-                        ry = (alto_ojo_act * 0.44) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
-                        canvas.create_oval(
-                            ox - rx + mirada_x, cy_ojo - ry + mirada_y,
-                            ox + rx + mirada_x, cy_ojo + ry + mirada_y,
-                            fill=col_principal, outline="",
-                        )
+                        # Caso D: Arco Feliz (Motivación / Alegría ^ ^)
+                        elif forma_ojo_efectiva == "arco_feliz" or (arco_act > 0.45 and forma_ojo_efectiva == "capsula"):
+                            rx = (ancho_ojo_act * 0.68) * pulso_resp_ojo
+                            ry = (alto_ojo_act * 0.52) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
+                            t_vals = [0.18 + i * (math.pi - 0.36) / 8 for i in range(9)]
+                            pts_arco = []
+                            for t_ang in t_vals:
+                                pts_arco.extend([
+                                    ox + rx * math.cos(t_ang) + mirada_x,
+                                    cy_ojo - ry * math.sin(t_ang) + mirada_y,
+                                ])
+                            canvas.create_line(*pts_arco, smooth=True, fill=col_principal, width=20, capstyle="round")
 
-                    # Caso I: Cápsula vertical (Neutro)
-                    else:
-                        rx = (ancho_ojo_act * 0.48) * pulso_resp_ojo
-                        ry = (alto_ojo_act * 0.50) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
-                        canvas.create_oval(
-                            ox - rx + mirada_x, cy_ojo - ry + mirada_y,
-                            ox + rx + mirada_x, cy_ojo + ry + mirada_y,
-                            fill=col_principal, outline="",
-                        )
+                        # Caso E: Diagonal Enojo / Firmeza (\ /)
+                        elif forma_ojo_efectiva == "diagonal_enojo":
+                            rx = (ancho_ojo_act * 0.50) * pulso_resp_ojo
+                            ry = (alto_ojo_act * 0.46) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
+                            s = 1 if es_izq else -1
+                            d_corte = inc_ojo_act * 0.95
+                            pts = [
+                                ox - rx + mirada_x, cy_ojo - ry - d_corte * s + mirada_y,
+                                ox + rx + mirada_x, cy_ojo - ry + d_corte * s + mirada_y,
+                                ox + rx * 0.82 + mirada_x, cy_ojo + ry + mirada_y,
+                                ox - rx * 0.82 + mirada_x, cy_ojo + ry + mirada_y,
+                            ]
+                            canvas.create_polygon(*pts, fill=col_principal, outline="", smooth=False)
+
+                        # Caso F: Caído Triste / Empatía (rotación con lados centrales perfectamente paralelos)
+                        elif forma_ojo_efectiva == "caido_triste":
+                            rx = (ancho_ojo_act * 0.48) * pulso_resp_ojo
+                            ry = (alto_ojo_act * 0.46) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
+                            s = -1 if es_izq else 1
+                            d_caida = abs(inc_ojo_act) * 0.95
+                            pts_base = [
+                                (-rx, -ry + d_caida * s),
+                                (rx, -ry - d_caida * s),
+                                (rx * 0.78, ry - d_caida * 0.4 * s),
+                                (-rx * 0.78, ry + d_caida * 0.4 * s),
+                            ]
+                            # Giro en dirección contraria hasta que los lados del centro queden perfectamente paralelos
+                            theta = math.atan2(d_caida, rx)
+                            rot_ang = (math.pi / 2.0 - theta) if es_izq else -(math.pi / 2.0 - theta)
+                            c_ang = math.cos(rot_ang)
+                            s_ang = math.sin(rot_ang)
+                            pts = []
+                            for dx, dy in pts_base:
+                                rx_pt = dx * c_ang - dy * s_ang
+                                ry_pt = dx * s_ang + dy * c_ang
+                                pts.extend([ox + rx_pt + mirada_x, cy_ojo + ry_pt + mirada_y])
+                            canvas.create_polygon(*pts, fill=col_principal, outline="", smooth=False)
+
+                        # Caso G: Suave Calma (Serenidad Zen / Co-regulación con la parte elevada al medio / \)
+                        elif forma_ojo_efectiva == "suave_calma":
+                            w_calma = (ancho_ojo_act * 0.68) * pulso_resp_ojo
+                            dy_calma = 14.0
+                            if es_izq:
+                                y_left = cy_ojo + dy_calma
+                                y_right = cy_ojo - dy_calma
+                            else:
+                                y_left = cy_ojo - dy_calma
+                                y_right = cy_ojo + dy_calma
+                            canvas.create_line(
+                                ox - w_calma + mirada_x, y_left + mirada_y,
+                                ox + w_calma + mirada_x, y_right + mirada_y,
+                                fill=col_principal, width=12, capstyle="round",
+                            )
+
+                        # Caso I: Cápsula vertical (Neutro - Pill pura vertical EVE/Cozmo)
+                        else:
+                            rx = (ancho_ojo_act * 0.48) * pulso_resp_ojo
+                            ry = (alto_ojo_act * 0.50) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
+                            if ry > rx + 2:
+                                canvas.create_line(
+                                    ox + mirada_x, cy_ojo - (ry - rx) + mirada_y,
+                                    ox + mirada_x, cy_ojo + (ry - rx) + mirada_y,
+                                    width=max(4, int(2 * rx)), fill=col_principal, capstyle="round",
+                                )
+                            else:
+                                canvas.create_oval(
+                                    ox - rx + mirada_x, cy_ojo - ry + mirada_y,
+                                    ox + rx + mirada_x, cy_ojo + ry + mirada_y,
+                                    fill=col_principal, outline="",
+                                )
 
                 # 5. Indicadores inferiores de co-regulación o habla
                 if preset_obj.guia_respiracion:
@@ -1705,56 +1813,74 @@ class RostroOttoman:
                 img_pil = Image.fromarray(frame_copia)
                 photo_ref[0] = ImageTk.PhotoImage(image=img_pil)
                 canvas.create_image(vx1, vy1, anchor="nw", image=photo_ref[0])
+                if mf.get("rostro_detectado"):
+                    canvas.create_rectangle(vx1 + 8, vy2 - 22, vx2 - 8, vy2 - 4, fill="#0F172A", outline="#10B981")
+                    canvas.create_text(
+                        (vx1 + vx2) // 2, vy2 - 13,
+                        text=f"ROSTRO DETECTADO: {mf.get('emocion_facial', 'NEUTRO')}",
+                        fill="#34D399", font=("Segoe UI", 7, "bold"),
+                    )
+                else:
+                    canvas.create_rectangle(vx1 + 8, vy2 - 22, vx2 - 8, vy2 - 4, fill="#0F172A", outline="#F59E0B")
+                    canvas.create_text(
+                        (vx1 + vx2) // 2, vy2 - 13,
+                        text="CÁMARA ACTIVA • BUSCANDO ROSTRO...",
+                        fill="#FBBF24", font=("Segoe UI", 7, "bold"),
+                    )
             except Exception:
                 frame_copia = None
 
         if frame_copia is None:
-            cx, cy = (vx1 + vx2) // 2, (vy1 + vy2) // 2
-            canvas.create_rectangle(cx - 56, cy - 64, cx + 56, cy + 64, outline="#0EA5E9", width=1, dash=(4, 3))
-            canvas.create_oval(cx - 44, cy - 54, cx + 44, cy + 54, outline="#38BDF8", width=2)
-            ap_o = float(mf.get("apertura_ojos", 0.5))
-            ten_c = float(mf.get("tension_cejas", 0.2))
-            cur_b = float(mf.get("curvatura_boca", 0.05))
+            # Componente de cámara Offline / Sin señal (sin dibujos de caras artificiales)
+            cx, cy = (vx1 + vx2) // 2, (vy1 + vy2) // 2 - 10
+            # Chasis técnico de cámara desconectada
+            canvas.create_rectangle(cx - 30, cy - 18, cx + 30, cy + 18, fill="#0F172A", outline="#334155", width=1.5)
+            canvas.create_rectangle(cx - 10, cy - 24, cx + 10, cy - 18, fill="#1E293B", outline="#334155", width=1)
+            canvas.create_oval(cx - 14, cy - 14, cx + 14, cy + 14, fill="#050811", outline="#475569", width=1.5)
+            canvas.create_oval(cx - 5, cy - 5, cx + 5, cy + 5, fill="#1E293B", outline="")
+            # Barra diagonal indicadora de corte de señal
+            canvas.create_line(cx - 35, cy + 24, cx + 35, cy - 24, fill="#F87171", width=2.5, capstyle="round")
 
-            for sig, ox in ((-1, cx - 18), (1, cx + 18)):
-                ry_o = max(2.5, 9.0 * ap_o)
-                canvas.create_oval(ox - 10, cy - 12 - ry_o, ox + 10, cy - 12 + ry_o, outline="#7DD3FC", width=2)
-                canvas.create_oval(ox - 3, cy - 14, ox + 3, cy - 10, fill="#38BDF8", outline="")
-                inclin = -8.0 * ten_c * sig
-                canvas.create_line(
-                    ox - 12, cy - 26 - inclin, ox + 12, cy - 26 + inclin,
-                    fill="#FCD34D" if ten_c > 0.55 else "#38BDF8", width=2, capstyle="round",
-                )
-            desp_b = 12.0 * cur_b
-            canvas.create_line(
-                cx - 18, cy + 24 - desp_b * 0.3,
-                cx, cy + 24 + desp_b,
-                cx + 18, cy + 24 - desp_b * 0.3,
-                smooth=True, fill="#34D399" if cur_b >= 0 else "#F87171", width=2, capstyle="round",
-            )
-            est_cam = "RADAR FACS ACTIVO" if mf.get("rostro_detectado") else "ESPERANDO WEBCAM / ROSTRO"
+            canvas.create_text(cx, cy + 38, text="CÁMARA OFFLINE", fill="#F87171", font=("Segoe UI", 9, "bold"))
+            canvas.create_text(cx, cy + 54, text="Sin señal de video USB", fill="#64748B", font=("Segoe UI", 7, "bold"))
             canvas.create_text(
-                cx, vy2 - 12,
-                text=f"{est_cam} • [{mf.get('emocion_facial', 'NEUTRO')}]",
-                fill="#94A3B8",
-                font=("Consolas", 7),
+                cx, vy2 - 10,
+                text="[ RECONECTAR DESDE EL BOTÓN INFERIOR ]",
+                fill="#475569",
+                font=("Consolas", 6, "bold"),
             )
 
         # Barras de Unidades de Acción Facial (FACS Gauges)
         gx = vx2 + 12
-        metricas_barras = [
-            ("AU1/5 Ojos", float(mf.get("apertura_ojos", 0.5)), "#38BDF8"),
-            ("AU4 Cejas", float(mf.get("tension_cejas", 0.2)), "#F59E0B"),
-            ("AU12 Sonrisa", (float(mf.get("curvatura_boca", 0.0)) + 1.0) * 0.5, "#10B981"),
-            ("AU25 Boca", float(mf.get("apertura_boca", 0.12)), "#A78BFA"),
-        ]
-        for idx_b, (etq, valor_norm, col_b) in enumerate(metricas_barras):
-            by = vy1 + 6 + idx_b * 40
-            v_clip = max(0.0, min(1.0, valor_norm))
-            canvas.create_text(gx, by, text=etq, anchor="w", fill="#CBD5E1", font=("Segoe UI", 7, "bold"))
-            canvas.create_rectangle(gx, by + 10, x2 - 14, by + 20, fill="#1E293B", outline="")
-            ancho_max = (x2 - 14) - gx
-            canvas.create_rectangle(gx, by + 10, gx + ancho_max * v_clip, by + 20, fill=col_b, outline="")
+        hay_rostro_real = (frame_copia is not None) and bool(mf.get("rostro_detectado", False))
+
+        if hay_rostro_real:
+            metricas_barras = [
+                ("AU1/5 Ojos", float(mf.get("apertura_ojos", 0.0)), "#38BDF8"),
+                ("AU4 Cejas", float(mf.get("tension_cejas", 0.0)), "#F59E0B"),
+                ("AU12 Sonrisa", max(0.0, (float(mf.get("curvatura_boca", 0.0)) + 1.0) * 0.5), "#10B981"),
+                ("AU25 Boca", float(mf.get("apertura_boca", 0.0)), "#A78BFA"),
+            ]
+            for idx_b, (etq, valor_norm, col_b) in enumerate(metricas_barras):
+                by = vy1 + 6 + idx_b * 40
+                v_clip = max(0.0, min(1.0, valor_norm))
+                canvas.create_text(gx, by, text=f"{etq} ({v_clip:.2f})", anchor="w", fill="#CBD5E1", font=("Segoe UI", 7, "bold"))
+                canvas.create_rectangle(gx, by + 10, x2 - 14, by + 20, fill="#1E293B", outline="")
+                ancho_max = (x2 - 14) - gx
+                canvas.create_rectangle(gx, by + 10, gx + ancho_max * v_clip, by + 20, fill=col_b, outline="")
+        else:
+            # Datos en reposo / offline: sin barras de color ni valores inventados
+            metricas_inactivas = [
+                "AU1/5 Ojos",
+                "AU4 Cejas",
+                "AU12 Sonrisa",
+                "AU25 Boca",
+            ]
+            for idx_b, etq in enumerate(metricas_inactivas):
+                by = vy1 + 6 + idx_b * 40
+                canvas.create_text(gx, by, text=f"{etq} [--]", anchor="w", fill="#64748B", font=("Segoe UI", 7, "bold"))
+                canvas.create_rectangle(gx, by + 10, x2 - 14, by + 20, fill="#0F172A", outline="#1E293B")
+            canvas.create_text(gx, vy2 - 4, text="FACS: DATOS EN REPOSO", anchor="w", fill="#475569", font=("Consolas", 6, "bold"))
 
         canales_str = " + ".join(c.upper() for c in self.canales_activos)
         canvas.create_text(
@@ -1870,7 +1996,7 @@ def exportar_captura_dashboard_png(ruta_salida: Path) -> Path:
     ax.add_patch(patches.FancyBboxPatch((470, 12), 440, 460, boxstyle="round,pad=0,rounding_size=6",
                                         facecolor="#0D1322", edgecolor="#1D4ED8", linewidth=2.5))
     ax.text(690, 28, "OTTOMAN G1  •  MODO: CO-REGULACIÓN Y CALMA RESPIRATORIA",
-            color="#60A5FA", fontsize=9.5, fontweight="bold", ha="center", va="center")
+            color="#38BDF8", fontsize=9.5, fontweight="bold", ha="center", va="center")
     ax.add_patch(patches.Rectangle((520, 42), 340, 24, facecolor="#451A03", edgecolor="#F59E0B", linewidth=1))
     ax.text(690, 54, "ENMASCARAMIENTO DETECTADO: BIOMETRÍA ≠ TEXTO",
             color="#FCD34D", fontsize=7.5, fontweight="bold", ha="center", va="center")
@@ -1880,17 +2006,18 @@ def exportar_captura_dashboard_png(ruta_salida: Path) -> Path:
                                         facecolor="#050811", edgecolor="#1E293B", linewidth=3.0))
     # Resplandor interior suave
     ax.add_patch(patches.FancyBboxPatch((490, 70), 400, 348, boxstyle="round,pad=0,rounding_size=56",
-                                        fill=False, edgecolor="#60A5FA", linewidth=1.8, alpha=0.5))
-    # Reflejo especular curvo de cristal
-    ax.add_patch(patches.Arc((690 - 40, 195), 320, 180, angle=12, theta1=65, theta2=145,
-                             edgecolor="#1E293B", linewidth=3.2))
+                                        fill=False, edgecolor="#38BDF8", linewidth=1.8, alpha=0.5))
 
-    # Ojos LED gigantes (Calma / Co-regulación respiratoria)
-    for cx_o in (690 - 82, 690 + 82):
-        ax.add_patch(patches.Ellipse((cx_o, 240), 78, 106, facecolor="#60A5FA", edgecolor="none"))
+    # Ojos LED (Calma / Co-regulación respiratoria - líneas zen con parte elevada al medio / \)
+    for sig, cx_o in ((-1, 690 - 82), (1, 690 + 82)):
+        y_ext = 240 + 7.0
+        y_int = 240 - 7.0
+        y1_p = y_ext if sig == -1 else y_int
+        y2_p = y_int if sig == -1 else y_ext
+        ax.plot([cx_o - 30, cx_o + 30], [y1_p, y2_p], color="#38BDF8", linewidth=7.5, solid_capstyle="round")
 
     ax.text(690, 442, "INHALÁ SUAVE (4s)...  •  GUÍA DE CO-REGULACIÓN ACTIVA",
-            color="#60A5FA", fontsize=8.8, style="italic", fontweight="bold", ha="center", va="center")
+            color="#38BDF8", fontsize=8.8, style="italic", fontweight="bold", ha="center", va="center")
 
     # 3. Panel Superior Derecho: Visión FACS OpenCV
     ax.add_patch(patches.FancyBboxPatch((924, 12), 440, 226, boxstyle="round,pad=0,rounding_size=6",

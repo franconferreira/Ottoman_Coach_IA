@@ -85,11 +85,12 @@ class ReconocedorVozMultimodal:
         if texto:
             print(f"  [VOZ -> TEXTO] \"{texto}\"")
         if metricas.audio_analizado:
+            tag_loc = f" | Locutor: {metricas.locutor_identificado} ({metricas.confianza_locutor*100:.0f}%)" if metricas.locutor_identificado != "DESCONOCIDO" else ""
             print(
-                f"  [VOZ -> DSP]   Tono={metricas.tono_f0_hz:.0f} Hz | "
+                f"  [VOZ -> DSP/ML] Tono={metricas.tono_f0_hz:.0f} Hz | "
                 f"Rapidez={metricas.rapidez_wpm:.0f} ppm | "
                 f"Volumen={metricas.volumen_db:.1f} dB | "
-                f"Emoción Vocal={metricas.emocion_vocal}"
+                f"Emoción={metricas.emocion_vocal}{tag_loc}"
             )
         return texto, metricas
 

@@ -170,8 +170,8 @@ class PlanificadorCoreografiaFacial:
             # 2. Detección de interrogación / duda reflexiva
             elif "¿" in bloque or "?" in bloque or any(w in txt_min for w in ("cómo", "qué", "cuál", "quién", "dónde", "probaste", "pensás", "parece")):
                 glifo = "?"
-                forma = "asimetrico_duda"
-                apertura = 0.98
+                forma = "entrecerrado_enfoque"
+                apertura = 0.88
 
             # 3. Marcadores de co-regulación, respiración y calma
             elif any(w in txt_min for w in ("tranquilo", "calma", "despacio", "inhalá", "exhalá", "respiremos", "paz", "serenidad", "relajá")):
@@ -211,8 +211,8 @@ class PlanificadorCoreografiaFacial:
                     inclinacion = 14.0
                     apertura = 0.86
                 elif emocion_base == "DUDA_INSEGURIDAD":
-                    forma = "asimetrico_duda"
-                    apertura = 0.95
+                    forma = "entrecerrado_enfoque"
+                    apertura = 0.88
                 else:
                     forma = "capsula"
                     apertura = 0.92
@@ -237,7 +237,7 @@ class PlanificadorCoreografiaFacial:
                     EventoMicroExpresion(
                         t_inicio=round(t_acumulado + dur_glifo, 2),
                         duracion=dur_resto,
-                        forma_ojo="arco_feliz" if glifo == "!" else "asimetrico_duda",
+                        forma_ojo="arco_feliz" if glifo == "!" else "entrecerrado_enfoque",
                         glifo=None,
                         apertura=apertura,
                         inclinacion=inclinacion,
@@ -1731,10 +1731,19 @@ class MotorRespuestaCoach:
             r"\b(?:no\s+estoy\s+autorizado|no\s+tengo\s+permitido)\b",
             r"\b(?:descomportate|descomporte)\b",
             r"\b(?:como\s+te\s+llamas\s+tu,\s+ottoman|tu\s+nombre\s+es\s+ottoman|te\s+llamas\s+ottoman)\b",
+            # Detección de jerga técnica/robótica de laboratorio en el diálogo:
+            r"\b(?:decibel(?:es)?|hercio(?:s)?|hertz|\bhz\b|f0|frecuencia\s+fundamental|wpm|ppm|facs|au\d+)\b",
+            r"\b(?:sensores\s+detectan|lectura\s+biom[eé]trica|algoritmo\s+indica|seg[uú]n\s+mis\s+sensores)\b",
         ]
         for p in patrones_rechazo:
             if re.search(p, t):
                 return True
+
+        # Si aún queda la palabra 'Ottoman' pero no se está presentando a sí mismo:
+        if re.search(r"\bOttoman\b", texto, flags=re.IGNORECASE):
+            if not re.search(r"\b(?:soy|me\s+llamo|mi\s+nombre\s+es)\s+Ottoman\b", texto, flags=re.IGNORECASE):
+                return True
+
         return False
 
     def registrar_turno(self, texto_usuario: str, respuesta_robot: str) -> None:
@@ -1790,8 +1799,13 @@ class MotorRespuestaCoach:
                     "Todavía no me dijiste tu nombre, che. ¿Cómo te llamás así ya nos conocemos bien?",
                 )
 
-        # 1. Identidad / nombre / presentación del robot
-        if re.search(r"\b(?:como\s+te\s+llamas|quien\s+sos|que\s+sos|tu\s+nombre|presentate|hablame\s+de\s+vos|contame\s+de\s+vos|sobre\s+vos)\b", t):
+        # 1. Identidad / presentación / apertura de charla ("hablame", "contame", "quién sos", "presentate")
+        if re.search(
+            r"\b(?:como\s+te\s+llamas|quien\s+sos|que\s+sos|tu\s+nombre|presentate|"
+            r"hablame(?:\s+de\s+vos|\s+un\s+poco|\s+de\s+algo)?|contame(?:\s+de\s+vos|\s+algo)?|"
+            r"charlame|sobre\s+vos)\b|^hablame$|^charlar$",
+            t,
+        ):
             prefijo_nom = f"¡Hola {self.nombre_usuario}! " if self.nombre_usuario else "¡Hola! "
             return (
                 "Presentación e Identidad Robótica",
@@ -1812,7 +1826,7 @@ class MotorRespuestaCoach:
             return (
                 "Rapport Social y Apertura Empática",
                 "MOTIVACION_ALEGRIA",
-                "¡Por acá todo de diez! Motores listos y sensores activos para darte una mano. ¿Cómo venís vos hoy con tus cosas?",
+                "¡Por acá todo de diez! Con toda la energía para darte una mano en lo que necesites. ¿Cómo venís vos hoy con tus cosas?",
             )
 
         # 4. Usuario responde que está bien / tranquilo ("estoy bien", "todo bien", "bien y vos")
@@ -2088,20 +2102,34 @@ class MotorRespuestaCoach:
 
     def _construir_contexto_sensorial(self, estado: EstadoAfectivoUsuario, estrategia: str) -> str:
         partes = [
-            f"Emoción detectada en el usuario: {estado.emocion_dominante} "
-            f"(Valencia={estado.valencia:+.2f}, Arousal={estado.arousal:+.2f}). "
-            f"Estrategia HRI a aplicar: {estrategia}."
+            f"Estado emocional percibido: {estado.emocion_dominante}. "
+            f"Estrategia de coaching sugerida: {estrategia}."
         ]
         if estado.facial.rostro_detectado:
-            partes.append(f"Cámara FACS: rostro con expresión {estado.facial.emocion_facial}.")
+            exp_facial = estado.facial.emocion_facial.lower().replace("_", " ")
+            partes.append(f"Expresión en el rostro del usuario: {exp_facial}.")
         if estado.acustica.audio_analizado:
-            partes.append(
-                f"Voz del usuario: tono {estado.acustica.tono_f0_hz:.0f} Hz, "
-                f"velocidad {estado.acustica.rapidez_wpm:.0f} ppm, volumen {estado.acustica.volumen_db:.0f} dB."
-            )
+            # Describir la voz cualitativamente SIN números ni unidades de laboratorio
+            acu = estado.acustica
+            rasgos_voz = []
+            if acu.tono_f0_hz > 190:
+                rasgos_voz.append("tono agudo")
+            elif acu.tono_f0_hz < 130:
+                rasgos_voz.append("tono grave o apagado")
+            if acu.rapidez_wpm > 170:
+                rasgos_voz.append("ritmo rápido o acelerado")
+            elif acu.rapidez_wpm < 115:
+                rasgos_voz.append("ritmo lento o pausado")
+            if acu.volumen_db < -26:
+                rasgos_voz.append("volumen bajo o suave")
+            elif acu.volumen_db > -18:
+                rasgos_voz.append("volumen alto o enérgico")
+
+            desc_voz = ", ".join(rasgos_voz) if rasgos_voz else "tono y ritmo moderados"
+            partes.append(f"Sensación en la voz del usuario: {desc_voz}.")
         if estado.incongruencia_detectada:
             partes.append(
-                f"ATENCIÓN INCONGRUENCIA: {estado.detalle_incongruencia}. Mencionalo con mucha empatía."
+                f"Observación de incongruencia: {estado.detalle_incongruencia}. Comentalo con total calidez humana, jamás como un informe técnico."
             )
         return " ".join(partes)
 
@@ -2124,21 +2152,26 @@ class MotorRespuestaCoach:
         if estado.incongruencia_detectada:
             tono_guia += f" Nota importante: {estado.detalle_incongruencia}. Mencionalo con tacto."
 
-        nom_usr = self.nombre_usuario if self.nombre_usuario else "el usuario (no sabés su nombre todavía; tratalo cordialmente de 'vos')"
+        nom_usr = self.nombre_usuario if self.nombre_usuario else "el usuario (no sabés su nombre; trátalo de 'vos')"
         sistema = (
-            "Tu rol: Sos Ottoman, un robot humanoide Unitree G1 de UADE actuando como compañero y coach emocional. "
+            "Sos Ottoman, robot humanoide Unitree G1 de UADE y coach emocional. "
             f"Estás hablando con {nom_usr}. "
-            "REGLAS CRÍTICAS DE IDENTIDAD Y SEGURIDAD: "
-            "1. TU nombre es Ottoman. Vos sos el robot. NUNCA llames Ottoman al usuario ni asumas que se llama así. "
-            "2. Sos un coach de apoyo ante el estrés, la frustración, el enojo o el estudio. "
-            "3. Es tu deber y propósito escuchar, contener y desescalar el enojo, la tristeza o el cansancio del usuario. "
-            "4. NUNCA te niegues a ayudarlo, NUNCA digas que 'no podés intervenir' ni hables de 'libre voluntad'. "
-            "5. Usá español rioplatense natural ('vos', 'tenés', 'mirá', 'dale', 'tranqui'), sin jerga pesada ni formalismos rígidos. "
-            "6. Respondé de forma específica al tema en 2 oraciones breves (máximo 40 palabras), sin usar listas. "
+            "DIRECTIVAS: "
+            "1. La persona que te habla es un estudiante. NUNCA la llames por ningún nombre propio a menos que te lo haya dicho explícitamente. "
+            "2. Sos un coach empático y cercano: acompañá, escuchá y contené al usuario siempre que esté cansado, trabado o enojado. "
+            "3. NUNCA te niegues a ayudarlo ni digas que 'no podés intervenir' ni hables de 'libre voluntad'. "
+            "4. Hablá en español rioplatense natural y cercano ('vos', 'tenés', 'mirá', 'dale'), sin jerga pesada ni modismos exagerados. "
+            "5. PROHIBICIÓN ESTRICTA: NUNCA menciones mediciones técnicas, decibeles (dB), hercios (Hz), frecuencias, velocidad en palabras por minuto, biometría ni sensores. Hablá como un amigo o tutor humano empático ('te noto la voz apagada', 'te veo la mirada cansada'). "
+            "6. Respondé en 2 oraciones breves (máximo 40 palabras), sin usar listas ni enumeraciones. "
             f"{tono_guia}"
         )
         mensajes: list[dict[str, str]] = [
             {"role": "system", "content": sistema},
+            {"role": "user", "content": "Hablame un poco."},
+            {
+                "role": "assistant",
+                "content": "¡Buenas! Acá estoy listo para charlar o ayudarte a destrabar lo que necesites. ¿En qué estás trabajando hoy?",
+            },
             {"role": "user", "content": "Estoy re caliente con este trabajo práctico, no me sale nada."},
             {
                 "role": "assistant",
@@ -2161,6 +2194,12 @@ class MotorRespuestaCoach:
             )
             texto = res["choices"][0]["message"]["content"].strip()
             texto = re.sub(r"^(?:Ottoman|Asistente|Respuesta)\s*:\s*", "", texto, flags=re.IGNORECASE).strip()
+            # Limpiar cualquier vocativo donde el LLM intente llamar 'Ottoman' al usuario
+            texto = re.sub(r",\s*Ottoman\b", "", texto, flags=re.IGNORECASE)
+            texto = re.sub(r"\bOttoman\s*,\s*", "", texto, flags=re.IGNORECASE)
+            texto = re.sub(r"\b(?:hola|che|tranqui|amigo|fiera)\s+Ottoman\b", r"\1", texto, flags=re.IGNORECASE)
+            texto = re.sub(r"\bOttoman\s*([.?!¿¡])", r"\1", texto, flags=re.IGNORECASE)
+            texto = re.sub(r"\s+", " ", texto).strip()
             if self._es_rechazo_invalido_llm(texto):
                 return ""
             return texto
@@ -2179,10 +2218,11 @@ class MotorRespuestaCoach:
         nom_usr = self.nombre_usuario if self.nombre_usuario else "el usuario (no sabés su nombre; tratalo cordialmente de 'vos')"
         sistema = (
             f"Sos Ottoman, el robot humanoide Unitree G1 de UADE actuando como compañero y Coach Emocional ético. "
-            f"Estás hablando con {nom_usr}. TU nombre es Ottoman; NUNCA llames Ottoman al usuario. "
+            f"Estás hablando con {nom_usr}. TU nombre es Ottoman; NUNCA llames Ottoman al usuario ni asumas su nombre. "
             f"Es tu deber acompañar y contener al usuario en su enojo, tristeza o estrés; NUNCA te niegues a ayudarlo ni hables de libre voluntad. "
-            f"Respondé en español rioplatense natural y casual ('vos', 'tenés', 'mirá', 'dale') en MÁXIMO 2 oraciones breves (40 palabras), sin jerga pesada. "
-            f"Estilo léxico: {prosodia.estilo_lexico}. Contexto biométrico: {ctx}"
+            f"Respondé en español rioplatense natural y casual ('vos', 'tenés', 'mirá', 'dale') en MÁXIMO 2 oraciones breves (40 palabras), sin jerga pesada ni modismos exagerados. "
+            f"PROHIBICIÓN ESTRICTA: NUNCA menciones mediciones técnicas, decibeles (dB), hercios (Hz), frecuencias, sensores ni biometría. Hablá con empatía humana. "
+            f"Estilo léxico: {prosodia.estilo_lexico}. Contexto del usuario: {ctx}"
         )
 
         # 1. Gemini API

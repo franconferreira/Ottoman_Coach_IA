@@ -133,8 +133,11 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
 ### [2026-11-10] - Coreografía Facial Dinámica, Micro-expresiones Vivas y Glifos Heroicos (!) y (?)
 - **Archivos tocados:**
   - `mi_desarrollo/rostro_ottoman.py`:
-    - Catálogo ampliado a 9 morfologías oculares LED gigantes sobre pantalla OLED pura: `capsula`, `arco_feliz`, `chispa_estrella`, `entrecerrado_enfoque`, `ojo_circular_asombro`, `diagonal_enojo`, `caido_triste`, `asimetrico_duda` y `suave_calma`.
-    - Incorporación de renderizado nativo de Glifos Heroicos `!` y `?` (sin paréntesis) con tipografía Segoe UI bold de alta escala y reactividad de voz.
+    - Eliminación de la línea curva especular de cristal: pantalla OLED 100% limpia y pura en negro profundo (`#050811`).
+    - `ojo_circular_asombro` ampliado con radio aumentado a ~68% de escala para un asombro más expresivo.
+    - `suave_calma` renovado con líneas zen que tienen la parte elevada al medio (`/ \`) en ambos ojos (párpados relajados de meditación).
+    - Eliminación de `asimetrico_duda` unificando el estado de análisis e introspección en `entrecerrado_enfoque`.
+    - Incorporación de renderizado nativo de Glifos Heroicos `!` y `?` (sin paréntesis) como un único símbolo gigante centrado en el medio del visor OLED (~135 pt) con reactividad y pulso de voz.
     - Motor de interpolación temporal y micro-expresiones dinámicas (`disparar_micro_expresion` / `disparar_glifo`) con desvanecimiento orgánico a la pose base.
     - Sistema *Idle Life* con micro-sacadas oculares estocásticas de atención foveal (cada 1.8-3.8s) y doble pestañeo humanoide.
   - `mi_desarrollo/coach_emocional.py`:
@@ -162,6 +165,97 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
     - Incorporación de `PATRON_DESAMBIGUACION_CHARLA` en `ClasificadorIntencion`: intercepta y enruta a `COACH_EMOCIONAL` expresiones en primera persona ("me gustaría...", "quiero...", "estaba pensando en..."), planes personales ("salir a caminar", "ir a caminar", "caminar un rato", "dar una vuelta") y metáforas reflexivas ("avanzar en mi...", "dar vueltas con...").
     - `PATRON_MOVER` ajustado para exigir contexto directivo/imperativo para infinitivos (`caminá hacia adelante`, `caminar 2 metros`), evitando que palabras sueltas como "caminar" en medio de una charla activen los motores del robot.
 - **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --sin-robot`). Verificación de desambiguación completada exitosamente.
+
+### [2026-11-10] - Erradicación Definitiva de Vocativo "Ottoman" y Enrutamiento de Apertura "Hablame"
+- **Archivos tocados:**
+  - `mi_desarrollo/coach_emocional.py`:
+    - Ampliado `_responder_conversacion_basica` para capturar aperturas directas de charla como `"Hablame"`, `"Hablame un poco"`, `"Charlame"` y `"Contame algo"`, respondiendo con la presentación oficial y cálida de Ottoman de forma inmediata sin caer a alucinaciones de LLM.
+    - Saneamiento estricto post-generación de LLM en `_consultar_llm_local_gguf`: erradicación de vocativos donde el modelo añade `", Ottoman"` o `"Ottoman,"` al final de sus oraciones.
+    - Nuevo filtro estricto en `_es_rechazo_invalido_llm`: cualquier respuesta que aún contenga la palabra *"Ottoman"* sin ser una autopresentación en primera persona (*"Soy Ottoman"*, *"Me llamo Ottoman"*) es automáticamente rechazada y sustituida por las plantillas CBR joviales de alta calidad.
+    - Reescritura del system prompt para no cebar el token "Ottoman" como nombre del interlocutor humano.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`), 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --sin-robot --evaluar`) y 7/7 tests de diálogo, identidad y apertura aprobados (`verificar_dialogo_coach.py`).
+
+### [2026-11-10] - Identidad LED Unificada (Azul Signature Permanente), Fidelidad Geométrica 1:1 en GUI y Barra de Chips de Expresión
+- **Archivos tocados:**
+  - `mi_desarrollo/rostro_ottoman.py`:
+    - **Color LED unificado permanente:** Se fijó `color_rgb=(56, 189, 248)` (`#38BDF8`, el azul cian original de Ottoman) para la totalidad de los presets en `PRESETS_ROSTRO`, eliminando los cambios de tinte cromático y preservando la expresividad puramente morfológica (estilo EVE / Astro Bot).
+    - **Ampliación de presets faciales directos:** Se añadieron a `PRESETS_ROSTRO` las claves `"ASOMBRO"` (ojos circulares gigantes), `"EUREKA"` (estrellas de 4 puntas), `"ALERTA"` (glifo heroico central `!`), `"PREGUNTA"` (glifo heroico central `?`), `"ENFOQUE"` (ojos entrecerrados analíticos) y `"CALMA"` (líneas serenas elevadas al medio `/ \`).
+    - **Geometría 1:1 en Tkinter Canvas:**
+      - `capsula`: dibujado con `create_line(..., width=2*rx, capstyle="round")`, logrando la forma de cápsula/píldora con laterales perfectamente rectos y tapas semicirculares idéntica al vector, en lugar del óvalo deformado de `create_oval`.
+      - `chispa_estrella`: removido `smooth=True` para preservar los vértices afilados y diamantinos de la estrella de 4 puntas.
+      - `diagonal_enojo` y `caido_triste`: removido `smooth=True` para mantener cortes angulares limpios sin deformación en manchas redondeadas.
+      - `ojo_circular_asombro`: radio escalado y acotado para un impacto visual máximo sin solapamiento entre ojos.
+      - `suave_calma`: geometría zen `/ \` con el centro elevado y los extremos exteriores descendentes.
+      - `entrecerrado_enfoque`: renderizado como ranura/cápsula horizontal pura.
+    - **Barra interactiva de chips de expresión (`frame_caras`):** agregada barra con 10 botones rápidos (`[😐 Neutro]`, `[😊 Sonrisa]`, `[✨ Eureka]`, `[😮 Asombro]`, `[❗ Alerta]`, `[❓ Pregunta]`, `[🧘 Calma]`, `[🔍 Enfoque]`, `[😠 Firme]`, `[🥺 Empatía]`) para probar e intercambiar cualquier rostro al instante en el visor OLED durante la ejecución.
+  - `docs/graficos/ottoman_faces_preview.png`:
+    - Lámina técnica regenerada con las 11 expresiones y glifos heroicos unificados al 100% en el azul signature `#38BDF8`.
+  - `docs/graficos/dashboard_preview.png`:
+    - Captura completa del Dashboard actualizada con el visor y ojos en azul `#38BDF8`.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --ml --sin-robot --evaluar`).
+
+### [2026-11-10] - Avance Fase 1 y 2: Pipeline de ML Multimodal (Extractor Acústico, NLP y Dataset de Control)
+- **Archivos creados:**
+  - `mi_desarrollo/extractor_acustico.py`: Extractor matemático de 34 features acústicos (Pitch F0 por autocorrelación, RMS, ataque de energía, pausas, WPM, ZCR, centroide espectral y 13 MFCCs + deltas) con `scipy` y `numpy`.
+  - `mi_desarrollo/dataset_emociones_texto.csv`: Dataset curado de 150 frases rioplatenses deportivas y afectivas (Enojo, Cansancio, Motivado, Ansiedad, Neutro).
+  - `mi_desarrollo/generar_voces_control.py`: Generador de 25 muestras de control de locutores de contraste (`invitado_*.wav` hombres y mujeres en `datos/audio/invitado/`) para biometría de locutor.
+  - `mi_desarrollo/grabar_dataset_voz.py`: Grabador interactivo guiado por terminal con frases sugeridas y cuenta regresiva para la captura de audios del usuario en `datos/audio/franco/`.
+  - `mi_desarrollo/entrenar_modelos.py`: Pipeline maestro con 5-fold Stratified Cross-Validation, matrices de confusión en PNG y exportación a `.joblib`.
+### [2026-11-11] - Integración Plena de los 3 Modelos de Machine Learning (SER, Locutor y NLP)
+- **Dataset Acústico Completo:**
+  - Grabadas 100 muestras reales del usuario (20 para cada una de las 5 emociones: Neutro, Motivado, Cansancio, Enojo, Ansiedad).
+  - Aplicada normalización de pico de ganancia al 85% (-1.4 dBFS) preservando armónicos y dinámica natural sin ruido.
+  - Generadas 25 muestras de control de locutores externos masculinos y femeninos en `datos/audio/invitado/`.
+- **Modelos Entrenados y Evaluados (Stratified Cross-Validation):**
+  - `clasificador_locutor.joblib` (SVM RBF): Reconocimiento biométrico Franco vs. Invitado (**100% Accuracy / F1=1.0**).
+  - `clasificador_emocion_voz.joblib` (Random Forest): Reconocimiento de emoción acústica pura (**77% F1-score multiclase** en validación cruzada).
+  - `clasificador_emocion_texto.joblib` (MLP Classifier) + `vectorizador_texto.joblib`: NLP emocional (>90% confianza en frases rioplatenses).
+  - Matrices de confusión guardadas en `mi_desarrollo/modelos/*.png` y métricas en `metricas_clasificadores.json`.
+- **Integración Multimodal:**
+  - `mi_desarrollo/percepcion_multimodal.py`: Conectada la inferencia de los 3 modelos con vector de 34 features en `AnalizadorAcusticoVoz.analizar_pcm` y `AnalizadorLexicoAfectivo.analizar`.
+  - `mi_desarrollo/speech_to_text.py`: Feedback en consola mostrando el locutor detectado y porcentaje de certeza biométrica.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --ml --sin-robot --evaluar`).
+
+### [2026-11-11] - Rotación de Caído Triste con Lados Centrales Paralelos (Giro Inverso)
+- **Archivos tocados:**
+  - `mi_desarrollo/rostro_ottoman.py`:
+    - En la morfología `caido_triste` (usada en `TRISTEZA_DESANIMO` y el chip rápido `[🥺 Empatía]`), se rotaron los ojos en dirección contraria al giro de 90° previo hasta que los lados de los trapezoides ubicados en el centro queden **completamente verticales y paralelos entre sí**:
+      - Ángulo de corte calculado: $\theta = \arctan(d_{\text{caida}} / r_x)$.
+      - Ojo izquierdo: rotado por $\alpha = 90^\circ - \theta$ (en sentido horario, equivalente a retroceder $\theta$ en sentido antihorario desde la posición previa de 90°).
+      - Ojo derecho: rotado por $-\alpha = -(90^\circ - \theta)$ (en sentido antihorario, equivalente a retroceder $\theta$ en sentido horario).
+      - Como resultado, las coordenadas $X$ de los dos vértices que forman el lado interior de cada trapezoide coinciden exactamente ($\Delta X = 0$), garantizando paralelismo absoluto y simetría especular.
+  - `docs/graficos/ottoman_faces_preview.png` y `docs/graficos/dashboard_preview.png`:
+    - Regeneradas las láminas técnicas oficiales reflejando los lados centrales perfectamente paralelos.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --ml --sin-robot --evaluar`).
+
+### [2026-11-11] - Erradicación de Charla Técnica y Métricas Acústicas en Diálogo Humano (Cero Decibeles / Hz)
+- **Archivos tocados:**
+  - `mi_desarrollo/percepcion_multimodal.py`:
+    - Eliminado el formateo numérico de laboratorio en `detalle_incongruencia` (`voz ({acu.rapidez_wpm:.0f} ppm, {acu.volumen_db:.1f} dB, {acu.tono_f0_hz:.0f} Hz)`).
+    - Reemplazado por observaciones cualitativas, empáticas y humanas (`señales_humanas`): *"el tono de voz bastante apagado"*, *"la mirada un poco decaída"*, *"la voz algo acelerada"*, *"cierta tensión en el rostro"*.
+    - El prefijo ante incongruencia ahora es cálido y natural: *"Me decís que estás bien, pero te noto la mirada un poco decaída y el tono de voz bastante apagado. No hace falta disimular conmigo."*
+  - `mi_desarrollo/coach_emocional.py`:
+    - `_construir_contexto_sensorial`: transformado para inyectar descripciones perceptivas cualitativas al LLM en lugar de valores numéricos de telemetría (se eliminaron los números en bruto de Hz, dB y ppm).
+    - Prohibición estricta en el System Prompt de LLMs locales y de nube: directiva explícita prohibiendo terminología técnica de laboratorio (decibeles, hercios, Hz, biometría, sensores, frecuencias) y exigiendo hablar como un amigo o tutor empático.
+    - Filtro detector `_es_rechazo_invalido_llm`: incorporado patrón de rechazo ante filtración de términos de laboratorio (`decibel`, `hercio`, `\bhz\b`, `f0`, `ppm`, `wpm`, `facs`, `sensores detectan`), descartando cualquier alucinación técnica para recurrir inmediatamente a las plantillas CBR cálidas y joviales.
+    - `_responder_conversacion_basica`: eliminado *"sensores activos"* de la respuesta social cotidiana, reemplazado por *"Con toda la energía para darte una mano"*.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`), 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --sin-robot --evaluar`) y 7/7 tests de diálogo, incongruencia y vocabulario aprobados (`verificar_dialogo_coach.py`).
+
+### [2026-11-11] - Erradicación de Cara Ficticia y Modo Offline Fiel en Panel FACS (Cero Datos Simulados)
+- **Archivos tocados:**
+  - `mi_desarrollo/rostro_ottoman.py`:
+    - Eliminado por completo el dibujo vectorial de rostro artificial (óvalos de ojos, cejas y boca) que se renderizaba en el panel superior derecho cuando no había webcam.
+    - Implementado estado **CÁMARA OFFLINE**: chasis técnico de cámara con barra diagonal roja indicando falta de señal de video USB y mensaje instructivo.
+    - Cuando la cámara está activa pero no ve a nadie, muestra el video real con el badge `BUSCANDO ROSTRO EN ESCENA...`.
+    - **Barras FACS en reposo/offline**: si no hay un rostro real detectado por OpenCV en el video, las barras `AU1/5 Ojos`, `AU4 Cejas`, `AU12 Sonrisa` y `AU25 Boca` muestran el sufijo `[--]`, fondo oscuro inactivo y 0% de llenado (sin barras de color inventadas).
+  - `mi_desarrollo/ejecutor.py`:
+    - Erradicada la proyección matemática sintética en `_metricas_faciales_para_dashboard`: si no hay rostro real frente a la cámara, devuelve métricas inactivas en 0.0 y emoción `INACTIVO`, garantizando que ninguna interacción de texto invente unidades de acción facial.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --sin-robot --evaluar`).
+
+
+
+
+
 
 
 

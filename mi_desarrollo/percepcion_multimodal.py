@@ -69,6 +69,8 @@ class MetricasAcusticasVoz:
     valencia_vocal: float = 0.0         # -1.0 .. +1.0
     arousal_vocal: float = 0.0          # -1.0 .. +1.0
     confianza: float = 0.0
+    locutor_identificado: str = "DESCONOCIDO" # "Franco", "Invitado", "DESCONOCIDO"
+    confianza_locutor: float = 0.0      # Probabilidad del clasificador biométrico
 
 
 @dataclass
@@ -91,6 +93,8 @@ class EstadoAfectivoUsuario:
     arousal: float = 0.0                # -1.0 (apagado/calmo) .. +1.0 (alta activación)
     intensidad: float = 0.5             # 0.0 .. 1.0
     confianza: float = 0.7
+    locutor_identificado: str = "DESCONOCIDO"
+    confianza_locutor: float = 0.0
     es_crisis_etica: bool = False
     incongruencia_detectada: bool = False
     detalle_incongruencia: str = ""
@@ -373,11 +377,35 @@ class AnalizadorFacial:
 
 
 # =====================================================================
-#  2. ANALIZADOR ACÚSTICO DE VOZ (PROSODIA Y DSP CON NUMPY)
+#  2. ANALIZADOR ACÚSTICO DE VOZ (PROSODIA, DSP Y MODELOS ML)
 # =====================================================================
 
 class AnalizadorAcusticoVoz:
-    """Extrae Tono (F0 Hz), Volumen (dBFS), Rapidez (WPM) y Pausas de la voz."""
+    """Extrae Tono (F0 Hz), Volumen (dBFS), Rapidez (WPM), Pausas y Emoción de la voz.
+    Utiliza modelos supervisados entrenados (SER y Biometría) con fallback a reglas heurísticas.
+    """
+
+    def __init__(self):
+        self._modelo_ser = None
+        self._modelo_locutor = None
+        self._extractor_robusto = None
+        self._cargar_modelos_ml()
+
+    def _cargar_modelos_ml(self):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        path_ser = os.path.join(base_dir, "modelos", "clasificador_emocion_voz.joblib")
+        path_loc = os.path.join(base_dir, "modelos", "clasificador_locutor.joblib")
+        try:
+            import joblib
+            from extractor_acustico import ExtractorAcusticoRobusto
+            self._extractor_robusto = ExtractorAcusticoRobusto()
+            if os.path.exists(path_ser):
+                self._modelo_ser = joblib.load(path_ser)
+            if os.path.exists(path_loc):
+                self._modelo_locutor = joblib.load(path_loc)
+        except Exception:
+            self._modelo_ser = None
+            self._modelo_locutor = None
 
     def analizar_pcm(
         self,
@@ -484,7 +512,7 @@ class AnalizadorAcusticoVoz:
             # En español ~2.1 sílabas promedio por palabra
             rapidez_wpm = float(np.clip((silabas_por_seg / 2.1) * 60.0, 70.0, 250.0))
 
-        return self.clasificar_desde_prosodia(
+        res_prosodia = self.clasificar_desde_prosodia(
             tono_f0_hz=tono_f0_hz,
             variabilidad_tono_hz=variabilidad_tono_hz,
             volumen_db=volumen_db,
@@ -492,6 +520,84 @@ class AnalizadorAcusticoVoz:
             ratio_pausas=ratio_pausas,
             ataque_energia=ataque_energia,
         )
+
+        # Inferencia con Modelos Supervisados de Machine Learning
+        locutor_pred = "DESCONOCIDO"
+        conf_locutor = 0.0
+        emocion_ml = res_prosodia.emocion_vocal
+        confianza_final = res_prosodia.confianza
+
+        # Si las heurísticas acústicas detectan condiciones extremas (ej. voz grave y muy baja -> tristeza),
+        # se priorizan esas métricas físicas basales para asegurar la coherencia del análisis prosódico.
+        es_heuristica_fuerte = (volumen_db <= -26.0 and rapidez_wpm <= 115.0) or (volumen_db >= -12.5 and ataque_energia >= 0.45)
+
+        if not es_heuristica_fuerte and self._extractor_robusto is not None and (self._modelo_ser is not None or self._modelo_locutor is not None):
+            try:
+                feat = self._extractor_robusto.extraer_desde_audio(
+                    arr, sample_rate=sample_rate, texto_opcional=texto_transcrito
+                )
+                feat_2d = feat.reshape(1, -1)
+
+                # 1. Reconocimiento de Locutor
+                if self._modelo_locutor is not None:
+                    locutor_pred = str(self._modelo_locutor.predict(feat_2d)[0])
+                    if hasattr(self._modelo_locutor, "predict_proba"):
+                        conf_locutor = float(np.max(self._modelo_locutor.predict_proba(feat_2d)[0]))
+                    else:
+                        conf_locutor = 0.90
+
+                # 2. Clasificador Acústico SER (Speech Emotion Recognition)
+                if self._modelo_ser is not None:
+                    clase_ser = str(self._modelo_ser.predict(feat_2d)[0]).upper()
+                    if hasattr(self._modelo_ser, "predict_proba"):
+                        proba_ser = float(np.max(self._modelo_ser.predict_proba(feat_2d)[0]))
+                    else:
+                        proba_ser = 0.80
+
+                    # Mapear nombres de clases estándar a etiquetas del sistema
+                    mapeo_ser = {
+                        "ENOJO": "ENOJO_FRUSTRACION",
+                        "MOTIVADO": "MOTIVACION_ALEGRIA",
+                        "CANSANCIO": "TRISTEZA_DESANIMO",
+                        "ANSIEDAD": "ANSIEDAD_ESTRES",
+                        "NEUTRO": "NEUTRO",
+                    }
+                    emocion_ml = mapeo_ser.get(clase_ser, clase_ser)
+                    confianza_final = round(float(np.clip(proba_ser, 0.50, 0.98)), 3)
+
+                    # Ajustar valencia/arousal en concordancia con el modelo ML
+                    if "ENOJO" in emocion_ml:
+                        res_prosodia.valencia_vocal = -0.65
+                        res_prosodia.arousal_vocal = max(0.40, res_prosodia.arousal_vocal)
+                    elif "ANSIEDAD" in emocion_ml:
+                        res_prosodia.valencia_vocal = -0.55
+                        res_prosodia.arousal_vocal = max(0.50, res_prosodia.arousal_vocal)
+                    elif "TRISTEZA" in emocion_ml or "CANSANCIO" in emocion_ml:
+                        res_prosodia.valencia_vocal = -0.60
+                        res_prosodia.arousal_vocal = min(-0.20, res_prosodia.arousal_vocal)
+                    elif "MOTIVACION" in emocion_ml:
+                        res_prosodia.valencia_vocal = +0.55
+                        res_prosodia.arousal_vocal = max(0.30, res_prosodia.arousal_vocal)
+            except Exception:
+                pass  # Conserva el resultado de las heurísticas de respaldo
+        elif self._extractor_robusto is not None and self._modelo_locutor is not None:
+            # Aunque la prosodia física sea determinante, extraer locutor
+            try:
+                feat = self._extractor_robusto.extraer_desde_audio(
+                    arr, sample_rate=sample_rate, texto_opcional=texto_transcrito
+                )
+                feat_2d = feat.reshape(1, -1)
+                locutor_pred = str(self._modelo_locutor.predict(feat_2d)[0])
+                if hasattr(self._modelo_locutor, "predict_proba"):
+                    conf_locutor = float(np.max(self._modelo_locutor.predict_proba(feat_2d)[0]))
+            except Exception:
+                pass
+
+        res_prosodia.emocion_vocal = emocion_ml
+        res_prosodia.confianza = confianza_final
+        res_prosodia.locutor_identificado = locutor_pred
+        res_prosodia.confianza_locutor = round(conf_locutor, 3)
+        return res_prosodia
 
     @staticmethod
     def clasificar_desde_prosodia(
@@ -648,6 +754,24 @@ class AnalizadorLexicoAfectivo:
         r"\b(estoy bien|todo bien|no pasa nada|tranqui|normal|nada grave)\b"
     )
 
+    def __init__(self):
+        self._modelo_texto = None
+        self._vectorizador = None
+        self._cargar_modelo_nlp()
+
+    def _cargar_modelo_nlp(self):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        path_mod = os.path.join(base_dir, "modelos", "clasificador_emocion_texto.joblib")
+        path_vec = os.path.join(base_dir, "modelos", "vectorizador_texto.joblib")
+        try:
+            import joblib
+            if os.path.exists(path_mod) and os.path.exists(path_vec):
+                self._modelo_texto = joblib.load(path_mod)
+                self._vectorizador = joblib.load(path_vec)
+        except Exception:
+            self._modelo_texto = None
+            self._vectorizador = None
+
     def analizar(self, texto: str) -> ResultadoLexico:
         texto_norm = normalizar_texto(texto).strip()
         if not texto_norm:
@@ -688,6 +812,34 @@ class AnalizadorLexicoAfectivo:
         )
 
         if not puntajes:
+            # Si el diccionario estático no capturó ninguna palabra clave, consultar al modelo supervisado NLP
+            if self._modelo_texto is not None and self._vectorizador is not None and len(texto_norm) >= 3:
+                try:
+                    X_vec = self._vectorizador.transform([texto])
+                    clase_nlp = str(self._modelo_texto.predict(X_vec)[0]).upper()
+                    conf_nlp = float(np.max(self._modelo_texto.predict_proba(X_vec)[0]))
+                    if conf_nlp >= 0.70 and clase_nlp != "NEUTRO":
+                        mapeo_nlp = {
+                            "ENOJO": "ENOJO_FRUSTRACION",
+                            "CANSANCIO": "TRISTEZA_DESANIMO",
+                            "MOTIVADO": "MOTIVACION_ALEGRIA",
+                            "ANSIEDAD": "ANSIEDAD_ESTRES",
+                        }
+                        emo_nlp = mapeo_nlp.get(clase_nlp, clase_nlp)
+                        if emo_nlp in self.LEXICO_EMOCIONAL:
+                            val_base, aro_base, _ = self.LEXICO_EMOCIONAL[emo_nlp]
+                            return ResultadoLexico(
+                                emocion_lexica=emo_nlp,
+                                valencia_lexica=round(float(val_base * conf_nlp), 3),
+                                arousal_lexico=round(float(aro_base * conf_nlp), 3),
+                                intensidad_lexica=round(conf_nlp, 3),
+                                es_crisis_etica=False,
+                                palabras_clave=[f"ML_NLP:{clase_nlp}"],
+                                es_expresion_emocional=True,
+                            )
+                except Exception:
+                    pass
+
             return ResultadoLexico(
                 emocion_lexica="NEUTRO",
                 valencia_lexica=0.08 if self.FRASES_ENMASCARAMIENTO.search(texto_norm) else 0.0,
@@ -842,25 +994,38 @@ class FusionadorMultimodal:
         # Ejemplo: dice "estoy bien / no pasa nada" pero la cara o la voz muestran malestar claro.
         incongruencia = False
         detalle_inc = ""
-        señales_no_verbales_neg = []
+        señales_humanas = []
+
         if fac.rostro_detectado and fac.valencia_facial <= cfg.umbral_cara_neg:
-            señales_no_verbales_neg.append(f"rostro ({fac.emocion_facial.lower()})")
+            if fac.emocion_facial in ("TRISTEZA_DESANIMO", "ANSIEDAD_ESTRES"):
+                señales_humanas.append("la mirada un poco decaída")
+            elif fac.emocion_facial == "ENOJO_FRUSTRACION":
+                señales_humanas.append("cierta tensión en el rostro")
+            else:
+                señales_humanas.append("la expresión del rostro algo apagada")
+
         if acu.audio_analizado and (
             acu.valencia_vocal <= cfg.umbral_voz_neg
             or abs(acu.arousal_vocal) >= cfg.umbral_voz_arousal
         ):
-            señales_no_verbales_neg.append(
-                f"voz ({acu.rapidez_wpm:.0f} ppm, {acu.volumen_db:.1f} dB, {acu.tono_f0_hz:.0f} Hz)"
-            )
+            if acu.valencia_vocal <= cfg.umbral_voz_neg:
+                if acu.volumen_db <= -26.0 or acu.rapidez_wpm <= 115.0:
+                    señales_humanas.append("el tono de voz bastante apagado")
+                else:
+                    señales_humanas.append("la voz algo decaída")
+            elif acu.arousal_vocal >= cfg.umbral_voz_arousal:
+                if acu.rapidez_wpm >= 170.0:
+                    señales_humanas.append("la voz algo acelerada")
+                else:
+                    señales_humanas.append("cierta tensión en la voz")
+            else:
+                señales_humanas.append("el tono de voz con cierta inquietud")
 
-        if res_lex.valencia_lexica >= -0.05 and señales_no_verbales_neg:
+        if res_lex.valencia_lexica >= -0.05 and señales_humanas:
             # Si las palabras son neutras/positivas pero el cuerpo/voz transmite malestar,
             # aplicamos el vector de pesos de incongruencia (optimizado por Algoritmo Genético).
             incongruencia = True
-            detalle_inc = (
-                "Tus palabras suenan tranquilas, pero percibo tensión o desánimo en tu "
-                + " y ".join(señales_no_verbales_neg)
-            )
+            detalle_inc = "Me decís que estás bien, pero te noto " + " y ".join(señales_humanas)
             if fac.rostro_detectado and acu.audio_analizado:
                 si = max(1e-6, cfg.inc_lexico + cfg.inc_voz + cfg.inc_cara)
                 pesos = {
@@ -909,6 +1074,8 @@ class FusionadorMultimodal:
             arousal=round(arousal, 3),
             intensidad=round(intensidad, 3),
             confianza=round(confianza, 3),
+            locutor_identificado=acu.locutor_identificado,
+            confianza_locutor=acu.confianza_locutor,
             es_crisis_etica=False,
             incongruencia_detectada=incongruencia,
             detalle_incongruencia=detalle_inc,
