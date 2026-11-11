@@ -286,6 +286,19 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
     - Corregida consulta de estado operacional para mostrar `ENFOQUE` (análisis táctico de batería) en vez de `NEUTRO`.
 - **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --ml --sin-robot --evaluar`).
 
+### [2026-11-11] - Rediseño Total del Estudio y Visor Interactivo 3D (Unitree G1)
+- **Archivos tocados:**
+  - `mi_desarrollo/demo_posturas_3d.py`:
+    - Reescritura integral de la aplicación en un estudio visual profesional con arquitectura modular y pestañas categorizadas (`ttk.Notebook`).
+    - **Pestaña 1 (🎭 Emotes Teatrales)**: Panel con acceso directo a cada uno de los roles (Alegría, Tristeza, Enojo, Ansiedad, Duda, Neutro y Crisis), permitiendo ejecutar de forma individual sus posturas base, ademanes icónicos y cada variante secuencial de emote (Show Action Sequencing).
+    - **Pestaña 2 (🚶 Locomoción y Físico)**: Controles directos para marcha bípeda continua en dos patas, giro rotacional en el lugar, saludo humanoide a cámara y reposo vivo.
+    - **Pestaña 3 (🖐️ Galería de Manos 6-DoF)**: Banco interactivo con los 7 arquetipos de manos diestras Inspire RH56 (Cascada anatómica, Pulgar arriba, Puño victoria, Mano al pecho empática, Barrera de frenado, Señalamiento cómplice y Palma declamatoria), con selección de mano (Derecha, Izquierda o Ambas).
+    - **Pestaña 4 (🫁 Capas Vivas y Sliders)**: Control del modo habla con ademanes co-speech, checkboxes para activar/desactivar en tiempo real la respiración diafragmática (~4s) y el balanceo pendular con contrapposto (~6.5s), más sliders del plano de Russell (Valencia y Arousal).
+    - **Cámaras y Telemetría**: Selector de cámaras (Frontal Cuerpo Entero, Primer Plano Torso, Zoom Detalle Manos y Perfil 3/4), botones de rotación orbital y zoom, barra de transporte con pausa/velocidad y monitor de ángulos articulares en tiempo real.
+  - `PROBAR_POSTURA_3D.bat`:
+    - Actualizado con carátula e información de inicio del nuevo visor interactivo.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --sin-robot`).
+
 
 
 
