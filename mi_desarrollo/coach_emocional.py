@@ -185,9 +185,9 @@ class PlanificadorCoreografiaFacial:
 
             # 5. Marcadores de empatía cálida y contención
             elif any(w in txt_min for w in ("entiendo", "difícil", "cuesta", "duro", "pesar", "triste", "estoy con vos", "abrazo")):
-                forma = "caido_triste"
-                inclinacion = -14.0
-                apertura = 0.80
+                forma = "parpado_inferior_calido"
+                inclinacion = 0.0
+                apertura = 0.85
 
             # 6. Marcadores de asombro y descubrimiento
             elif any(w in txt_min for w in ("guau", "sorprendente", "mirá", "increíble", "asombroso")):
@@ -203,9 +203,9 @@ class PlanificadorCoreografiaFacial:
                     forma = "suave_calma"
                     apertura = 0.76
                 elif emocion_base == "TRISTEZA_DESANIMO":
-                    forma = "caido_triste"
-                    inclinacion = -12.0
-                    apertura = 0.82
+                    forma = "parpado_inferior_calido"
+                    inclinacion = 0.0
+                    apertura = 0.85
                 elif emocion_base == "ENOJO_FRUSTRACION":
                     forma = "diagonal_enojo"
                     inclinacion = 14.0
@@ -1279,6 +1279,15 @@ class RepertorioAnimatronicoG1:
         },
     }
 
+    # Mapeos posturales cinemáticos para los presets faciales ampliados
+    ROLES["PREGUNTA"] = ROLES["DUDA_INSEGURIDAD"]
+    ROLES["ENFOQUE"] = ROLES["DUDA_INSEGURIDAD"]
+    ROLES["CALMA"] = ROLES["ANSIEDAD_ESTRES"]
+    ROLES["EUREKA"] = ROLES["MOTIVACION_ALEGRIA"]
+    ROLES["ASOMBRO"] = ROLES["MOTIVACION_ALEGRIA"]
+    ROLES["ALERTA"] = ROLES["ENOJO_FRUSTRACION"]
+    ROLES["ALEGRIA"] = ROLES["MOTIVACION_ALEGRIA"]
+
 
 class CoreografoPosturalG1:
     """Diseña el lenguaje corporal (kinésica + proxémica) según la emoción."""
@@ -1753,6 +1762,66 @@ class MotorRespuestaCoach:
         if respuesta_robot and respuesta_robot.strip():
             self.historial_chat.append({"role": "assistant", "content": respuesta_robot.strip()})
 
+    @classmethod
+    def inferir_preset_desde_respuesta(cls, texto_respuesta: str, texto_usuario: str = "") -> str:
+        """Infiere el preset facial más expresivo y congruente para Ottoman según su respuesta.
+
+        Permite que Ottoman exprese la actitud y emoción de lo que está comunicando
+        (curiosidad en preguntas, entusiasmo en aliento, empatía en contención,
+        enfoque en análisis táctico o calma en descompresión) en lugar de permanecer estático en NEUTRO.
+        """
+        if not texto_respuesta or not texto_respuesta.strip():
+            return "NEUTRO"
+
+        t_min = texto_respuesta.lower().strip()
+
+        # 1. Alerta / Freno / Advertencia de seguridad
+        if any(w in t_min for w in ("cuidado", "atención", "ojo", "freno", "peligro", "advertencia", "rechazado", "bloqueado")):
+            return "ALERTA"
+
+        # 2. Asombro / Descubrimiento fascinante
+        if any(w in t_min for w in ("guau", "sorprendente", "mirá eso", "increíble", "asombroso", "qué locura")):
+            return "ASOMBRO"
+
+        # 3. Eureka / Iluminación / Gran idea
+        if any(w in t_min for w in ("eureka", "idea brillante", "se me ocurre algo", "lo resolvimos")):
+            return "EUREKA"
+
+        # 4. Empatía cálida y contención profunda (AU6 / parpado_inferior_calido)
+        if any(w in t_min for w in (
+            "entiendo", "difícil", "cuesta", "duro", "pesar", "triste", "estoy con vos",
+            "abrazo", "no te preocupes", "frenar un momento", "tomate tu tiempo", "te acompaño",
+            "no hay apuro", "a tu ritmo", "sin presiones", "comprensible"
+        )):
+            return "TRISTEZA_DESANIMO"  # Preset empático con parpado_inferior_calido
+
+        # 5. Calma / Guía de respiración / Descompresión
+        if any(w in t_min for w in ("calma", "tranqui", "despacio", "inhalá", "exhalá", "respiremos", "paz", "serenidad", "relajá")):
+            return "CALMA"
+
+        # 6. Pregunta / Curiosidad interrogativa (indagación y escucha activa al usuario)
+        ultimos_chars = t_min[-50:] if len(t_min) > 50 else t_min
+        if "?" in ultimos_chars or any(ultimos_chars.endswith(c) for c in ("?", "?\"", "?'")) or any(
+            w in ultimos_chars for w in ("querés", "contame", "pensás", "parece", "arrancar", "decís")
+        ):
+            return "PREGUNTA"
+
+        # 7. Celebración, entusiasmo y motivación
+        if "¡" in t_min or any(w in t_min for w in (
+            "excelente", "genial", "vamos", "felicitaciones", "buenísimo", "de diez",
+            "un gustazo", "alegría", "logro", "bienvenido", "bárbaro", "joya", "impecable"
+        )):
+            return "MOTIVACION_ALEGRIA"
+
+        # 8. Análisis táctico, concentración y foco cognitivo
+        if any(w in t_min for w in (
+            "analicemos", "plan", "primer paso", "opciones", "enfoque", "estrategia",
+            "paso a paso", "pensemos", "revisemos", "batería", "sensores", "coordenadas", "técnica"
+        )):
+            return "ENFOQUE"
+
+        return "NEUTRO"
+
     def _responder_conversacion_basica(
         self,
         texto_usuario: str,
@@ -1795,7 +1864,7 @@ class MotorRespuestaCoach:
             else:
                 return (
                     "Consulta de Identidad Desconocida",
-                    "NEUTRO",
+                    "PREGUNTA",
                     "Todavía no me dijiste tu nombre, che. ¿Cómo te llamás así ya nos conocemos bien?",
                 )
 
@@ -1817,7 +1886,7 @@ class MotorRespuestaCoach:
         if re.search(r"\b(?:que\s+podes\s+hacer|que\s+sabes\s+hacer|para\s+que\s+servis|en\s+que\s+me\s+ayudas|como\s+funciona|que\s+comandos)\b|^ayuda$", t):
             return (
                 "Orientación de Capacidades Multimodales",
-                "NEUTRO",
+                "ENFOQUE",
                 "Puedo darte una mano con dos cosas: si me pedís avanzar, girar o saludar, muevo el cuerpo en el simulador. Y si estás estudiando o con la cabeza medio cansada, charlamos y buscamos la forma de destrabarlo juntos. ¿Por dónde querés arrancar?",
             )
 
@@ -2051,6 +2120,13 @@ class MotorRespuestaCoach:
 
         # Registrar este intercambio en el historial conversacional multiturno
         self.registrar_turno(texto_usuario, respuesta)
+
+        # Modulación facial activa de Ottoman:
+        # Si el usuario no presentaba una emoción reactiva intensa (o el preset quedó en NEUTRO),
+        # Ottoman viste activamente la expresión de su propia respuesta comunicativa
+        # (curiosidad '?', arco feliz '^ ^', empatía con párpado inferior, foco táctico o calma):
+        if preset_rostro == "NEUTRO" and emo != "CRISIS_RIESGO":
+            preset_rostro = self.inferir_preset_desde_respuesta(respuesta, texto_usuario)
 
         secuencia, dur_step, prox_m, prox_vel = CoreografoPosturalG1.obtener_coreografia(
             preset_rostro,

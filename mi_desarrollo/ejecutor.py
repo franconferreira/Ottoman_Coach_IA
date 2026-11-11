@@ -129,12 +129,12 @@ class Ejecutor:
         texto_estado = f"Mi estado operativo es óptimo. Tengo un {bat} por ciento de batería disponible y todos los sensores en línea."
         if self.rostro is not None:
             self.rostro.actualizar_estado(
-                emocion="NEUTRO",
+                emocion="ENFOQUE",
                 subtitulo=texto_estado,
                 resumen_usuario=f"Intención: CONSULTAR_ESTADO | Batería: {bat}%",
                 resumen_prosodia="Voz Ottoman -> 150 ppm (0%) | +0.0 dB | +0 Hz",
                 valencia=0.30,
-                arousal=0.10,
+                arousal=0.35,
                 incongruencia=False,
                 canales=["lexico"],
             )
@@ -208,7 +208,7 @@ class Ejecutor:
 
         if self.rostro is not None:
             self.rostro.actualizar_estado(
-                emocion="ALEGRIA" if emo_saludo == "MOTIVACION_ALEGRIA" else emo_saludo,
+                emocion=emo_saludo,
                 subtitulo=texto_saludo,
                 resumen_usuario=f"Intención: SALUDO | V:{val_saludo:+.2f} A:{aro_saludo:+.2f}",
                 resumen_prosodia=resumen_voz,

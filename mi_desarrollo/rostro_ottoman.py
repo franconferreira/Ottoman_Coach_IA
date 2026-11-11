@@ -97,18 +97,18 @@ PRESETS_ROSTRO: dict[str, PresetFacialRobot] = {
     "TRISTEZA_DESANIMO": PresetFacialRobot(
         nombre="Empatía Cálida y Contención",
         color_rgb=(56, 189, 248),      # Azul signature constante (#38BDF8)
-        apertura_ojo=0.82,
-        arco_feliz=0.10,
-        angulo_ceja_izq=16.0,
-        angulo_ceja_der=-16.0,
-        altura_ceja=-3.0,
-        curvatura_boca=0.35,
+        apertura_ojo=0.85,
+        arco_feliz=0.0,
+        angulo_ceja_izq=0.0,
+        angulo_ceja_der=0.0,
+        altura_ceja=0.0,
+        curvatura_boca=0.20,
         guia_respiracion=False,
         intervalo_parpadeo=4.5,
-        forma_ojo="caido_triste",
-        inclinacion_ojo=-14.0,
+        forma_ojo="parpado_inferior_calido",
+        inclinacion_ojo=0.0,
         ancho_ojo=74.0,
-        alto_ojo=114.0,
+        alto_ojo=112.0,
         escala_asimetrica=1.0,
     ),
     "ENOJO_FRUSTRACION": PresetFacialRobot(
@@ -240,6 +240,11 @@ PRESETS_ROSTRO: dict[str, PresetFacialRobot] = {
         alto_ojo=106.0,
     ),
 }
+
+# Aliases sinónimos para robustez conversacional y HRI
+PRESETS_ROSTRO["ALEGRIA"] = PRESETS_ROSTRO["MOTIVACION_ALEGRIA"]
+PRESETS_ROSTRO["FELICIDAD"] = PRESETS_ROSTRO["MOTIVACION_ALEGRIA"]
+PRESETS_ROSTRO["EMPATIA"] = PRESETS_ROSTRO["TRISTEZA_DESANIMO"]
 
 
 def _rgb_hex(rgb: tuple[float, float, float]) -> str:
@@ -1399,11 +1404,17 @@ class RostroOttoman:
                     h = bool(msg.get("hablando", False))
                     self.simulador_3d.fijar_estado_habla(h)
                     if not h:
-                        fin_micro_expresion = 0.0
-                        glifo_micro = None
-                        forma_ojo_micro = None
-                        apertura_micro = None
-                        inclinacion_micro = None
+                        # Si había una micro-expresión activa durante la locución,
+                        # permitimos que persista con gracia hasta 1.8s adicionales (lingering)
+                        # en vez de amputarla abruptamente en 0 milisegundos.
+                        if fin_micro_expresion > ahora:
+                            fin_micro_expresion = max(fin_micro_expresion, ahora + 1.8)
+                        else:
+                            fin_micro_expresion = 0.0
+                            glifo_micro = None
+                            forma_ojo_micro = None
+                            apertura_micro = None
+                            inclinacion_micro = None
                     if "subtitulo" in msg and msg["subtitulo"]:
                         lbl_subtitulo.config(text=f"\"{msg['subtitulo']}\"")
                 elif msg.get("cmd") == "micro_expresion":
@@ -1695,28 +1706,19 @@ class RostroOttoman:
                             ]
                             canvas.create_polygon(*pts, fill=col_principal, outline="", smooth=False)
 
-                        # Caso F: Caído Triste / Empatía (rotación con lados centrales perfectamente paralelos)
-                        elif forma_ojo_efectiva == "caido_triste":
+                        # Caso F: Párpado Inferior Cálido (Empatía Cálida y Contención / EVE / Cozmo)
+                        elif forma_ojo_efectiva in ("parpado_inferior_calido", "caido_triste"):
                             rx = (ancho_ojo_act * 0.48) * pulso_resp_ojo
                             ry = (alto_ojo_act * 0.46) * apertura_act * h_blink * pulso_habla * pulso_resp_ojo
-                            s = -1 if es_izq else 1
-                            d_caida = abs(inc_ojo_act) * 0.95
-                            pts_base = [
-                                (-rx, -ry + d_caida * s),
-                                (rx, -ry - d_caida * s),
-                                (rx * 0.78, ry - d_caida * 0.4 * s),
-                                (-rx * 0.78, ry + d_caida * 0.4 * s),
-                            ]
-                            # Giro en dirección contraria hasta que los lados del centro queden perfectamente paralelos
-                            theta = math.atan2(d_caida, rx)
-                            rot_ang = (math.pi / 2.0 - theta) if es_izq else -(math.pi / 2.0 - theta)
-                            c_ang = math.cos(rot_ang)
-                            s_ang = math.sin(rot_ang)
+                            y_base = cy_ojo + ry * 0.22
+                            t_steps = 32
                             pts = []
-                            for dx, dy in pts_base:
-                                rx_pt = dx * c_ang - dy * s_ang
-                                ry_pt = dx * s_ang + dy * c_ang
-                                pts.extend([ox + rx_pt + mirada_x, cy_ojo + ry_pt + mirada_y])
+                            for i in range(t_steps + 1):
+                                t_ang = math.pi * i / t_steps
+                                px = ox + rx * math.cos(t_ang) + mirada_x
+                                py = y_base - ry * 1.08 * math.sin(t_ang) + mirada_y
+                                pts.extend([px, py])
+                            pts.extend([ox - rx + mirada_x, y_base + mirada_y, ox + rx + mirada_x, y_base + mirada_y])
                             canvas.create_polygon(*pts, fill=col_principal, outline="", smooth=False)
 
                         # Caso G: Suave Calma (Serenidad Zen / Co-regulación con la parte elevada al medio / \)

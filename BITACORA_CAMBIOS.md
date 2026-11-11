@@ -252,6 +252,41 @@ Este archivo sirve como cuaderno de notas compartido entre los distintos chats d
     - Erradicada la proyección matemática sintética en `_metricas_faciales_para_dashboard`: si no hay rostro real frente a la cámara, devuelve métricas inactivas en 0.0 y emoción `INACTIVO`, garantizando que ninguna interacción de texto invente unidades de acción facial.
 - **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --sin-robot --evaluar`).
 
+### [2026-11-11] - Rediseño de Empatía y Contención: Párpado Inferior Cálido (Cheek-Raiser EVE / Cozmo)
+- **Archivos tocados:**
+  - `mi_desarrollo/rostro_ottoman.py`:
+    - Erradicada la antigua morfología de "ojos caídos tristes" que inducía contagio afectivo negativo en el usuario.
+    - Implementada la nueva morfología `parpado_inferior_calido`:
+      - Domo superior redondeado orgánico con base horizontal elevada y suave (simulación de *Action Unit 6 - Cheek Raiser*).
+      - Proyecta calidez, ternura, escucha empática y presencia segura (estilo EVE de WALL-E y Anki Cozmo), transmitiendo que el robot contiene y apoya sin abatirse.
+    - Actualizado `PRESETS_ROSTRO["TRISTEZA_DESANIMO"]` con `forma_ojo="parpado_inferior_calido"`, apertura de $85\%$ e inclinación neutra.
+    - Soporte como alias transparente de `caido_triste` para retrocompatibilidad total con llamadas previas.
+  - `mi_desarrollo/coach_emocional.py`:
+    - Actualizado `PlanificadorCoreografiaFacial` para emitir `forma="parpado_inferior_calido"` ante marcadores léxicos de empatía y tristeza.
+  - `docs/graficos/ottoman_faces_preview.png`:
+    - Regenerada la lámina oficial de 11 expresiones con el nuevo diseño de párpado inferior cálido en la posición 9.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --ml --sin-robot --evaluar`).
+
+### [2026-11-11] - Dinámica Facial Conversacional Activa y Persistencia Expresiva (Fin del "Siempre la misma cara")
+- **Diagnóstico del problema:**
+  1. *Dependencia exclusiva de la emoción del usuario:* Si el usuario no ingresaba palabras de queja explícitas y no había cámara/mic con gestos marcados, la emoción detectada era `NEUTRO`, fijando la cara base en `NEUTRO` sin importar lo que Ottoman respondiera.
+  2. *Corte abrupto post-locución TTS:* Al terminar de hablar (`set_hablando(False)`), las micro-expresiones se reseteaban a 0.0 ms instantáneamente, borrando cualquier gesto y devolviendo a Ottoman a `NEUTRO` en un abrir y cerrar de ojos.
+  3. *Bug en `ejecutor.py` con `ALEGRIA`:* Al saludar, se pasaba `emocion="ALEGRIA"`. Al no estar en `PRESETS_ROSTRO` (que usa `MOTIVACION_ALEGRIA`), caía en fallback `NEUTRO`.
+  4. *Respuestas básicas estancadas:* Capacidades, consultas de identidad desconocida y estado operacional tenían `NEUTRO` hardcodeado.
+- **Archivos tocados:**
+  - `mi_desarrollo/coach_emocional.py`:
+    - Implementado `MotorRespuestaCoach.inferir_preset_desde_respuesta(...)`: modula la expresión facial según la intención y tono de la *propia respuesta de Ottoman* (preguntas con `?` $\rightarrow$ `PREGUNTA`, entusiasmo $\rightarrow$ `MOTIVACION_ALEGRIA`, empatía $\rightarrow$ `TRISTEZA_DESANIMO` con párpado inferior cálido, análisis $\rightarrow$ `ENFOQUE`, calma $\rightarrow$ `CALMA`).
+    - Actualizadas intenciones sociales de `_responder_conversacion_basica` hacia `PREGUNTA` y `ENFOQUE`.
+    - Mapeados roles cinemáticos en `RepertorioAnimatronicoG1.ROLES` para `PREGUNTA`, `ENFOQUE`, `CALMA`, `EUREKA`, `ASOMBRO`, `ALERTA` y `ALEGRIA`.
+  - `mi_desarrollo/rostro_ottoman.py`:
+    - Incorporados aliases en `PRESETS_ROSTRO`: `ALEGRIA`, `FELICIDAD` y `EMPATIA`.
+    - Implementado *lingering suave* (1.8s) al terminar la locución de voz para que el usuario pueda apreciar el gesto y glifo final mientras lee la respuesta en pantalla.
+  - `mi_desarrollo/ejecutor.py`:
+    - Corregida llamada a `_saludar` para usar `emo_saludo` directo (`MOTIVACION_ALEGRIA`).
+    - Corregida consulta de estado operacional para mostrar `ENFOQUE` (análisis táctico de batería) en vez de `NEUTRO`.
+- **Estado de tests:** 16/16 pruebas multimodales superadas (`evaluar_coach.py`) y 25/25 pruebas oficiales aprobadas al 100% (`mi_tp07.py --ml --sin-robot --evaluar`).
+
+
 
 
 

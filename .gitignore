@@ -9,6 +9,6 @@ entorno/sim/.pose_actual.json
 *.mp3
 *.wav
 *.gguf
-mi_desarrollo/modelos/
+mi_desarrollo/modelos/*.gguf
 .DS_Store
 Thumbs.db

@@ -1,0 +1,119 @@
+{
+  "texto": {
+    "ANSIEDAD": {
+      "precision": 0.5151515151515151,
+      "recall": 0.5666666666666667,
+      "f1-score": 0.5396825396825397,
+      "support": 30.0
+    },
+    "CANSANCIO": {
+      "precision": 0.5357142857142857,
+      "recall": 0.5,
+      "f1-score": 0.5172413793103449,
+      "support": 30.0
+    },
+    "ENOJO": {
+      "precision": 0.5652173913043478,
+      "recall": 0.43333333333333335,
+      "f1-score": 0.49056603773584906,
+      "support": 30.0
+    },
+    "MOTIVADO": {
+      "precision": 0.4473684210526316,
+      "recall": 0.5666666666666667,
+      "f1-score": 0.5,
+      "support": 30.0
+    },
+    "NEUTRO": {
+      "precision": 0.6785714285714286,
+      "recall": 0.6333333333333333,
+      "f1-score": 0.6551724137931034,
+      "support": 30.0
+    },
+    "accuracy": 0.54,
+    "macro avg": {
+      "precision": 0.5484046083588417,
+      "recall": 0.5399999999999999,
+      "f1-score": 0.5405324741043674,
+      "support": 150.0
+    },
+    "weighted avg": {
+      "precision": 0.5484046083588417,
+      "recall": 0.54,
+      "f1-score": 0.5405324741043674,
+      "support": 150.0
+    }
+  },
+  "locutor": {
+    "Franco": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 100.0
+    },
+    "Invitado": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 25.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 125.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 125.0
+    }
+  },
+  "emocion_voz": {
+    "ANSIEDAD": {
+      "precision": 0.7619047619047619,
+      "recall": 0.8,
+      "f1-score": 0.7804878048780488,
+      "support": 20.0
+    },
+    "CANSANCIO": {
+      "precision": 0.7142857142857143,
+      "recall": 0.75,
+      "f1-score": 0.7317073170731707,
+      "support": 20.0
+    },
+    "ENOJO": {
+      "precision": 0.8421052631578947,
+      "recall": 0.8,
+      "f1-score": 0.8205128205128205,
+      "support": 20.0
+    },
+    "MOTIVADO": {
+      "precision": 0.75,
+      "recall": 0.75,
+      "f1-score": 0.75,
+      "support": 20.0
+    },
+    "NEUTRO": {
+      "precision": 0.7894736842105263,
+      "recall": 0.75,
+      "f1-score": 0.7692307692307693,
+      "support": 20.0
+    },
+    "accuracy": 0.77,
+    "macro avg": {
+      "precision": 0.7715538847117795,
+      "recall": 0.77,
+      "f1-score": 0.7703877423389619,
+      "support": 100.0
+    },
+    "weighted avg": {
+      "precision": 0.7715538847117795,
+      "recall": 0.77,
+      "f1-score": 0.7703877423389618,
+      "support": 100.0
+    }
+  }
+}
